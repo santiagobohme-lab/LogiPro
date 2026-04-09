@@ -132,7 +132,7 @@ const views = {
     billing: `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <div>
-                <h1 class="page-title">Facturación</h1>
+                <h1 class="page-title">Facturita</h1>
                 <p class="page-subtitle">Control de ingresos y cuentas por cobrar.</p>
             </div>
             <button class="btn-primary">
