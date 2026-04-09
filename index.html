@@ -1096,10 +1096,38 @@
                     <td class="px-3 py-2 text-center">${factColumn}</td>
                     <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
                     <td class="px-2 py-2 text-center">
-                        <button onclick="editService(${row.id})" title="Modificar Fila" class="text-slate-400 hover:text-primary-900 p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editService(${row.id})" title="Modificar Fila" class="text-slate-400 hover:text-primary-900 p-1 transition-colors"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService(${row.id})" title="Eliminar Servicio" class="text-slate-300 hover:text-red-600 p-1 transition-colors"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
                     </td>
                 </tr>
             `}).join('');
+        }
+
+        // DELETE SERVICE
+        async function deleteService(id) {
+            const row = excelData.find(x => x.id === id);
+            if(!row) return;
+            if(!confirm(`¿Eliminar este servicio de ${row.tipoServicio} (${row.destino}) de forma permanente?`)) return;
+            
+            // Optimistic: remove from local array
+            excelData = excelData.filter(x => x.id !== id);
+            renderClientTable();
+            showToast("Servicio eliminado localmente.");
+            
+            // Sync: send delete to backend
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteService', id: id.toString() })
+                });
+                showToast("Servicio eliminado de Google Sheets.");
+            } catch(err) {
+                console.error('Error eliminando servicio:', err);
+                showToast("Error al sincronizar eliminación.");
+            }
         }
 
         // SERVICE MODAL LOGIC (ADD / EDIT)
