@@ -81,10 +81,44 @@
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-slate-800 selection:bg-primary-100 selection:text-primary-900">
+<body class="flex h-screen overflow-hidden text-slate-800 selection:bg-primary-100 selection:text-primary-900 bg-slate-50 relative">
 
+    <!-- LOGIN OVERLAY -->
+    <div id="login-wrapper" class="absolute inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm animate-fade-in border border-white/50 backdrop-blur-sm">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-primary-900 to-primary-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
+                <i class="fa-solid fa-earth-americas text-xl"></i>
+            </div>
+            <h2 class="text-2xl font-black text-center text-slate-800 mb-1 tracking-tight">Logi Pro</h2>
+            <p class="text-center text-xs text-slate-500 mb-8 font-medium">Intranet & Logística</p>
+            
+            <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-1">Usuario</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="login-user" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-gray-200 text-slate-800 rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all" placeholder="Nombre completo">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-1">Clave de acceso</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-gray-200 text-slate-800 rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all" placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <button id="login-btn" type="submit" class="w-full bg-primary-900 hover:bg-primary-800 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-primary-900/20 transition-all mt-6 flex items-center justify-center gap-2">
+                    <span>Ingresar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP WRAPPER (Hidden by default) -->
+    <div id="app-wrapper" class="flex w-full h-full hidden">
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 hidden md:flex z-20">
+    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 md:flex z-20">
         <div class="h-16 flex items-center px-6 border-b border-gray-100 bg-white">
             <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3">
                 <i class="fa-solid fa-earth-americas text-sm"></i>
@@ -106,18 +140,22 @@
                     <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
                     <span>Balance</span>
                 </a>
+                <a href="#equipo" onclick="switchSection('equipo')" id="nav-equipo" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-solid fa-users-gear w-6 text-slate-400"></i>
+                    <span>Equipo</span>
+                </a>
             </nav>
         </div>
         
         <div class="border-t border-gray-100 bg-gray-50/50">
             <a href="#perfil" onclick="switchSection('perfil')" id="nav-perfil" class="nav-item p-4 flex items-center hover:bg-gray-100 border-r-4 border-transparent transition-colors cursor-pointer">
                 <div class="relative">
-                    <div class="h-9 w-9 rounded bg-slate-200 flex items-center justify-center text-primary-900 font-bold border border-slate-300">AT</div>
+                    <div id="sidebar-user-initials" class="h-9 w-9 rounded bg-slate-200 flex items-center justify-center text-primary-900 font-bold border border-slate-300">??</div>
                     <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div class="ml-3 flex-1 overflow-hidden">
-                    <p class="text-xs font-bold text-slate-700 truncate">Admin Trade</p>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Perfil y Ajustes</p>
+                    <p id="sidebar-user-name" class="text-xs font-bold text-slate-700 truncate">Usuario</p>
+                    <p id="sidebar-user-role" class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Rol</p>
                 </div>
                 <i class="fa-solid fa-gear text-slate-400 text-xs"></i>
             </a>
@@ -297,6 +335,66 @@
             <div id="sec-balance" class="content-section animate-fade-in hidden">
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Balance Financiero</h1>
             </div>
+            
+            <!-- SEC: EQUIPO (ADMIN ONLY) -->
+            <div id="sec-equipo" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Gestión de Equipo</h1>
+                    <button onclick="openColaboradorModal()" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium shadow-lg shadow-primary-900/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Nuevo Colaborador
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                    <table class="w-full text-left whitespace-nowrap">
+                        <thead>
+                            <tr class="text-xs text-slate-500 font-bold bg-gray-50 border-b border-gray-200 uppercase tracking-wider">
+                                <th class="px-6 py-3">Nombre / ID</th>
+                                <th class="px-6 py-3">Clave</th>
+                                <th class="px-6 py-3">Rol</th>
+                                <th class="px-6 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipo-tbody" class="divide-y divide-gray-100">
+                            <!-- Team members render here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Nuevo/Edicion Colaborador -->
+            <div id="colab-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                    <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
+                        <h3 class="text-lg font-bold text-primary-900" id="colab-modal-title">Gestión de Colaborador</h3>
+                        <button type="button" onclick="closeColabModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="fm-colab" onsubmit="handleColabSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre Completo</label>
+                            <input type="text" id="fm-colab-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none" placeholder="Juan Pérez">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Clave de Acceso</label>
+                            <input type="text" id="fm-colab-clave" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none" placeholder="Obligatoria">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nivel de Privilegios</label>
+                            <select id="fm-colab-rol" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
+                                <option value="Colaborador" selected>Colaborador (Visualización y Datos)</option>
+                                <option value="SuperAdmin">SuperAdmin (Gestión de Equipo)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-end gap-2 mt-2">
+                            <button type="button" onclick="closeColabModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                                Guardar Colaborador
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <!-- SEC: PERFIL -->
             <div id="sec-perfil" class="content-section animate-fade-in hidden">
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>
@@ -304,6 +402,7 @@
             
         </div>
     </main>
+    </div> <!-- END APP WRAPPER -->
 
     <!-- Global UI Overlays -->
     <div id="toast-container"></div>
@@ -356,6 +455,8 @@
         // --- GLOBAL VARIABLES & GOOGLE APPS SCRIPT URL ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKuVWzyht1Xh96LxL1e9DZqqTsC5JeWtyYnQEKXJyEU15Pspz45xSNfq0-cKbtRoggpg/exec";
         
+        let activeSession = null;
+        let colaboradoresData = [];
         let clientsData = [];
         let excelData = [];
         let currentUserClient = null;
@@ -417,37 +518,102 @@
             "Link Archivo": row.driveUrl || ""
         });
 
-        // ASYNC FETCH FUNCTIONS
-        async function initDataFromCloud() {
-            try {
-                isGlobalLoading = true;
-                showToast("Sincronizando con base de datos...");
-                
-                const res = await fetch(GOOGLE_SCRIPT_URL);
-                const result = await res.json();
-                
-                if(result.status === "success") {
-                    clientsData = result.clientes.map(mapFromSheetClient);
-                    excelData = result.servicios.map(mapFromSheetService);
-                    
-                    if(clientsData.length > 0 && !currentUserClient) {
-                         currentUserClient = clientsData[0].nombre;
-                    }
-
-                    renderClientsList();
-                    if(document.getElementById('cliente-detail').classList.contains('block')) {
-                         renderClientTable();
-                    }
-                    showToast("Datos globales cargados correctamente.");
-                }
-            } catch(e) {
-                console.error(e);
-                showToast("Error de conexión con la base de datos.");
-            } finally {
-                isGlobalLoading = false;
+        // AUTH & SESSION LOGIC
+        function checkSession() {
+            const saved = sessionStorage.getItem('logi_session');
+            if(saved) {
+                const creds = JSON.parse(saved);
+                performLogin(creds.nombre, creds.pass);
             }
         }
 
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+            const btn = document.getElementById('login-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Validando...`;
+            btn.disabled = true;
+
+            await performLogin(nombre, pass);
+
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
+
+        async function performLogin(nombre, pass) {
+            try {
+                showToast("Accediendo a la intranet segura...");
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'login', nombre, pass })
+                });
+                const result = await res.json();
+                
+                if (result.status === "success") {
+                    activeSession = result.session;
+                    sessionStorage.setItem('logi_session', JSON.stringify({ nombre, pass }));
+                    
+                    // Populate UI context
+                    document.getElementById('sidebar-user-name').innerText = activeSession.nombre;
+                    document.getElementById('sidebar-user-initials').innerText = activeSession.nombre.substring(0, 2).toUpperCase();
+                    document.getElementById('sidebar-user-role').innerText = activeSession.rol;
+                    
+                    if(activeSession.rol !== 'SuperAdmin') {
+                        document.getElementById('nav-equipo').classList.add('hidden');
+                    } else {
+                        document.getElementById('nav-equipo').classList.remove('hidden');
+                    }
+
+                    // Hydrate all data
+                    hydrateApp(result);
+                    
+                    // Reveal App
+                    document.getElementById('login-wrapper').classList.add('hidden');
+                    document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
+                    
+                    showToast(`¡Bienvenido/a de nuevo, ${activeSession.nombre}!`);
+                } else {
+                    showToast("Credenciales inválidas o sin acceso.");
+                    sessionStorage.removeItem('logi_session');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error de comunicación. Intente en unos segundos.");
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('logi_session');
+            activeSession = null;
+            document.getElementById('login-wrapper').classList.remove('hidden');
+            document.getElementById('app-wrapper').classList.replace('flex', 'hidden');
+            document.getElementById('login-pass').value = '';
+            showToast("Sesión cerrada correctamente.");
+        }
+
+        function hydrateApp(result) {
+            clientsData = result.clientes.map(mapFromSheetClient);
+            excelData = result.servicios.map(mapFromSheetService);
+            colaboradoresData = result.colaboradores || [];
+            
+            if(clientsData.length > 0 && !currentUserClient) {
+                 currentUserClient = clientsData[0].nombre;
+            }
+
+            renderClientsList();
+            const detailModal = document.getElementById('cliente-detail');
+            if(detailModal && !detailModal.classList.contains('hidden')) {
+                 renderClientTable();
+            }
+            if(activeSession.rol === 'SuperAdmin') {
+                 renderColaboradoresList();
+            }
+        }
+
+        // ASYNC FETCH FUNCTIONS (Sync only, initial hydration done by login)
         async function syncServiceToDB(row) {
             showToast("Guardando servicio en la nube...");
             try {
@@ -490,9 +656,126 @@
             }
         }
 
+        // EQUIPO (COLABORADORES) LOGIC
+        function renderColaboradoresList() {
+            const tbody = document.getElementById('equipo-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            colaboradoresData.forEach(colab => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors group';
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold border border-primary-200">${colab.nombre.substring(0, 2).toUpperCase()}</div>
+                            <div class="ml-3">
+                                <p class="text-sm font-bold text-slate-700">${colab.nombre}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-slate-500 font-mono text-sm tracking-wider">
+                        ${colab.clave}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colab.rol === 'SuperAdmin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-green-100 text-green-800 border-green-200'} border">
+                            <span class="w-1.5 h-1.5 rounded-full ${colab.rol === 'SuperAdmin' ? 'bg-indigo-500' : 'bg-green-500'}"></span>
+                            ${colab.rol}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        ${colab.nombre !== 'admi.sistem' ? `
+                            <button onclick="editColab('${colab.nombre}')" class="text-slate-400 hover:text-primary-600 transition-colors mr-3" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteColab('${colab.nombre}')" class="text-slate-400 hover:text-red-500 transition-colors" title="Revocar Accesos"><i class="fa-regular fa-trash-can"></i></button>
+                        ` : '<span class="text-xs text-slate-400 italic">Core Admin</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openColaboradorModal() {
+            document.getElementById('fm-colab').reset();
+            document.getElementById('colab-modal-title').innerText = 'Nuevo Colaborador';
+            // Disable editing nombre on edit, leave open for new
+            document.getElementById('fm-colab-nombre').readOnly = false;
+            document.getElementById('fm-colab-nombre').classList.remove('bg-gray-100');
+            document.getElementById('colab-modal').classList.remove('hidden');
+        }
+
+        function closeColabModal() { document.getElementById('colab-modal').classList.add('hidden'); }
+
+        function editColab(nombre) {
+            const colab = colaboradoresData.find(c => c.nombre === nombre);
+            if(!colab) return;
+            document.getElementById('fm-colab-nombre').value = colab.nombre;
+            document.getElementById('fm-colab-nombre').readOnly = true;
+            document.getElementById('fm-colab-nombre').classList.add('bg-gray-100');
+            document.getElementById('fm-colab-clave').value = colab.clave;
+            document.getElementById('fm-colab-rol').value = colab.rol;
+            document.getElementById('colab-modal-title').innerText = 'Editar Colaborador';
+            document.getElementById('colab-modal').classList.remove('hidden');
+        }
+
+        async function handleColabSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+            btn.disabled = true;
+
+            const row = {
+                "Nombre": document.getElementById('fm-colab-nombre').value.trim(),
+                "Clave": document.getElementById('fm-colab-clave').value.trim(),
+                "Rol": document.getElementById('fm-colab-rol').value
+            };
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'upsertColaborador', data: row })
+                });
+                const responseData = await res.json();
+                if(responseData.status === 'success'){
+                   colaboradoresData = responseData.colaboradores || [];
+                   renderColaboradoresList();
+                   closeColabModal();
+                   showToast("Colaborador guardado exitosamente.");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error guardando colaborador.");
+            } finally {
+                btn.innerHTML = 'Guardar Colaborador';
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteColab(nombre) {
+            if(!confirm(`¿Estás seguro de que deseas revocar el acceso de ${nombre} de forma permanente?`)) return;
+            
+            try {
+                showToast(`Revocando acceso a ${nombre}...`);
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteColaborador', nombre: nombre })
+                });
+                const responseData = await res.json();
+                if(responseData.status === 'success'){
+                   colaboradoresData = responseData.colaboradores || [];
+                   renderColaboradoresList();
+                   showToast("Acceso revocado correctamente.");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error eliminando colaborador.");
+            }
+        }
+
         // STARTUP
         window.addEventListener('DOMContentLoaded', () => { 
-            initDataFromCloud(); 
+            checkSession(); 
         });
 
         // CLIENT DIRECTORY LOGIC
