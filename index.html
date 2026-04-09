@@ -553,7 +553,8 @@
                 const result = await res.json();
                 
                 if (result.status === "success") {
-                    activeSession = result.session;
+                    // Adaptar a result.user proveído por el nuevo backend
+                    activeSession = { nombre: result.user.Nombre, rol: result.user.Rol };
                     sessionStorage.setItem('logi_session', JSON.stringify({ nombre, pass }));
                     
                     // Populate UI context
@@ -567,21 +568,21 @@
                         document.getElementById('nav-equipo').classList.remove('hidden');
                     }
 
-                    // Hydrate all data
-                    hydrateApp(result);
-                    
                     // Reveal App
                     document.getElementById('login-wrapper').classList.add('hidden');
                     document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
                     
                     showToast(`¡Bienvenido/a de nuevo, ${activeSession.nombre}!`);
+                    
+                    // Hydrate all data by executing GET because the new backend doesn't send it on POST
+                    await initDataFromCloud();
                 } else {
-                    showToast("Credenciales inválidas o sin acceso.");
+                    showToast(result.message || "Credenciales inválidas.");
                     sessionStorage.removeItem('logi_session');
                 }
             } catch(e) {
                 console.error(e);
-                showToast("Error de comunicación. Intente en unos segundos.");
+                showToast("Error de comunicación con el servidor.");
             }
         }
 
@@ -594,22 +595,42 @@
             showToast("Sesión cerrada correctamente.");
         }
 
-        function hydrateApp(result) {
-            clientsData = result.clientes.map(mapFromSheetClient);
-            excelData = result.servicios.map(mapFromSheetService);
-            colaboradoresData = result.colaboradores || [];
-            
-            if(clientsData.length > 0 && !currentUserClient) {
-                 currentUserClient = clientsData[0].nombre;
-            }
+        async function initDataFromCloud() {
+            try {
+                isGlobalLoading = true;
+                showToast("Sincronizando con base de datos...");
+                
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const result = await res.json();
+                
+                if(result.status === "success") {
+                    clientsData = result.clientes.map(mapFromSheetClient);
+                    excelData = result.servicios.map(mapFromSheetService);
+                    
+                    // Asegurar que leemos el nuevo array de colaboradores
+                    colaboradoresData = (result.colaboradores || []).map(u => ({
+                        nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email
+                    }));
+                    
+                    if(clientsData.length > 0 && !currentUserClient) {
+                         currentUserClient = clientsData[0].nombre;
+                    }
 
-            renderClientsList();
-            const detailModal = document.getElementById('cliente-detail');
-            if(detailModal && !detailModal.classList.contains('hidden')) {
-                 renderClientTable();
-            }
-            if(activeSession.rol === 'SuperAdmin') {
-                 renderColaboradoresList();
+                    renderClientsList();
+                    const detailModal = document.getElementById('cliente-detail');
+                    if(detailModal && !detailModal.classList.contains('hidden')) {
+                         renderClientTable();
+                    }
+                    if(activeSession && activeSession.rol === 'SuperAdmin') {
+                         renderColaboradoresList();
+                    }
+                    showToast("Datos sincronizados.");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error de conexión con la base de datos.");
+            } finally {
+                isGlobalLoading = false;
             }
         }
 
@@ -682,6 +703,9 @@
                             <span class="w-1.5 h-1.5 rounded-full ${colab.rol === 'SuperAdmin' ? 'bg-indigo-500' : 'bg-green-500'}"></span>
                             ${colab.rol}
                         </span>
+                        <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${colab.estado === 'Activo' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'}">
+                            ${colab.estado || 'Activo'}
+                        </span>
                     </td>
                     <td class="px-6 py-4 text-right">
                         ${colab.nombre !== 'admi.sistem' ? `
@@ -726,21 +750,29 @@
             const row = {
                 "Nombre": document.getElementById('fm-colab-nombre').value.trim(),
                 "Clave": document.getElementById('fm-colab-clave').value.trim(),
-                "Rol": document.getElementById('fm-colab-rol').value
+                "Rol": document.getElementById('fm-colab-rol').value,
+                "Estado": "Activo",
+                "Email": "" // Se puede expandir luego si agregan el input
             };
 
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'upsertColaborador', data: row })
+                    body: JSON.stringify({ 
+                        action: 'upsertUser', 
+                        data: row,
+                        requesterRole: activeSession.rol 
+                    })
                 });
                 const responseData = await res.json();
                 if(responseData.status === 'success'){
-                   colaboradoresData = responseData.colaboradores || [];
-                   renderColaboradoresList();
+                   // Traer refresco
+                   await initDataFromCloud();
                    closeColabModal();
                    showToast("Colaborador guardado exitosamente.");
+                } else {
+                   showToast(responseData.message || "Error al autorizar");
                 }
             } catch(err) {
                 console.error(err);
@@ -752,24 +784,40 @@
         }
 
         async function deleteColab(nombre) {
-            if(!confirm(`¿Estás seguro de que deseas revocar el acceso de ${nombre} de forma permanente?`)) return;
+            if(!confirm(`¿Estás seguro de que deseas desactivar la cuenta de ${nombre}?`)) return;
+            
+            const colab = colaboradoresData.find(c => c.nombre === nombre);
+            if(!colab) return;
+            
+            const row = {
+                "Nombre": colab.nombre,
+                "Clave": colab.clave,
+                "Rol": colab.rol,
+                "Estado": "Inactivo",
+                "Email": colab.email || ""
+            };
             
             try {
-                showToast(`Revocando acceso a ${nombre}...`);
+                showToast(`Desactivando acceso a ${nombre}...`);
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteColaborador', nombre: nombre })
+                    body: JSON.stringify({ 
+                        action: 'upsertUser', 
+                        data: row,
+                        requesterRole: activeSession.rol
+                    })
                 });
                 const responseData = await res.json();
                 if(responseData.status === 'success'){
-                   colaboradoresData = responseData.colaboradores || [];
-                   renderColaboradoresList();
+                   await initDataFromCloud();
                    showToast("Acceso revocado correctamente.");
+                } else {
+                   showToast(responseData.message || "Error de autorización");
                 }
             } catch(err) {
                 console.error(err);
-                showToast("Error eliminando colaborador.");
+                showToast("Error desactivando colaborador.");
             }
         }
 
