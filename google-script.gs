@@ -1,24 +1,85 @@
 /**
- * LOGITRADE: Backend de Google Drive para subir Facturas Automáticamente
- * 
- * PASOS DE INSTALACIÓN:
- * 1. Ve a https://script.google.com
- * 2. Clica en "Nuevo Proyecto"
- * 3. Reemplaza TODO el código inicial con este archivo.
- * 4. Cambia el 'ID_DE_TU_CARPETA' (línea 10) por el ID real de tu carpeta de Google Drive.
- *    (El ID lo sacas de la URL de tu carpeta: https://drive.google.com/drive/folders/ESTE_ES_EL_ID)
- * 5. Guarda (Ctrl+S).
- * 6. Super importante: Clica en el botón azul arriba a la derecha "Implementar" -> "Nueva implementación".
- * 7. Tipo: "Aplicación web". Ejecutar como "Yo". Quién tiene acceso: "Cualquier persona".
- * 8. Autoriza los permisos que Google te pida (Ve a Avanzado -> Ir al script (inseguro)).
- * 9. Se te entregará una URL Web App ("https://script.google.com/macros/s/.../exec"). Copia esa URL en tu index.html.
+ * LOGITRADE: Backend API (Google Apps Script)
+ * Proporciona endpoints para inicializar hojas, lectura (doGet) y escritura completa (doPost)
  */
 
-const FOLDER_ID = 'COMPLETA_TU_ID_AQUI'; 
+const FOLDER_ID = 'COMPLETA_TU_ID_AQUI'; // Cambia esto por tu ID de Drive para guardar facturas
+
+const SCRIPT_DB_HEADERS = [
+  "ID", "Cliente", "Operador", "Fecha de Servicio", "Tipo Servicio", 
+  "Destino", "Costo", "Monto", "Fecha de Pago", "Estado Pago", 
+  "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo"
+];
+
+function initSheet(sheetName, headers) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(headers);
+  } else if (sheet.getLastRow() === 0) {
+    sheet.appendRow(headers);
+  }
+  return sheet;
+}
+
+function getSheetData(sheet, headers) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  return values.map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+}
+
+function upsertRow(sheet, headers, data, idField) {
+  const lastRow = sheet.getLastRow();
+  let foundRow = -1;
+  const targetId = data[idField];
+  
+  if (lastRow >= 2) {
+    const idColumnIndex = headers.indexOf(idField) + 1;
+    const ids = sheet.getRange(2, idColumnIndex, lastRow - 1, 1).getValues();
+    for (let i = 0; i < ids.length; i++) {
+      if (ids[i][0] !== "" && ids[i][0].toString() === targetId.toString()) {
+        foundRow = i + 2;
+        break;
+      }
+    }
+  }
+
+  const rowValues = headers.map(h => data[h] !== undefined ? data[h] : "");
+
+  if (foundRow !== -1) {
+    sheet.getRange(foundRow, 1, 1, headers.length).setValues([rowValues]);
+  } else {
+    sheet.appendRow(rowValues);
+  }
+}
+
+function doGet(e) {
+  try {
+    const servicesSheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+    const clientsSheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
+
+    const sData = getSheetData(servicesSheet, SCRIPT_DB_HEADERS);
+    const cData = getSheetData(clientsSheet, ["Nombre", "Teléfono", "Email"]);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      servicios: sData,
+      clientes: cData
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
 
 function doPost(e) {
   try {
-    // Para admitir CORS
     const headers = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -31,33 +92,43 @@ function doPost(e) {
     }
 
     const payload = JSON.parse(e.postData.contents);
-    const fileName = payload.fileName;
-    const base64Data = payload.base64;
-    
-    // Obtener la carpeta por el ID
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    
-    // Decodificar Base64 quitando la cabecera (ej: data:application/pdf;base64,....)
-    const splitData = base64Data.split(',');
-    const base64 = splitData[1] || splitData[0];
-    const mimeType = splitData[0].split(':')[1].split(';')[0];
-    
-    // Convertir de base64 a archivo binario (Blob)
-    const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, fileName);
-    
-    // Crear archivo en el disco
-    const file = folder.createFile(blob);
-    
-    const response = {
-      status: "success",
-      url: file.getUrl(),
-      fileName: file.getName(),
-      id: file.getId()
-    };
-    
-    return ContentService.createTextOutput(JSON.stringify(response))
-      .setMimeType(ContentService.MimeType.JSON);
+    const action = payload.action;
 
+    if (action === "upsertService") {
+      const sheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+      upsertRow(sheet, SCRIPT_DB_HEADERS, payload.data, "ID");
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } else if (action === "upsertClient") {
+      const sheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
+      upsertRow(sheet, ["Nombre", "Teléfono", "Email"], payload.data, "Nombre");
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } else if (action === "uploadFile") {
+      const folder = DriveApp.getFolderById(FOLDER_ID);
+      const fileName = payload.fileName;
+      const base64Data = payload.base64;
+      
+      const splitData = base64Data.split(',');
+      const base64 = splitData[1] || splitData[0];
+      const mimeType = payload.mimeType || (splitData[0] && splitData[0].includes('data:') ? splitData[0].split(':')[1].split(';')[0] : "application/pdf");
+      
+      const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, fileName);
+      const file = folder.createFile(blob);
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        url: file.getUrl(),
+        fileName: file.getName(),
+        id: file.getId()
+      })).setMimeType(ContentService.MimeType.JSON);
+
+    } else {
+       return ContentService.createTextOutput(JSON.stringify({ error: "Acción no reconocida" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ error: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);

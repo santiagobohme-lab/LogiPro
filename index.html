@@ -353,32 +353,156 @@
             if(sectionId === 'clientes' && typeof backToClientes === 'function') backToClientes();
         }
 
-        // LOCAL STORAGE & DATA OBJECTS
-        const getStorage = (key, defaultVal) => {
-            try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : defaultVal; } 
-            catch(e) { return defaultVal; }
-        };
-        const setStorage = (key, val) => {
-            try { localStorage.setItem(key, JSON.stringify(val)); } 
-            catch(e) { console.warn('LocalStorage limit reached.'); }
-        };
-
-        let clientsData = getStorage('logitrade_clients', [
-            { nombre: "CoasinLogicalis", telefono: "+56 9 1234 5678", email: "contacto@coasin.com", color: "blue", initials: "CL" },
-            { nombre: "Global Supplies S.A.", telefono: "+56 9 8888 9999", email: "compras@global.com", color: "purple", initials: "GS" }
-        ]);
-
-        let excelData = getStorage('logitrade_services', [
-            { id: 1, cliente: "CoasinLogicalis", operador: "Carlos G.", fechaServicio: "2026-04-01", tipoServicio: "Flete Directo", destino: "Santiago Centro", costo: 45000, monto: "2.1", fechaPago: "2026-04-20", estado: "Pendiente", estadoFactura: "Pendiente", ocHes: "OC-99120", cotizacion: "COT-441-A", factura: "", nroFactura: "", fileData: "" },
-            { id: 2, cliente: "CoasinLogicalis", operador: "Pedro S.", fechaServicio: "2026-03-25", tipoServicio: "Despacho Express", destino: "Providencia", costo: 25000, monto: "1.2", fechaPago: "2026-04-02", estado: "OK", estadoFactura: "OK", ocHes: "OC-99105", cotizacion: "COT-430-B", factura: "DOCFA-1002.pdf", nroFactura: "1002", fileData: "" },
-        ]);
-
+        // --- GLOBAL VARIABLES & GOOGLE APPS SCRIPT URL ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKuVWzyht1Xh96LxL1e9DZqqTsC5JeWtyYnQEKXJyEU15Pspz45xSNfq0-cKbtRoggpg/exec";
+        
+        let clientsData = [];
+        let excelData = [];
         let currentUserClient = null;
         let currentEditServiceId = null;
+        let isGlobalLoading = false;
+
+        // DATA MAPPINGS FOR SPREADSHEET ROW
+        const mapFromSheetClient = (sheetObj) => ({
+            nombre: sheetObj["Nombre"] || "",
+            telefono: sheetObj["Teléfono"] || "",
+            email: sheetObj["Email"] || ""
+        });
+
+        const mapToSheetClient = (row) => ({
+            "Nombre": row.nombre,
+            "Teléfono": row.telefono,
+            "Email": row.email
+        });
+
+        const mapFromSheetService = (sheetObj) => {
+            const rawDateSrv = sheetObj["Fecha de Servicio"];
+            const rawDatePago = sheetObj["Fecha de Pago"];
+            
+            return {
+                id: sheetObj["ID"] || Date.now(),
+                cliente: sheetObj["Cliente"] || "",
+                operador: sheetObj["Operador"] || "-",
+                fechaServicio: rawDateSrv ? rawDateSrv.split('T')[0] : "-",
+                tipoServicio: sheetObj["Tipo Servicio"] || "-",
+                destino: sheetObj["Destino"] || "-",
+                costo: sheetObj["Costo"] || "-",
+                monto: sheetObj["Monto"] || "-",
+                fechaPago: rawDatePago ? rawDatePago.split('T')[0] : "-",
+                estado: sheetObj["Estado Pago"] || "Pendiente",
+                estadoFactura: sheetObj["Estado Factura"] || "Pendiente",
+                ocHes: sheetObj["OC / HES"] || "-",
+                cotizacion: sheetObj["Cotización"] || "-",
+                nroFactura: sheetObj["Nº Factura"] || "",
+                driveUrl: sheetObj["Link Archivo"] || "",
+                factura: sheetObj["Link Archivo"] ? "Archivo_Google_Drive" : ""
+            };
+        };
+
+        const mapToSheetService = (row) => ({
+            "ID": row.id,
+            "Cliente": row.cliente,
+            "Operador": row.operador,
+            "Fecha de Servicio": row.fechaServicio,
+            "Tipo Servicio": row.tipoServicio,
+            "Destino": row.destino,
+            "Costo": row.costo,
+            "Monto": row.monto,
+            "Fecha de Pago": row.fechaPago,
+            "Estado Pago": row.estado,
+            "Estado Factura": row.estadoFactura,
+            "OC / HES": row.ocHes,
+            "Cotización": row.cotizacion,
+            "Nº Factura": row.nroFactura,
+            "Link Archivo": row.driveUrl || ""
+        });
+
+        // ASYNC FETCH FUNCTIONS
+        async function initDataFromCloud() {
+            try {
+                isGlobalLoading = true;
+                showToast("Sincronizando con base de datos...");
+                
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const result = await res.json();
+                
+                if(result.status === "success") {
+                    clientsData = result.clientes.map(mapFromSheetClient);
+                    excelData = result.servicios.map(mapFromSheetService);
+                    
+                    if(clientsData.length > 0 && !currentUserClient) {
+                         currentUserClient = clientsData[0].nombre;
+                    }
+
+                    renderClientsList();
+                    if(document.getElementById('cliente-detail').classList.contains('block')) {
+                         renderClientTable();
+                    }
+                    showToast("Datos globales cargados correctamente.");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error de conexión con la base de datos.");
+            } finally {
+                isGlobalLoading = false;
+            }
+        }
+
+        async function syncServiceToDB(row) {
+            showToast("Guardando servicio en la nube...");
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'upsertService',
+                        data: mapToSheetService(row)
+                    })
+                });
+                const responseData = await res.json();
+                if(responseData.status === 'success'){
+                   showToast("Servicio sincronizado en Google Sheets.");
+                }
+            } catch(err) {
+                console.error("Error sincronizando servicio", err);
+                showToast("Hubo un error de red intentando guardar.");
+            }
+        }
+
+        async function syncClientToDB(clientRow) {
+            showToast("Guardando cliente en la nube...");
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'upsertClient',
+                        data: mapToSheetClient(clientRow)
+                    })
+                });
+                const responseData = await res.json();
+                if(responseData.status === 'success'){
+                   showToast("Cliente guardado en Google Sheets.");
+                }
+            } catch(err) {
+                console.error("Error sincronizando cliente", err);
+                showToast("Hubo un error guardando el cliente.");
+            }
+        }
+
+        // STARTUP
+        window.addEventListener('DOMContentLoaded', () => { 
+            initDataFromCloud(); 
+        });
 
         // CLIENT DIRECTORY LOGIC
         function renderClientsList() {
             const tbody = document.getElementById('clients-tbody');
+            if (clientsData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-400">No hay clientes registrados en la base de datos.</td></tr>`;
+                return;
+            }
+
             tbody.innerHTML = clientsData.map(c => `
                 <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="showClientDetail('${c.nombre}')">
                     <td class="px-4 py-3 flex items-center">
@@ -399,18 +523,19 @@
         function handleClientSubmit(e) {
             e.preventDefault();
             const nombre = document.getElementById('fm-cli-nombre').value.trim();
-            clientsData.push({
+            const newClient = {
                 nombre: nombre,
                 telefono: document.getElementById('fm-cli-telefono').value,
                 email: document.getElementById('fm-cli-email').value
-            });
-            setStorage('logitrade_clients', clientsData);
+            };
+            
+            clientsData.push(newClient);
             closeNewClientModal();
             renderClientsList();
-            showToast('Cliente creado exitosamente');
+            
+            // Push to DB
+            syncClientToDB(newClient);
         }
-
-        window.addEventListener('DOMContentLoaded', () => { renderClientsList(); });
 
         // CLIENT DETAIL LOGIC
         function showClientDetail(clientName) {
@@ -418,10 +543,10 @@
             document.getElementById('clientes-list').classList.replace('block', 'hidden');
             document.getElementById('cliente-detail').classList.replace('hidden', 'block');
             
-            const client = clientsData.find(c => c.nombre === clientName) || clientsData[0];
-            document.getElementById('detail-client-name').innerText = client.nombre;
-            document.getElementById('span-phone').innerText = client.telefono;
-            document.getElementById('span-email').innerText = client.email;
+            const client = clientsData.find(c => c.nombre === clientName) || clientsData[0] || {};
+            document.getElementById('detail-client-name').innerText = client.nombre || "Nuevo Cliente";
+            document.getElementById('span-phone').innerText = client.telefono || "Sin Teléfono";
+            document.getElementById('span-email').innerText = client.email || "Sin Email";
             
             renderClientTable();
         }
@@ -435,8 +560,8 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.estado = val;
-                setStorage('logitrade_services', excelData);
-                renderClientTable(); // to update styles immediately
+                renderClientTable(); // optimistic update
+                syncServiceToDB(row);
             }
         }
 
@@ -444,8 +569,8 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.estadoFactura = val;
-                setStorage('logitrade_services', excelData);
-                renderClientTable(); // to update styles immediately
+                renderClientTable(); // optimistic update
+                syncServiceToDB(row);
             }
         }
 
@@ -453,37 +578,19 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.nroFactura = val;
-                setStorage('logitrade_services', excelData);
+                syncServiceToDB(row); // We don't render table so we don't lose focus
             }
         }
 
-        // --- FACTURA UPLOAD/DOWNLOAD LOGIC WITH PERSISTENCE & DRIVE SYNC ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLMWPrQlKJfm0vEpdGlOoMCZZlbXsph5vgmZidDXtSTKinuEeocKeIymsAeFwm9HN4hA/exec";
+        // --- FACTURA UPLOAD LOGIC ---
         let currentUploadRowId = null;
 
         function clickFactura(id) {
             const row = excelData.find(x => x.id === id);
             if(row) {
-                if(row.factura && !row.isUploading) {
-                    // Descargar usando Data URL guardado
-                    let fileUrl = row.fileData;
-                    let isMock = false;
-                    
-                    if(!fileUrl) {
-                        // Mock fallback
-                        const mockContent = new Blob(["Documento simulado de Logitrade.\\nID de Factura: " + row.factura], { type: 'text/plain' });
-                        fileUrl = URL.createObjectURL(mockContent);
-                        isMock = true;
-                    }
-                    
-                    const a = document.createElement("a");
-                    a.href = fileUrl;
-                    a.download = row.factura;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    if(isMock) setTimeout(() => URL.revokeObjectURL(fileUrl), 100);
+                if(row.driveUrl && !row.isUploading) {
+                    // Open Drive URL instead of Local Blob
+                    window.open(row.driveUrl, '_blank');
                 } else {
                     const estadoFact = row.estadoFactura ? row.estadoFactura.toLowerCase() : 'pendiente';
                     if (estadoFact !== 'ok' && estadoFact !== 'ok / pagado') {
@@ -509,15 +616,14 @@
                 if(row) {
                     row.isUploading = true;
                     renderClientTable();
-                    showToast("Sincronizando con Google Drive...");
+                    showToast("Subiendo factura a Google Drive...");
 
                     const reader = new FileReader();
                     reader.onload = async function(e) {
                         const base64Data = e.target.result;
-                        // Extrae base64 puro
                         const pureBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
                         const ext = file.name.split('.').pop().toLowerCase();
-                        const safeCliente = row.cliente.replace(/\s+/g, '');
+                        const safeCliente = row.cliente ? row.cliente.replace(/\s+/g, '') : "Desconocido";
                         const nroFacturaPrefix = row.nroFactura ? row.nroFactura : row.id;
                         const generatedName = `Factura_${nroFacturaPrefix}_${safeCliente}.${ext}`;
                         
@@ -526,25 +632,31 @@
                                 method: 'POST',
                                 headers: { 'Content-Type': 'text/plain' },
                                 body: JSON.stringify({
-                                    name: generatedName,
-                                    base64: pureBase64
+                                    action: 'uploadFile',
+                                    fileName: generatedName,
+                                    base64: pureBase64,
+                                    mimeType: file.type || "application/pdf"
                                 })
                             });
                             
                             const data = await res.json();
-                            if(data.status === 'success' || data.link || data.url) {
-                                row.driveUrl = data.link || data.url;
+                            if(data.status === 'success' || data.url) {
+                                row.driveUrl = data.url || data.link;
+                                row.factura = generatedName;
+                                showToast(`Enlace recibido. Actualizando fila en base de datos...`);
+                                
+                                // Sync the row again so the new Drive URL gets saved
+                                await syncServiceToDB(row);
+                            } else {
+                                throw new Error("No url generated");
                             }
                         } catch(err) {
-                            console.warn("Fallo enlace nube. Guardado en caché local.", err);
+                            console.error(err);
+                            showToast("No se pudo subir a Cloud. Revisar permisos API.");
                         }
 
                         row.isUploading = false;
-                        row.factura = generatedName;
-                        row.fileData = base64Data;
-                        setStorage('logitrade_services', excelData);
                         renderClientTable();
-                        showToast('Factura procesada: ' + generatedName);
                     };
                     reader.readAsDataURL(file);
                 }
@@ -555,7 +667,7 @@
 
         function replaceFactura(id) {
             const row = excelData.find(x => x.id === id);
-            if(row && row.factura) {
+            if(row && row.driveUrl) {
                 const estadoFact = row.estadoFactura ? row.estadoFactura.toLowerCase() : 'pendiente';
                 if (estadoFact !== 'ok' && estadoFact !== 'ok / pagado') {
                     alert("⚠️ Debe marcar la factura como OK antes de reemplazar el archivo.");
@@ -567,7 +679,7 @@
                     return;
                 }
                 
-                if(confirm('¿Estás seguro de que deseas reemplazar la factura actual ("' + row.factura + '") por un nuevo archivo?')) {
+                if(confirm('¿Estás seguro de que deseas reemplazar la factura actual en esta fila por un nuevo archivo?')) {
                     currentUploadRowId = id;
                     document.getElementById('factura-upload-input').click();
                 }
@@ -589,13 +701,8 @@
                 let facturaIcon = '';
                 if(row.isUploading) {
                     facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo a Google Drive..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                } else if(row.factura) {
-                    let fileBtn = '';
-                    if(row.driveUrl) {
-                        fileBtn = `<button onclick="window.open('${row.driveUrl}', '_blank')" title="Enlace al Drive" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 transition-colors"><i class="fa-regular fa-file-pdf"></i></button>`;
-                    } else {
-                        fileBtn = `<button onclick="clickFactura(${row.id})" title="Descargar Local" class="w-7 h-7 rounded border border-gray-200 text-slate-600 bg-gray-50 hover:bg-gray-100 transition-colors"><i class="fa-regular fa-file-lines"></i></button>`;
-                    }
+                } else if(row.driveUrl) {
+                    let fileBtn = `<button onclick="window.open('${row.driveUrl}', '_blank')" title="Abrir en Drive" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 transition-colors"><i class="fa-regular fa-file-pdf"></i></button>`;
 
                     facturaIcon = `
                         <div class="flex items-center justify-center gap-1">
@@ -606,7 +713,6 @@
                         </div>
                     `;
                 } else {
-                    // Clickeable, dependiente o no de clickFactura 
                     facturaIcon = `<button onclick="clickFactura(${row.id})" title="Subir archivo" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200 hover:bg-gray-50 transition-colors"><i class="fa-solid fa-paperclip"></i></button>`;
                 }
 
@@ -637,10 +743,12 @@
                     </select>
                 `;
 
-                const safeCosto = isNaN(Number(row.costo)) || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
-                const safeMonto = isNaN(Number(row.monto)) || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
-                const pFechaServicio = row.fechaServicio !== "-" ? new Date(row.fechaServicio).toLocaleDateString() : "-";
-                const pFechaPago = row.fechaPago !== "-" ? new Date(row.fechaPago).toLocaleDateString() : "-";
+                const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
+                const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
+                
+                // Formatear display de fechas quitando T00:00:00 si es que traen
+                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
+                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
 
                 return `
                 <tr class="hover:bg-gray-50">
@@ -681,12 +789,12 @@
             document.getElementById('modal-service-title').innerText = "Modificar Servicio de";
             
             document.getElementById('fm-operador').value = row.operador === "-" ? "" : row.operador;
-            document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio;
+            document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio.split('T')[0];
             document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
             document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
             document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
-            document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago;
+            document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
             document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" ? "OK" : "Pendiente";
             
             const eFact = row.estadoFactura || "Pendiente";
@@ -707,6 +815,8 @@
         function handleServiceSubmit(e) {
             e.preventDefault();
             
+            let rowToSync = null;
+
             if (currentEditServiceId) {
                 const row = excelData.find(x => x.id === currentEditServiceId);
                 if(row) {
@@ -721,8 +831,9 @@
                     row.estadoFactura = document.getElementById('fm-estadoFactura').value;
                     row.ocHes = document.getElementById('fm-oc').value || "-";
                     row.cotizacion = document.getElementById('fm-cot').value || "-";
+                    
+                    rowToSync = row;
                 }
-                showToast('Cambios guardados correctamente');
             } else {
                 const newRow = {
                     id: Date.now(),
@@ -740,15 +851,19 @@
                     cotizacion: document.getElementById('fm-cot').value || "-",
                     factura: "",
                     nroFactura: "",
-                    fileData: ""
+                    driveUrl: ""
                 };
                 excelData.push(newRow);
-                showToast('Fila creada correctamente');
+                rowToSync = newRow;
             }
             
-            setStorage('logitrade_services', excelData);
             closeNewServiceModal();
             renderClientTable();
+
+            // PUSH TO DB
+            if(rowToSync) {
+                syncServiceToDB(rowToSync);
+            }
         }
     </script>
 </body>
