@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logi Pro - Intranet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    animation: { 'fade-in': 'fadeIn 0.2s ease-out' },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; }
+        .glass-header {
+            background: #ffffff; border-bottom: 1px solid #f3f4f6;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f9fafb; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Select Reset */
+        select {
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        /* Toast Component Styles */
+        #toast-container {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .toast {
+            background: #1e3a8a;
+            color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 4px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+            font-family: inherit;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-800 selection:bg-primary-100 selection:text-primary-900">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 hidden md:flex z-20">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 bg-white">
+            <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3">
+                <i class="fa-solid fa-earth-americas text-sm"></i>
+            </div>
+            <span class="text-xl font-bold text-primary-900 tracking-wide">Logi Pro</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto py-6">
+            <nav class="space-y-1">
+                <a href="#clientes" onclick="switchSection('clientes')" id="nav-clientes" class="nav-item flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
+                    <i class="fa-regular fa-users w-6 text-primary-900"></i>
+                    <span>Clientes</span>
+                </a>
+                <a href="#facturacion" onclick="switchSection('facturacion')" id="nav-facturacion" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-file-lines w-6 text-slate-400"></i>
+                    <span>Facturación</span>
+                </a>
+                <a href="#balance" onclick="switchSection('balance')" id="nav-balance" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
+                    <span>Balance</span>
+                </a>
+            </nav>
+        </div>
+        
+        <div class="border-t border-gray-100 bg-gray-50/50">
+            <a href="#perfil" onclick="switchSection('perfil')" id="nav-perfil" class="nav-item p-4 flex items-center hover:bg-gray-100 border-r-4 border-transparent transition-colors cursor-pointer">
+                <div class="relative">
+                    <div class="h-9 w-9 rounded bg-slate-200 flex items-center justify-center text-primary-900 font-bold border border-slate-300">AT</div>
+                    <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div class="ml-3 flex-1 overflow-hidden">
+                    <p class="text-xs font-bold text-slate-700 truncate">Admin Trade</p>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Perfil y Ajustes</p>
+                </div>
+                <i class="fa-solid fa-gear text-slate-400 text-xs"></i>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen relative bg-white min-w-0">
+        <header class="h-16 glass-header flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <div class="flex items-center w-full max-w-lg relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-300"></i>
+                <input type="text" placeholder="Buscar clientes, facturas o ajustes..." class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded text-sm focus:border-primary-900 focus:bg-white outline-none text-slate-700 transition-colors">
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-calendar text-base"></i></button>
+                <div class="h-4 w-px bg-gray-200"></div>
+                <button class="text-slate-400 hover:text-primary-900 relative"><i class="fa-regular fa-bell text-base"></i>
+                    <span class="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-primary-900"></span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 md:p-8" id="main-scroll">
+            
+            <!-- SEC: CLIENTES -->
+            <div id="sec-clientes" class="content-section animate-fade-in block">
+                
+                <!-- Sub-view 1: Clientes List -->
+                <div id="clientes-list" class="block animate-fade-in">
+                    <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Directorio de Clientes</h1>
+                            <p class="text-slate-500 text-sm mt-1">Empresas y contactos asociados a nuestra red logística.</p>
+                        </div>
+                        <button onclick="openNewClientModal()" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 border border-primary-900 hover:border-primary-700">
+                            <i class="fa-solid fa-plus"></i> Crear Cliente
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded border border-gray-100 overflow-hidden w-full max-w-full">
+                        <div class="table-container">
+                            <table class="w-full text-left whitespace-nowrap min-w-[500px]">
+                                <thead>
+                                    <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                        <th class="px-4 py-3">Empresa</th>
+                                        <th class="px-4 py-3">Contacto Principal</th>
+                                        <th class="px-4 py-3 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-tbody" class="divide-y divide-gray-100 text-sm">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-view 2: Client Detail (Excel view) -->
+                <div id="cliente-detail" class="hidden animate-fade-in relative z-0">
+                    <button onclick="backToClientes()" class="text-primary-900 hover:text-primary-700 flex items-center mb-4 text-sm font-medium transition-colors border max-w-max px-3 py-1.5 rounded border-gray-200 bg-gray-50"><i class="fa-solid fa-arrow-left-long mr-2"></i> Volver a Clientes</button>
+                    
+                    <div class="bg-white rounded border border-gray-100 p-5 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 id="detail-client-name" class="text-xl font-bold text-primary-900">Nombre Cliente</h2>
+                            <div class="flex gap-4 mt-1 text-xs font-medium text-slate-500 flex-wrap">
+                                <span id="detail-client-phone"><i class="fa-solid fa-phone mr-1 text-slate-400"></i> <span id="span-phone"></span></span>
+                                <span id="detail-client-email"><i class="fa-regular fa-envelope mr-1 text-slate-400"></i> <span id="span-email"></span></span>
+                            </div>
+                        </div>
+                        <button onclick="openNewServiceModal()" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 border border-primary-900 hover:border-primary-700">
+                            <i class="fa-solid fa-plus text-xs"></i> Nuevo Servicio
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Table Wrapper -->
+                    <div class="bg-white rounded border border-gray-100 relative w-full max-w-full">
+                        <div class="bg-white px-4 py-2 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                            <span class="text-xs font-bold text-primary-900 uppercase tracking-wide flex items-center"><i class="fa-regular fa-rectangle-list mr-2 text-slate-400"></i> Gestor de Servicios</span>
+                        </div>
+                        <div class="table-container scroll-pb-2">
+                            <table class="w-full text-left whitespace-nowrap min-w-[1100px]">
+                                <thead>
+                                    <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                        <th class="px-3 py-2">Operador</th>
+                                        <th class="px-3 py-2">Fecha Srv.</th>
+                                        <th class="px-3 py-2">Servicio</th>
+                                        <th class="px-3 py-2">Destino</th>
+                                        <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
+                                        <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
+                                        <th class="px-3 py-2">F. Pago</th>
+                                        <th class="px-3 py-2 text-center">Estado</th>
+                                        <th class="px-3 py-2">OC / HES</th>
+                                        <th class="px-3 py-2">Cotización</th>
+                                        <th class="px-3 py-2 text-center">Fact. / Nº</th>
+                                        <th class="px-3 py-2 text-center">Estado Fact.</th>
+                                        <th class="px-2 py-2 text-center"><i class="fa-solid fa-ellipsis text-slate-400"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="client-services-tbody" class="divide-y divide-gray-100 text-xs">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for New Client -->
+            <div id="client-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                    <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
+                        <h3 class="text-lg font-bold text-primary-900">Crear Cliente Nuevo</h3>
+                        <button type="button" onclick="closeNewClientModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="new-client-form" onsubmit="handleClientSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de la Empresa</label>
+                            <input type="text" id="fm-cli-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes ACME">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono Directo</label>
+                            <input type="text" id="fm-cli-telefono" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. +56 9...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
+                            <input type="email" id="fm-cli-email" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="contacto@empresa.com">
+                        </div>
+                        
+                        <div class="pt-4 flex justify-end gap-2 mt-2">
+                            <button type="button" onclick="closeNewClientModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                                Confirmar Creación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal for New/Edit Service -->
+            <div id="service-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-3xl overflow-y-auto max-h-full animate-fade-in">
+                    <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
+                        <h3 class="text-lg font-bold text-primary-900"><span id="modal-service-title">Agregar Nuevo Servicio a</span> <span id="modal-client-label" class="font-normal text-slate-500 ml-1"></span></h3>
+                        <button type="button" onclick="closeNewServiceModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    
+                    <form id="new-service-form" class="grid grid-cols-1 md:grid-cols-2 gap-4" outline="none" onsubmit="handleServiceSubmit(event)">
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Operador</label><input type="text" id="fm-operador" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Costo ($ CLP)</label><input type="number" id="fm-costo" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto ($ CLP)</label><input type="number" id="fm-monto" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Pago</label><input type="date" id="fm-fechaPago" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado</label><select id="fm-estado" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK / Pagado</option><option value="Pendiente" selected>Pendiente</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="fm-estadoFactura" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">OC / HES</label><input type="text" id="fm-oc" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Cotización</label><input type="text" id="fm-cot" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        
+                        <div class="md:col-span-2 pt-2 flex justify-end gap-2 mt-2">
+                            <button type="button" onclick="closeNewServiceModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-primary-900 hover:bg-primary-700 text-white px-5 py-2 rounded text-sm font-medium transition-colors">
+                                Guardar Fila
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Hidden generic file input for Factura Upload logic -->
+            <input type="file" id="factura-upload-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" onchange="processFacturaUpload(event)">
+
+            <!-- SEC: FACTURACIÓN -->
+            <div id="sec-facturacion" class="content-section animate-fade-in hidden">
+                <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Gestión de Facturación</h1>
+            </div>
+            <!-- SEC: BALANCE -->
+            <div id="sec-balance" class="content-section animate-fade-in hidden">
+                <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Balance Financiero</h1>
+            </div>
+            <!-- SEC: PERFIL -->
+            <div id="sec-perfil" class="content-section animate-fade-in hidden">
+                <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Global UI Overlays -->
+    <div id="toast-container"></div>
+
+    <!-- JS Logic -->
+    <script>
+        // UI TOAST FEEDBACK
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span class="font-medium text-sm"><i class="fa-regular fa-circle-check text-white text-lg mr-2"></i> ${message}</span>`;
+            container.appendChild(toast);
+            
+            // Allow DOM render
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => toast.classList.add('show'));
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300); // Wait for transition
+            }, 3000);
+        }
+
+        // SPA NAVIGATION 
+        function switchSection(sectionId) {
+            if(!document.getElementById('sec-' + sectionId)) return;
+            document.querySelectorAll('.content-section').forEach(sec => { sec.classList.replace('block', 'hidden'); });
+
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('bg-primary-50', 'border-primary-900');
+                nav.classList.replace('text-primary-900', 'text-slate-500');
+                const icon = nav.querySelector('i');
+                if(icon) { icon.classList.replace('text-primary-900', 'text-slate-400'); }
+            });
+
+            document.getElementById('sec-' + sectionId).classList.replace('hidden', 'block');
+            const activeNav = document.getElementById('nav-' + sectionId);
+            if(activeNav) {
+                activeNav.classList.add('bg-primary-50', 'border-primary-900');
+                activeNav.classList.replace('text-slate-500', 'text-primary-900');
+                const activeIcon = activeNav.querySelector('i');
+                if(activeIcon) { activeIcon.classList.replace('text-slate-400', 'text-primary-900'); }
+            }
+            if(sectionId === 'clientes' && typeof backToClientes === 'function') backToClientes();
+        }
+
+        // LOCAL STORAGE & DATA OBJECTS
+        const getStorage = (key, defaultVal) => {
+            try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : defaultVal; } 
+            catch(e) { return defaultVal; }
+        };
+        const setStorage = (key, val) => {
+            try { localStorage.setItem(key, JSON.stringify(val)); } 
+            catch(e) { console.warn('LocalStorage limit reached.'); }
+        };
+
+        let clientsData = getStorage('logitrade_clients', [
+            { nombre: "CoasinLogicalis", telefono: "+56 9 1234 5678", email: "contacto@coasin.com", color: "blue", initials: "CL" },
+            { nombre: "Global Supplies S.A.", telefono: "+56 9 8888 9999", email: "compras@global.com", color: "purple", initials: "GS" }
+        ]);
+
+        let excelData = getStorage('logitrade_services', [
+            { id: 1, cliente: "CoasinLogicalis", operador: "Carlos G.", fechaServicio: "2026-04-01", tipoServicio: "Flete Directo", destino: "Santiago Centro", costo: 45000, monto: "2.1", fechaPago: "2026-04-20", estado: "Pendiente", estadoFactura: "Pendiente", ocHes: "OC-99120", cotizacion: "COT-441-A", factura: "", nroFactura: "", fileData: "" },
+            { id: 2, cliente: "CoasinLogicalis", operador: "Pedro S.", fechaServicio: "2026-03-25", tipoServicio: "Despacho Express", destino: "Providencia", costo: 25000, monto: "1.2", fechaPago: "2026-04-02", estado: "OK", estadoFactura: "OK", ocHes: "OC-99105", cotizacion: "COT-430-B", factura: "DOCFA-1002.pdf", nroFactura: "1002", fileData: "" },
+        ]);
+
+        let currentUserClient = null;
+        let currentEditServiceId = null;
+
+        // CLIENT DIRECTORY LOGIC
+        function renderClientsList() {
+            const tbody = document.getElementById('clients-tbody');
+            tbody.innerHTML = clientsData.map(c => `
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="showClientDetail('${c.nombre}')">
+                    <td class="px-4 py-3 flex items-center">
+                        <i class="fa-regular fa-building text-slate-400 mr-3 hidden sm:inline"></i>
+                        <span class="font-bold text-slate-700">${c.nombre}</span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600"><span class="text-xs mr-2 text-slate-400">TEL</span> ${c.telefono} &nbsp;|&nbsp; <span class="text-xs mr-2 text-slate-400">MAIL</span> ${c.email}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button class="px-3 py-1 border border-gray-200 text-primary-900 bg-white hover:bg-gray-50 rounded text-xs transition-colors"><i class="fa-solid fa-arrow-right"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openNewClientModal() { document.getElementById('client-modal').classList.remove('hidden'); }
+        function closeNewClientModal() { document.getElementById('client-modal').classList.add('hidden'); document.getElementById('new-client-form').reset(); }
+
+        function handleClientSubmit(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('fm-cli-nombre').value.trim();
+            clientsData.push({
+                nombre: nombre,
+                telefono: document.getElementById('fm-cli-telefono').value,
+                email: document.getElementById('fm-cli-email').value
+            });
+            setStorage('logitrade_clients', clientsData);
+            closeNewClientModal();
+            renderClientsList();
+            showToast('Cliente creado exitosamente');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { renderClientsList(); });
+
+        // CLIENT DETAIL LOGIC
+        function showClientDetail(clientName) {
+            currentUserClient = clientName;
+            document.getElementById('clientes-list').classList.replace('block', 'hidden');
+            document.getElementById('cliente-detail').classList.replace('hidden', 'block');
+            
+            const client = clientsData.find(c => c.nombre === clientName) || clientsData[0];
+            document.getElementById('detail-client-name').innerText = client.nombre;
+            document.getElementById('span-phone').innerText = client.telefono;
+            document.getElementById('span-email').innerText = client.email;
+            
+            renderClientTable();
+        }
+
+        function backToClientes() {
+            document.getElementById('cliente-detail').classList.replace('block', 'hidden');
+            document.getElementById('clientes-list').classList.replace('hidden', 'block');
+        }
+
+        function updateEstado(id, val) {
+            const row = excelData.find(x => x.id === id);
+            if(row) {
+                row.estado = val;
+                setStorage('logitrade_services', excelData);
+                renderClientTable(); // to update styles immediately
+            }
+        }
+
+        function updateEstadoFactura(id, val) {
+            const row = excelData.find(x => x.id === id);
+            if(row) {
+                row.estadoFactura = val;
+                setStorage('logitrade_services', excelData);
+                renderClientTable(); // to update styles immediately
+            }
+        }
+
+        function updateNroFactura(id, val) {
+            const row = excelData.find(x => x.id === id);
+            if(row) {
+                row.nroFactura = val;
+                setStorage('logitrade_services', excelData);
+            }
+        }
+
+        // --- FACTURA UPLOAD/DOWNLOAD LOGIC WITH PERSISTENCE & DRIVE SYNC ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLMWPrQlKJfm0vEpdGlOoMCZZlbXsph5vgmZidDXtSTKinuEeocKeIymsAeFwm9HN4hA/exec";
+        let currentUploadRowId = null;
+
+        function clickFactura(id) {
+            const row = excelData.find(x => x.id === id);
+            if(row) {
+                if(row.factura && !row.isUploading) {
+                    // Descargar usando Data URL guardado
+                    let fileUrl = row.fileData;
+                    let isMock = false;
+                    
+                    if(!fileUrl) {
+                        // Mock fallback
+                        const mockContent = new Blob(["Documento simulado de Logitrade.\\nID de Factura: " + row.factura], { type: 'text/plain' });
+                        fileUrl = URL.createObjectURL(mockContent);
+                        isMock = true;
+                    }
+                    
+                    const a = document.createElement("a");
+                    a.href = fileUrl;
+                    a.download = row.factura;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    if(isMock) setTimeout(() => URL.revokeObjectURL(fileUrl), 100);
+                } else {
+                    const estadoFact = row.estadoFactura ? row.estadoFactura.toLowerCase() : 'pendiente';
+                    if (estadoFact !== 'ok' && estadoFact !== 'ok / pagado') {
+                        alert("⚠️ Debe marcar la factura como OK antes de subir el archivo.");
+                        return;
+                    }
+
+                    if(!row.nroFactura || row.nroFactura.toString().trim() === "") {
+                        alert("⚠️ Por favor, ingresa el Nro de Factura en el campo de texto antes de subir el archivo.");
+                        return;
+                    }
+
+                    currentUploadRowId = id;
+                    document.getElementById('factura-upload-input').click();
+                }
+            }
+        }
+
+        async function processFacturaUpload(event) {
+            const file = event.target.files[0];
+            if(file && currentUploadRowId) {
+                const row = excelData.find(x => x.id === currentUploadRowId);
+                if(row) {
+                    row.isUploading = true;
+                    renderClientTable();
+                    showToast("Sincronizando con Google Drive...");
+
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64Data = e.target.result;
+                        // Extrae base64 puro
+                        const pureBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        const safeCliente = row.cliente.replace(/\s+/g, '');
+                        const nroFacturaPrefix = row.nroFactura ? row.nroFactura : row.id;
+                        const generatedName = `Factura_${nroFacturaPrefix}_${safeCliente}.${ext}`;
+                        
+                        try {
+                            const res = await fetch(GOOGLE_SCRIPT_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain' },
+                                body: JSON.stringify({
+                                    name: generatedName,
+                                    base64: pureBase64
+                                })
+                            });
+                            
+                            const data = await res.json();
+                            if(data.status === 'success' || data.link || data.url) {
+                                row.driveUrl = data.link || data.url;
+                            }
+                        } catch(err) {
+                            console.warn("Fallo enlace nube. Guardado en caché local.", err);
+                        }
+
+                        row.isUploading = false;
+                        row.factura = generatedName;
+                        row.fileData = base64Data;
+                        setStorage('logitrade_services', excelData);
+                        renderClientTable();
+                        showToast('Factura procesada: ' + generatedName);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            currentUploadRowId = null;
+            event.target.value = ''; // Reset input
+        }
+
+        function replaceFactura(id) {
+            const row = excelData.find(x => x.id === id);
+            if(row && row.factura) {
+                const estadoFact = row.estadoFactura ? row.estadoFactura.toLowerCase() : 'pendiente';
+                if (estadoFact !== 'ok' && estadoFact !== 'ok / pagado') {
+                    alert("⚠️ Debe marcar la factura como OK antes de reemplazar el archivo.");
+                    return;
+                }
+
+                if(!row.nroFactura || row.nroFactura.toString().trim() === "") {
+                    alert("⚠️ Por favor, ingresa o verifica el Nro de Factura antes de reemplazar el archivo.");
+                    return;
+                }
+                
+                if(confirm('¿Estás seguro de que deseas reemplazar la factura actual ("' + row.factura + '") por un nuevo archivo?')) {
+                    currentUploadRowId = id;
+                    document.getElementById('factura-upload-input').click();
+                }
+            }
+        }
+
+        function renderClientTable() {
+            const tbody = document.getElementById('client-services-tbody');
+            const data = excelData.filter(d => d.cliente === currentUserClient);
+            
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-10"><div class="text-slate-400 mt-2">Aún no hay servicios registrados para este cliente.</div><button class="mt-4 bg-white border border-gray-200 text-primary-900 hover:bg-gray-50 px-4 py-2 rounded text-xs font-medium transition-colors" onclick="openNewServiceModal()">Crear primer servicio</button></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(row => {
+                
+                // Color Dinámico del Icono
+                let facturaIcon = '';
+                if(row.isUploading) {
+                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo a Google Drive..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+                } else if(row.factura) {
+                    let fileBtn = '';
+                    if(row.driveUrl) {
+                        fileBtn = `<button onclick="window.open('${row.driveUrl}', '_blank')" title="Enlace al Drive" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 transition-colors"><i class="fa-regular fa-file-pdf"></i></button>`;
+                    } else {
+                        fileBtn = `<button onclick="clickFactura(${row.id})" title="Descargar Local" class="w-7 h-7 rounded border border-gray-200 text-slate-600 bg-gray-50 hover:bg-gray-100 transition-colors"><i class="fa-regular fa-file-lines"></i></button>`;
+                    }
+
+                    facturaIcon = `
+                        <div class="flex items-center justify-center gap-1">
+                            ${fileBtn}
+                            <button onclick="replaceFactura(${row.id})" title="Reemplazar archivo" class="w-7 h-7 rounded bg-white text-slate-400 border border-gray-200 hover:text-slate-700 hover:bg-gray-50 transition-colors flex items-center justify-center">
+                                <i class="fa-solid fa-rotate text-[10px]"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Clickeable, dependiente o no de clickFactura 
+                    facturaIcon = `<button onclick="clickFactura(${row.id})" title="Subir archivo" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200 hover:bg-gray-50 transition-colors"><i class="fa-solid fa-paperclip"></i></button>`;
+                }
+
+                // Nro Factura Input Block
+                const pNroFact = row.nroFactura || '';
+                const factColumn = `
+                    <div class="flex items-center justify-end gap-2 pr-1">
+                        <input type="text" value="${pNroFact}" placeholder="Nº..." onchange="updateNroFactura(${row.id}, this.value)" title="Ingresar Nro Factura" class="w-14 px-1.5 py-1 text-xs text-center border border-gray-200 text-slate-700 bg-white rounded outline-none focus:border-primary-900 transition-colors">
+                        ${facturaIcon}
+                    </div>
+                `;
+
+                // Select de Estado Pago
+                const isOk = row.estado.toLowerCase() === 'ok' || row.estado.toLowerCase() === 'pagado';
+                const estadoSelect = `
+                    <select onchange="updateEstado(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="OK" ${isOk ? 'selected' : ''}>OK</option>
+                    </select>
+                `;
+
+                // Select de Estado Factura
+                const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
+                const estadoFacturaSelect = `
+                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
+                    </select>
+                `;
+
+                const safeCosto = isNaN(Number(row.costo)) || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
+                const safeMonto = isNaN(Number(row.monto)) || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
+                const pFechaServicio = row.fechaServicio !== "-" ? new Date(row.fechaServicio).toLocaleDateString() : "-";
+                const pFechaPago = row.fechaPago !== "-" ? new Date(row.fechaPago).toLocaleDateString() : "-";
+
+                return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
+                    <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
+                    <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600">${row.destino}</td>
+                    <td class="px-3 py-2 text-right text-slate-600">${safeCosto}</td>
+                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
+                    <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
+                    <td class="px-3 py-2 text-center">${estadoSelect}</td>
+                    <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
+                    <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
+                    <td class="px-3 py-2 text-center">${factColumn}</td>
+                    <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
+                    <td class="px-2 py-2 text-center">
+                        <button onclick="editService(${row.id})" title="Modificar Fila" class="text-slate-400 hover:text-primary-900 p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        // SERVICE MODAL LOGIC (ADD / EDIT)
+        function openNewServiceModal() {
+            currentEditServiceId = null;
+            document.getElementById('modal-client-label').innerText = currentUserClient;
+            document.getElementById('modal-service-title').innerText = "Agregar Nuevo Servicio a";
+            document.getElementById('service-modal').classList.remove('hidden');
+            document.getElementById('new-service-form').reset();
+        }
+
+        function editService(id) {
+            currentEditServiceId = id;
+            const row = excelData.find(x => x.id === id);
+            if(!row) return;
+
+            document.getElementById('modal-client-label').innerText = currentUserClient;
+            document.getElementById('modal-service-title').innerText = "Modificar Servicio de";
+            
+            document.getElementById('fm-operador').value = row.operador === "-" ? "" : row.operador;
+            document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio;
+            document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
+            document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
+            document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
+            document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
+            document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago;
+            document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" ? "OK" : "Pendiente";
+            
+            const eFact = row.estadoFactura || "Pendiente";
+            document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
+            
+            document.getElementById('fm-oc').value = row.ocHes === "-" ? "" : row.ocHes;
+            document.getElementById('fm-cot').value = row.cotizacion === "-" ? "" : row.cotizacion;
+
+            document.getElementById('service-modal').classList.remove('hidden');
+        }
+
+        function closeNewServiceModal() {
+            document.getElementById('service-modal').classList.add('hidden');
+            document.getElementById('new-service-form').reset();
+            currentEditServiceId = null;
+        }
+
+        function handleServiceSubmit(e) {
+            e.preventDefault();
+            
+            if (currentEditServiceId) {
+                const row = excelData.find(x => x.id === currentEditServiceId);
+                if(row) {
+                    row.operador = document.getElementById('fm-operador').value || "-";
+                    row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
+                    row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
+                    row.destino = document.getElementById('fm-destino').value || "-";
+                    row.costo = document.getElementById('fm-costo').value || "-";
+                    row.monto = document.getElementById('fm-monto').value || "-";
+                    row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
+                    row.estado = document.getElementById('fm-estado').value;
+                    row.estadoFactura = document.getElementById('fm-estadoFactura').value;
+                    row.ocHes = document.getElementById('fm-oc').value || "-";
+                    row.cotizacion = document.getElementById('fm-cot').value || "-";
+                }
+                showToast('Cambios guardados correctamente');
+            } else {
+                const newRow = {
+                    id: Date.now(),
+                    cliente: currentUserClient,
+                    operador: document.getElementById('fm-operador').value || "-",
+                    fechaServicio: document.getElementById('fm-fechaServicio').value || "-",
+                    tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
+                    destino: document.getElementById('fm-destino').value || "-",
+                    costo: document.getElementById('fm-costo').value || "-", 
+                    monto: document.getElementById('fm-monto').value || "-",
+                    fechaPago: document.getElementById('fm-fechaPago').value || "-",
+                    estado: document.getElementById('fm-estado').value,
+                    estadoFactura: document.getElementById('fm-estadoFactura').value,
+                    ocHes: document.getElementById('fm-oc').value || "-",
+                    cotizacion: document.getElementById('fm-cot').value || "-",
+                    factura: "",
+                    nroFactura: "",
+                    fileData: ""
+                };
+                excelData.push(newRow);
+                showToast('Fila creada correctamente');
+            }
+            
+            setStorage('logitrade_services', excelData);
+            closeNewServiceModal();
+            renderClientTable();
+        }
+    </script>
+</body>
+</html>
