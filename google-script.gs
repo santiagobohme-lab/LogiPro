@@ -17,7 +17,7 @@ const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
 const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 
 // NUEVO: EncabezADOS para la pestaña de Operadores
-const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Correo"];
+const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email"];
 
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -106,7 +106,7 @@ function doGet(e) {
       clientes: getSheetData(clientsSheet, ["Nombre", "Teléfono", "Email"]),
       colaboradores: getSheetData(usersSheet, USER_HEADERS),
       potenciales: getSheetData(potentialSheet, POTENTIAL_HEADERS),
-      base_operadores: getSheetData(initSheet("Base de Operadores", OPERATOR_HEADERS), OPERATOR_HEADERS)
+      base_operadores: getSheetData(initSheet("Base_Operadores", OPERATOR_HEADERS), OPERATOR_HEADERS)
     })).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
@@ -160,7 +160,7 @@ function doPost(e) {
 
     // NUEVO: Acción para guardar Perfil de Operador (clave: Nombre / Empresa)
     else if (action === "upsertOperadorPerfil") {
-      const sheet = initSheet("Base de Operadores", OPERATOR_HEADERS);
+      const sheet = initSheet("Base_Operadores", OPERATOR_HEADERS);
       upsertRow(sheet, OPERATOR_HEADERS, payload.data, "Nombre / Empresa");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
