@@ -646,6 +646,20 @@
             "Email": row.email
         });
 
+        const mapFromSheetOperador = (sheetObj) => ({
+            nombre: sheetObj["Nombre / Empresa"] || "",
+            rut: sheetObj["RUT"] || "",
+            patente: sheetObj["Patente"] || "",
+            chofer: sheetObj["Chofer"] || ""
+        });
+
+        const mapToSheetOperador = (row) => ({
+            "Nombre / Empresa": row.nombre,
+            "RUT": row.rut,
+            "Patente": row.patente,
+            "Chofer": row.chofer
+        });
+
         const mapFromSheetService = (sheetObj) => {
             const rawDateSrv = sheetObj["Fecha de Servicio"];
             const rawDatePago = sheetObj["Fecha de Pago"];
@@ -788,11 +802,15 @@
                         nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email
                     }));
                     
+                    // Nueva fuente de operadores
+                    operadoresData = (result.base_operadores || []).map(mapFromSheetOperador);
+                    
                     if(clientsData.length > 0 && !currentUserClient) {
                          currentUserClient = clientsData[0].nombre;
                     }
 
                     renderClientsList();
+                    renderOperadoresList(); // Renderizar lista tras carga
                     const detailModal = document.getElementById('cliente-detail');
                     if(detailModal && !detailModal.classList.contains('hidden')) {
                          renderClientTable();
@@ -1654,21 +1672,46 @@
             currentEditOperadorNombre = null;
         }
 
-        function handleOperadorSubmit(e) {
+        async function handleOperadorSubmit(e) {
             e.preventDefault();
+            const btn = document.getElementById('op-submit-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+            btn.disabled = true;
+
             const op = {
                 nombre: document.getElementById('fm-op-nombre').value.trim(),
                 rut: document.getElementById('fm-op-rut').value.trim(),
                 patente: document.getElementById('fm-op-patente').value.trim().toUpperCase(),
                 chofer: document.getElementById('fm-op-chofer').value.trim()
             };
-            const idx = operadoresData.findIndex(o => o.nombre === (currentEditOperadorNombre || op.nombre));
-            if(idx >= 0) operadoresData[idx] = op;
-            else operadoresData.push(op);
 
-            renderOperadoresList();
-            closeOperadorModal();
-            showToast(`Operador "${op.nombre}" guardado localmente.`);
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'upsertOperadorPerfil',
+                        data: mapToSheetOperador(op)
+                    })
+                });
+                const result = await res.json();
+                
+                if(result.status === 'success') {
+                    showToast(`Operador "${op.nombre}" guardado correctamente.`);
+                    closeOperadorModal();
+                    // Refresco de datos completo desde la nube
+                    await initDataFromCloud();
+                } else {
+                    showToast(result.message || "Error al guardar perfil.");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error de comunicación con el servidor.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         function deleteOperador(nombre) {
