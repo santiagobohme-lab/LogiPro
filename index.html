@@ -187,7 +187,7 @@
                     <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
                         <div>
                             <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Directorio de Clientes</h1>
-                            <p class="text-slate-500 text-sm mt-1">Empresas y contactos asociados a nuestra red logística.</p>
+                            <p class="text-slate-500 text-sm mt-1">Empresas y contactos asociados a nuestra red logística. &nbsp;<button onclick="showProspectos()" class="text-xs text-slate-400 hover:text-primary-600 transition-colors underline underline-offset-2"><i class="fa-regular fa-star mr-1"></i>Clientes Potenciales</button></p>
                         </div>
                         <button onclick="openNewClientModal()" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 border border-primary-900 hover:border-primary-700">
                             <i class="fa-solid fa-plus"></i> Crear Cliente
@@ -205,6 +205,38 @@
                                     </tr>
                                 </thead>
                                 <tbody id="clients-tbody" class="divide-y divide-gray-100 text-sm">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-view 3: Clientes Potenciales -->
+                <div id="prospectos-list" class="hidden animate-fade-in">
+                    <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
+                        <div>
+                            <button onclick="backToClientes()" class="text-primary-900 hover:text-primary-700 flex items-center mb-2 text-xs font-medium transition-colors"><i class="fa-solid fa-arrow-left-long mr-1.5"></i> Volver a Clientes</button>
+                            <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Clientes Potenciales</h1>
+                            <p class="text-slate-500 text-sm mt-1">Directorio de prospectos y contactos en seguimiento.</p>
+                        </div>
+                        <button onclick="openNewProspectoModal()" class="bg-white hover:bg-gray-50 text-primary-900 px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 border border-gray-300">
+                            <i class="fa-solid fa-plus"></i> Nuevo Prospecto
+                        </button>
+                    </div>
+                    <div class="bg-white rounded border border-gray-100 overflow-hidden w-full max-w-full">
+                        <div class="table-container">
+                            <table class="w-full text-left whitespace-nowrap min-w-[600px]">
+                                <thead>
+                                    <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                        <th class="px-4 py-3">Nombre</th>
+                                        <th class="px-4 py-3">Teléfono</th>
+                                        <th class="px-4 py-3">Correo</th>
+                                        <th class="px-4 py-3">Sitio Web</th>
+                                        <th class="px-4 py-3 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prospectos-tbody" class="divide-y divide-gray-100 text-sm">
                                     <!-- Rendered dynamically -->
                                 </tbody>
                             </table>
@@ -288,6 +320,38 @@
                             <button type="submit" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
                                 Confirmar Creación
                             </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal for New Prospecto -->
+            <div id="prospecto-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                    <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
+                        <h3 class="text-lg font-bold text-primary-900" id="prospecto-modal-title">Nuevo Cliente Potencial</h3>
+                        <button type="button" onclick="closeProspectoModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="new-prospecto-form" onsubmit="handleProspectoSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre <span class="text-red-400">*</span></label>
+                            <input type="text" id="fm-pro-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Empresa o persona de contacto">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono <span class="text-slate-400 font-normal">(opcional)</span></label>
+                            <input type="text" id="fm-pro-telefono" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="+56 9...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Correo <span class="text-slate-400 font-normal">(opcional)</span></label>
+                            <input type="email" id="fm-pro-email" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="contacto@empresa.com">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Sitio Web <span class="text-slate-400 font-normal">(opcional)</span></label>
+                            <input type="text" id="fm-pro-web" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="www.ejemplo.cl">
+                        </div>
+                        <div class="pt-4 flex justify-end gap-2 mt-2">
+                            <button type="button" onclick="closeProspectoModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
+                            <button type="submit" id="prospecto-submit-btn" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Guardar Prospecto</button>
                         </div>
                     </form>
                 </div>
@@ -459,8 +523,10 @@
         let colaboradoresData = [];
         let clientsData = [];
         let excelData = [];
+        let potencialesData = [];
         let currentUserClient = null;
         let currentEditServiceId = null;
+        let currentEditProspectoId = null;
         let isGlobalLoading = false;
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
@@ -606,6 +672,13 @@
                 if(result.status === "success") {
                     clientsData = (result.clientes || []).map(mapFromSheetClient);
                     excelData = (result.servicios || []).map(mapFromSheetService);
+                    potencialesData = (result.potenciales || []).map(p => ({
+                        id: p["ID"] || String(Date.now()),
+                        nombre: p["Nombre"] || "",
+                        telefono: p["Teléfono"] || "",
+                        email: p["Email"] || "",
+                        web: p["Sitio Web"] || ""
+                    }));
                     
                     // Asegurar que leemos el nuevo array de colaboradores
                     colaboradoresData = (result.colaboradores || []).map(u => ({
@@ -620,6 +693,10 @@
                     const detailModal = document.getElementById('cliente-detail');
                     if(detailModal && !detailModal.classList.contains('hidden')) {
                          renderClientTable();
+                    }
+                    const prospList = document.getElementById('prospectos-list');
+                    if(prospList && !prospList.classList.contains('hidden')) {
+                         renderProspectosList();
                     }
                     if(activeSession && activeSession.rol === 'SuperAdmin') {
                          renderColaboradoresList();
@@ -884,7 +961,149 @@
 
         function backToClientes() {
             document.getElementById('cliente-detail').classList.replace('block', 'hidden');
+            document.getElementById('prospectos-list').classList.replace('block', 'hidden');
             document.getElementById('clientes-list').classList.replace('hidden', 'block');
+        }
+
+        // PROSPECTOS LOGIC
+        function showProspectos() {
+            document.getElementById('clientes-list').classList.replace('block', 'hidden');
+            document.getElementById('cliente-detail').classList.replace('block', 'hidden');
+            document.getElementById('prospectos-list').classList.replace('hidden', 'block');
+            renderProspectosList();
+        }
+
+        function renderProspectosList() {
+            const tbody = document.getElementById('prospectos-tbody');
+            if(!tbody) return;
+            if(potencialesData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400"><i class="fa-regular fa-star mr-2"></i>No hay clientes potenciales registrados aún.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = potencialesData.map(p => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-semibold text-slate-700">
+                        <i class="fa-regular fa-star text-amber-400 mr-2"></i>${p.nombre}
+                    </td>
+                    <td class="px-4 py-3 text-slate-500">${p.telefono || '<span class="text-slate-300">—</span>'}</td>
+                    <td class="px-4 py-3 text-slate-500">${p.email || '<span class="text-slate-300">—</span>'}</td>
+                    <td class="px-4 py-3">${p.web ? `<a href="${p.web.startsWith('http') ? p.web : 'https://'+p.web}" target="_blank" class="text-primary-600 hover:underline text-xs">${p.web}</a>` : '<span class="text-slate-300">—</span>'}</td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="editProspecto('${p.id}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="convertToClient('${p.id}')" title="Convertir a Cliente Real" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors font-medium">
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i> Mover a Clientes
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openNewProspectoModal() {
+            currentEditProspectoId = null;
+            document.getElementById('prospecto-modal-title').innerText = 'Nuevo Cliente Potencial';
+            document.getElementById('new-prospecto-form').reset();
+            document.getElementById('fm-pro-nombre').readOnly = false;
+            document.getElementById('fm-pro-nombre').classList.remove('bg-gray-100');
+            document.getElementById('prospecto-submit-btn').innerText = 'Guardar Prospecto';
+            document.getElementById('prospecto-modal').classList.remove('hidden');
+        }
+
+        function editProspecto(id) {
+            const p = potencialesData.find(x => x.id === id);
+            if(!p) return;
+            currentEditProspectoId = id;
+            document.getElementById('prospecto-modal-title').innerText = 'Editar Cliente Potencial';
+            document.getElementById('fm-pro-nombre').value = p.nombre;
+            document.getElementById('fm-pro-nombre').readOnly = false;
+            document.getElementById('fm-pro-telefono').value = p.telefono;
+            document.getElementById('fm-pro-email').value = p.email;
+            document.getElementById('fm-pro-web').value = p.web;
+            document.getElementById('prospecto-submit-btn').innerText = 'Actualizar';
+            document.getElementById('prospecto-modal').classList.remove('hidden');
+        }
+
+        function closeProspectoModal() {
+            document.getElementById('prospecto-modal').classList.add('hidden');
+            document.getElementById('new-prospecto-form').reset();
+            currentEditProspectoId = null;
+        }
+
+        async function handleProspectoSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('prospecto-submit-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+            btn.disabled = true;
+
+            const id = currentEditProspectoId || String(Date.now());
+            const prospecto = {
+                id,
+                nombre: document.getElementById('fm-pro-nombre').value.trim(),
+                telefono: document.getElementById('fm-pro-telefono').value.trim(),
+                email: document.getElementById('fm-pro-email').value.trim(),
+                web: document.getElementById('fm-pro-web').value.trim()
+            };
+
+            // Optimistic update local array
+            const idx = potencialesData.findIndex(p => p.id === id);
+            if(idx >= 0) potencialesData[idx] = prospecto;
+            else potencialesData.push(prospecto);
+
+            renderProspectosList();
+            closeProspectoModal();
+
+            // Sync to backend
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'upsertPotential',
+                        data: { "ID": id, "Nombre": prospecto.nombre, "Teléfono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web }
+                    })
+                });
+                const result = await res.json();
+                if(result.status === 'success') showToast('Prospecto guardado correctamente.');
+                else showToast(result.message || 'Error al guardar prospecto.');
+            } catch(err) {
+                console.error(err);
+                showToast('Error de red al guardar prospecto.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function convertToClient(id) {
+            const p = potencialesData.find(x => x.id === id);
+            if(!p) return;
+            if(!confirm(`¿Mover a "${p.nombre}" al directorio de Clientes Reales? Se eliminará de Potenciales.`)) return;
+
+            // Add to clients list
+            const newClient = { nombre: p.nombre, telefono: p.telefono || "", email: p.email || "" };
+            clientsData.push(newClient);
+            potencialesData = potencialesData.filter(x => x.id !== id);
+            renderProspectosList();
+
+            showToast(`Convirtiendo a ${p.nombre} en cliente real...`);
+
+            // Push new client to Clientes sheet
+            await syncClientToDB(newClient);
+
+            // Delete from Potenciales sheet
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deletePotential', id })
+                });
+                showToast(`¡${p.nombre} ahora es un cliente real!`);
+            } catch(err) {
+                console.error(err);
+                showToast('Error eliminando de Potenciales.');
+            }
         }
 
         function updateEstado(id, val) {

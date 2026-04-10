@@ -13,6 +13,7 @@ const SCRIPT_DB_HEADERS = [
 
 // Cambiamos Email por Nombre como identificador principal
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
+const POTENTIAL_HEADERS = ["ID", "Nombre", "Teléfono", "Email", "Sitio Web"];
 
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -93,12 +94,14 @@ function doGet(e) {
     const servicesSheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
     const clientsSheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
     const usersSheet = initSheet("Colaboradores", USER_HEADERS);
+    const potencialesSheet = initSheet("Potenciales", POTENTIAL_HEADERS);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       servicios: getSheetData(servicesSheet, SCRIPT_DB_HEADERS),
       clientes: getSheetData(clientsSheet, ["Nombre", "Teléfono", "Email"]),
-      colaboradores: getSheetData(usersSheet, USER_HEADERS)
+      colaboradores: getSheetData(usersSheet, USER_HEADERS),
+      potenciales: getSheetData(potencialesSheet, POTENTIAL_HEADERS)
     })).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
@@ -172,6 +175,20 @@ function doPost(e) {
         url: file.getUrl(),
         id: file.getId()
       })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    else if (action === "upsertPotential") {
+      const sheet = initSheet("Potenciales", POTENTIAL_HEADERS);
+      upsertRow(sheet, POTENTIAL_HEADERS, payload.data, "ID");
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    else if (action === "deletePotential") {
+      const sheet = initSheet("Potenciales", POTENTIAL_HEADERS);
+      deleteRowById(sheet, POTENTIAL_HEADERS, "ID", payload.id);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
