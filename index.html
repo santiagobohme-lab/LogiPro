@@ -281,6 +281,7 @@
                                         <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
                                         <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
                                         <th class="px-3 py-2">F. Pago</th>
+                                        <th class="px-3 py-2 text-center">Estado</th>
                                         <th class="px-3 py-2">OC / HES</th>
                                         <th class="px-3 py-2">Cotización</th>
                                         <th class="px-3 py-2 text-center">Fact. / Nº</th>
@@ -375,15 +376,10 @@
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-slate-700 mb-1">Costo ($ CLP)</label><input type="number" id="fm-costo" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
-                            <div><label class="block text-xs font-bold text-slate-700 mb-1">Pago Operador</label><select id="fm-estadoPagoOp" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">Pagado</option><option value="Pendiente" selected>Pendiente</option></select></div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto ($ CLP)</label><input type="number" id="fm-monto" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
-                            <div><label class="block text-xs font-bold text-slate-700 mb-1">Pago Cliente</label><select id="fm-estadoPagoCli" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">Pagado</option><option value="Pendiente" selected>Pendiente</option></select></div>
-                        </div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Costo ($ CLP)</label><input type="number" id="fm-costo" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto ($ CLP)</label><input type="number" id="fm-monto" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Pago</label><input type="date" id="fm-fechaPago" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado</label><select id="fm-estado" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK / Pagado</option><option value="Pendiente" selected>Pendiente</option></select></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="fm-estadoFactura" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">OC / HES</label><input type="text" id="fm-oc" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Cotización</label><input type="text" id="fm-cot" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
@@ -663,10 +659,9 @@
                 tipoServicio: sheetObj["Tipo Servicio"] || "-",
                 destino: sheetObj["Destino"] || "-",
                 costo: sheetObj["Costo"] || "-",
-                estadoPagoOp: sheetObj["Estado Pago Op"] || "Pendiente",
                 monto: sheetObj["Monto"] || "-",
-                estadoPagoCli: sheetObj["Estado Pago Cli"] || "Pendiente",
                 fechaPago: rawDatePago ? rawDatePago.split('T')[0] : "-",
+                estado: sheetObj["Estado Pago"] || "Pendiente",
                 estadoFactura: sheetObj["Estado Factura"] || "Pendiente",
                 ocHes: sheetObj["OC / HES"] || "-",
                 cotizacion: sheetObj["Cotización"] || "-",
@@ -684,10 +679,9 @@
             "Tipo Servicio": row.tipoServicio,
             "Destino": row.destino,
             "Costo": row.costo,
-            "Estado Pago Op": row.estadoPagoOp || "Pendiente",
             "Monto": row.monto,
-            "Estado Pago Cli": row.estadoPagoCli || "Pendiente",
             "Fecha de Pago": row.fechaPago,
+            "Estado Pago": row.estado,
             "Estado Factura": row.estadoFactura,
             "OC / HES": row.ocHes,
             "Cotización": row.cotizacion,
@@ -1215,33 +1209,21 @@
             }
         }
 
-        async function updateEstadoOp(id, val) {
+        function updateEstado(id, val) {
             const row = excelData.find(x => x.id === id);
             if(row) {
-                row.estadoPagoOp = val;
-                renderClientTable();
-                await syncServiceToDB(row);
-                showToast(`Pago Operador actualizado a ${val}`);
+                row.estado = val;
+                renderClientTable(); // optimistic update
+                syncServiceToDB(row);
             }
         }
 
-        async function updateEstadoCli(id, val) {
-            const row = excelData.find(x => x.id === id);
-            if(row) {
-                row.estadoPagoCli = val;
-                renderClientTable();
-                await syncServiceToDB(row);
-                showToast(`Pago Cliente actualizado a ${val}`);
-            }
-        }
-
-        async function updateEstadoFactura(id, val) {
+        function updateEstadoFactura(id, val) {
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.estadoFactura = val;
-                renderClientTable();
-                await syncServiceToDB(row);
-                showToast(`Estado Factura actualizado a ${val}`);
+                renderClientTable(); // optimistic update
+                syncServiceToDB(row);
             }
         }
 
@@ -1396,29 +1378,20 @@
                     </div>
                 `;
 
-                // Select de Estado Pago OPERADOR (Costo)
-                const isOpPaid = row.estadoPagoOp && (row.estadoPagoOp.toLowerCase() === 'ok' || row.estadoPagoOp.toLowerCase() === 'pagado');
-                const statusOpHtml = `
-                    <select onchange="updateEstadoOp(${row.id}, this.value)" class="text-[9px] px-1 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOpPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
-                        <option value="Pendiente" ${!isOpPaid ? 'selected' : ''}>PND</option>
-                        <option value="OK" ${isOpPaid ? 'selected' : ''}>PAG</option>
-                    </select>
-                `;
-
-                // Select de Estado Pago CLIENTE (Monto)
-                const isCliPaid = row.estadoPagoCli && (row.estadoPagoCli.toLowerCase() === 'ok' || row.estadoPagoCli.toLowerCase() === 'pagado');
-                const statusCliHtml = `
-                    <select onchange="updateEstadoCli(${row.id}, this.value)" class="text-[9px] px-1 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isCliPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
-                        <option value="Pendiente" ${!isCliPaid ? 'selected' : ''}>PND</option>
-                        <option value="OK" ${isCliPaid ? 'selected' : ''}>PAG</option>
+                // Select de Estado Pago
+                const isOk = row.estado.toLowerCase() === 'ok' || row.estado.toLowerCase() === 'pagado';
+                const estadoSelect = `
+                    <select onchange="updateEstado(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="OK" ${isOk ? 'selected' : ''}>OK</option>
                     </select>
                 `;
 
                 // Select de Estado Factura
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-[9px] px-1 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
-                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PND</option>
+                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
                         <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
                     </select>
                 `;
@@ -1426,6 +1399,7 @@
                 const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
                 const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
                 
+                // Formatear display de fechas quitando T00:00:00 si es que traen
                 const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
                 const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
 
@@ -1435,19 +1409,10 @@
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
-                    <td class="px-3 py-2 text-right">
-                        <div class="flex flex-col items-end gap-0.5">
-                            <span class="text-slate-600">${safeCosto}</span>
-                            ${statusOpHtml}
-                        </div>
-                    </td>
-                    <td class="px-3 py-2 text-right">
-                        <div class="flex flex-col items-end gap-0.5">
-                            <span class="text-slate-800 font-bold">${safeMonto}</span>
-                            ${statusCliHtml}
-                        </div>
-                    </td>
+                    <td class="px-3 py-2 text-right text-slate-600">${safeCosto}</td>
+                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
+                    <td class="px-3 py-2 text-center">${estadoSelect}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
                     <td class="px-3 py-2 text-center">${factColumn}</td>
@@ -1509,16 +1474,16 @@
             
             populateOperadorSelect();
             document.getElementById('fm-operador').value = row.operador === "-" ? "" : row.operador;
+            // Trigger autofill if the selected operator exists
             onOperadorChange();
             
             document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio.split('T')[0];
             document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
             document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
             document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
-            document.getElementById('fm-estadoPagoOp').value = row.estadoPagoOp || "Pendiente";
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
-            document.getElementById('fm-estadoPagoCli').value = row.estadoPagoCli || "Pendiente";
             document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
+            document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" ? "OK" : "Pendiente";
             
             const eFact = row.estadoFactura || "Pendiente";
             document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
@@ -1548,10 +1513,9 @@
                     row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
                     row.destino = document.getElementById('fm-destino').value || "-";
                     row.costo = document.getElementById('fm-costo').value || "-";
-                    row.estadoPagoOp = document.getElementById('fm-estadoPagoOp').value;
                     row.monto = document.getElementById('fm-monto').value || "-";
-                    row.estadoPagoCli = document.getElementById('fm-estadoPagoCli').value;
                     row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
+                    row.estado = document.getElementById('fm-estado').value;
                     row.estadoFactura = document.getElementById('fm-estadoFactura').value;
                     row.ocHes = document.getElementById('fm-oc').value || "-";
                     row.cotizacion = document.getElementById('fm-cot').value || "-";
@@ -1567,10 +1531,9 @@
                     tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
                     destino: document.getElementById('fm-destino').value || "-",
                     costo: document.getElementById('fm-costo').value || "-", 
-                    estadoPagoOp: document.getElementById('fm-estadoPagoOp').value,
                     monto: document.getElementById('fm-monto').value || "-",
-                    estadoPagoCli: document.getElementById('fm-estadoPagoCli').value,
                     fechaPago: document.getElementById('fm-fechaPago').value || "-",
+                    estado: document.getElementById('fm-estado').value,
                     estadoFactura: document.getElementById('fm-estadoFactura').value,
                     ocHes: document.getElementById('fm-oc').value || "-",
                     cotizacion: document.getElementById('fm-cot').value || "-",
@@ -1741,7 +1704,7 @@
             }
 
             tbody.innerHTML = services.map(s => {
-                const status = (s.estadoPagoOp || "Pendiente").toLowerCase();
+                const status = (s.estado || "Pendiente").toLowerCase();
                 const isPaid = status === 'ok' || status === 'ok / pagado' || status === 'pagado';
                 
                 return `
@@ -1765,7 +1728,7 @@
             const row = excelData.find(x => x.id.toString() === id.toString());
             if(!row) return;
 
-            row.estadoPagoOp = newStatus; // Local update
+            row.estado = newStatus; // Local update
             showToast(`Estado actualizado a ${newStatus}. Sincronizando...`);
             
             // Re-render table to update styles
