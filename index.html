@@ -526,7 +526,7 @@
         let potencialesData = [];
         let currentUserClient = null;
         let currentEditServiceId = null;
-        let currentEditProspectoId = null;
+        let currentEditProspectoNombre = null;
         let isGlobalLoading = false;
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
@@ -673,11 +673,11 @@
                     clientsData = (result.clientes || []).map(mapFromSheetClient);
                     excelData = (result.servicios || []).map(mapFromSheetService);
                     potencialesData = (result.potenciales || []).map(p => ({
-                        id: p["ID"] || String(Date.now()),
                         nombre: p["Nombre"] || "",
-                        telefono: p["Teléfono"] || "",
+                        telefono: p["Tel\u00e9fono"] || "",
                         email: p["Email"] || "",
-                        web: p["Sitio Web"] || ""
+                        web: p["Sitio Web"] || "",
+                        notas: p["Notas"] || ""
                     }));
                     
                     // Asegurar que leemos el nuevo array de colaboradores
@@ -990,8 +990,8 @@
                     <td class="px-4 py-3">${p.web ? `<a href="${p.web.startsWith('http') ? p.web : 'https://'+p.web}" target="_blank" class="text-primary-600 hover:underline text-xs">${p.web}</a>` : '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button onclick="editProspecto('${p.id}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="convertToClient('${p.id}')" title="Convertir a Cliente Real" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors font-medium">
+                            <button onclick="editProspecto('${p.nombre.replace(/'/g, &quot;\\&quot;)}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="convertToClient('${p.nombre.replace(/'/g, &quot;\\&quot;)}')" title="Convertir a Cliente Real" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors font-medium">
                                 <i class="fa-solid fa-arrow-right-arrow-left"></i> Mover a Clientes
                             </button>
                         </div>
@@ -1001,7 +1001,7 @@
         }
 
         function openNewProspectoModal() {
-            currentEditProspectoId = null;
+            currentEditProspectoNombre = null;
             document.getElementById('prospecto-modal-title').innerText = 'Nuevo Cliente Potencial';
             document.getElementById('new-prospecto-form').reset();
             document.getElementById('fm-pro-nombre').readOnly = false;
@@ -1010,13 +1010,14 @@
             document.getElementById('prospecto-modal').classList.remove('hidden');
         }
 
-        function editProspecto(id) {
-            const p = potencialesData.find(x => x.id === id);
+        function editProspecto(nombre) {
+            const p = potencialesData.find(x => x.nombre === nombre);
             if(!p) return;
-            currentEditProspectoId = id;
+            currentEditProspectoNombre = nombre;
             document.getElementById('prospecto-modal-title').innerText = 'Editar Cliente Potencial';
             document.getElementById('fm-pro-nombre').value = p.nombre;
-            document.getElementById('fm-pro-nombre').readOnly = false;
+            document.getElementById('fm-pro-nombre').readOnly = true;
+            document.getElementById('fm-pro-nombre').classList.add('bg-gray-100');
             document.getElementById('fm-pro-telefono').value = p.telefono;
             document.getElementById('fm-pro-email').value = p.email;
             document.getElementById('fm-pro-web').value = p.web;
@@ -1027,7 +1028,7 @@
         function closeProspectoModal() {
             document.getElementById('prospecto-modal').classList.add('hidden');
             document.getElementById('new-prospecto-form').reset();
-            currentEditProspectoId = null;
+            currentEditProspectoNombre = null;
         }
 
         async function handleProspectoSubmit(e) {
@@ -1037,17 +1038,16 @@
             btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
             btn.disabled = true;
 
-            const id = currentEditProspectoId || String(Date.now());
             const prospecto = {
-                id,
                 nombre: document.getElementById('fm-pro-nombre').value.trim(),
                 telefono: document.getElementById('fm-pro-telefono').value.trim(),
                 email: document.getElementById('fm-pro-email').value.trim(),
-                web: document.getElementById('fm-pro-web').value.trim()
+                web: document.getElementById('fm-pro-web').value.trim(),
+                notas: ""
             };
 
-            // Optimistic update local array
-            const idx = potencialesData.findIndex(p => p.id === id);
+            // Optimistic update local array (keyed by nombre)
+            const idx = potencialesData.findIndex(p => p.nombre === (currentEditProspectoNombre || prospecto.nombre));
             if(idx >= 0) potencialesData[idx] = prospecto;
             else potencialesData.push(prospecto);
 
@@ -1061,7 +1061,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'upsertPotential',
-                        data: { "ID": id, "Nombre": prospecto.nombre, "Teléfono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web }
+                        data: { "Nombre": prospecto.nombre, "Tel\u00e9fono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web, "Notas": prospecto.notas }
                     })
                 });
                 const result = await res.json();
@@ -1076,15 +1076,15 @@
             }
         }
 
-        async function convertToClient(id) {
-            const p = potencialesData.find(x => x.id === id);
+        async function convertToClient(nombre) {
+            const p = potencialesData.find(x => x.nombre === nombre);
             if(!p) return;
             if(!confirm(`¿Mover a "${p.nombre}" al directorio de Clientes Reales? Se eliminará de Potenciales.`)) return;
 
-            // Add to clients list
+            // Add to clients list optimistically
             const newClient = { nombre: p.nombre, telefono: p.telefono || "", email: p.email || "" };
             clientsData.push(newClient);
-            potencialesData = potencialesData.filter(x => x.id !== id);
+            potencialesData = potencialesData.filter(x => x.nombre !== nombre);
             renderProspectosList();
 
             showToast(`Convirtiendo a ${p.nombre} en cliente real...`);
@@ -1092,12 +1092,12 @@
             // Push new client to Clientes sheet
             await syncClientToDB(newClient);
 
-            // Delete from Potenciales sheet
+            // Delete from Potenciales sheet (keyed by Nombre)
             try {
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deletePotential', id })
+                    body: JSON.stringify({ action: 'deletePotential', nombre: p.nombre })
                 });
                 showToast(`¡${p.nombre} ahora es un cliente real!`);
             } catch(err) {
