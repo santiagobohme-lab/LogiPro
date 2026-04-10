@@ -140,6 +140,10 @@
                     <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
                     <span>Balance</span>
                 </a>
+                <a href="#operadores" onclick="switchSection('operadores')" id="nav-operadores" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-solid fa-truck w-6 text-slate-400"></i>
+                    <span>Operadores</span>
+                </a>
                 <a href="#equipo" onclick="switchSection('equipo')" id="nav-equipo" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-solid fa-users-gear w-6 text-slate-400"></i>
                     <span>Equipo</span>
@@ -366,7 +370,9 @@
                     </div>
                     
                     <form id="new-service-form" class="grid grid-cols-1 md:grid-cols-2 gap-4" outline="none" onsubmit="handleServiceSubmit(event)">
-                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Operador</label><input type="text" id="fm-operador" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Operador</label><select id="fm-operador" onchange="onOperadorChange()" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="">— Sin operador registrado —</option></select></div>
+                        <div class="hidden" id="autofill-group"><label class="block text-xs font-bold text-slate-700 mb-1">Patente <span class="font-normal text-slate-400">(auto)</span></label><input type="text" id="fm-patente" readonly class="w-full bg-amber-50 border border-amber-200 text-slate-700 px-3 py-2 rounded text-sm font-mono tracking-wider cursor-default"></div>
+                        <div class="hidden" id="autofill-group-2"><label class="block text-xs font-bold text-slate-700 mb-1">Chofer <span class="font-normal text-slate-400">(auto)</span></label><input type="text" id="fm-chofer" readonly class="w-full bg-amber-50 border border-amber-200 text-slate-700 px-3 py-2 rounded text-sm cursor-default"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
@@ -398,6 +404,69 @@
             <!-- SEC: BALANCE -->
             <div id="sec-balance" class="content-section animate-fade-in hidden">
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Balance Financiero</h1>
+            </div>
+
+            <!-- SEC: OPERADORES -->
+            <div id="sec-operadores" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Registro de Operadores</h1>
+                        <p class="text-slate-500 text-sm mt-1">Perfiles de veh&iacute;culos y conductores para auto-completado en servicios.</p>
+                    </div>
+                    <button onclick="openOperadorModal()" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Nuevo Operador
+                    </button>
+                </div>
+                <div class="bg-white rounded border border-gray-100 overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-left whitespace-nowrap min-w-[600px]">
+                            <thead>
+                                <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                    <th class="px-4 py-3">Nombre / Empresa</th>
+                                    <th class="px-4 py-3">RUT</th>
+                                    <th class="px-4 py-3">Patente</th>
+                                    <th class="px-4 py-3">Chofer</th>
+                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="operadores-tbody" class="divide-y divide-gray-100 text-sm">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Operador -->
+            <div id="operador-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                    <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
+                        <h3 class="text-lg font-bold text-primary-900" id="operador-modal-title">Nuevo Operador</h3>
+                        <button type="button" onclick="closeOperadorModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="operador-form" onsubmit="handleOperadorSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre / Empresa <span class="text-red-400">*</span></label>
+                            <input type="text" id="fm-op-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes Araya">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">RUT</label>
+                            <input type="text" id="fm-op-rut" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="12.345.678-9">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Patente del Veh&iacute;culo</label>
+                            <input type="text" id="fm-op-patente" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none font-mono tracking-wider uppercase" placeholder="BJKD-45">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Chofer</label>
+                            <input type="text" id="fm-op-chofer" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Pedro Gonz&aacute;lez">
+                        </div>
+                        <div class="pt-4 flex justify-end gap-2 mt-2">
+                            <button type="button" onclick="closeOperadorModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
+                            <button type="submit" id="op-submit-btn" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Guardar Operador</button>
+                        </div>
+                    </form>
+                </div>
             </div>
             
             <!-- SEC: EQUIPO (ADMIN ONLY) -->
@@ -524,9 +593,11 @@
         let clientsData = [];
         let excelData = [];
         let potencialesData = [];
+        let operadoresData = [];
         let currentUserClient = null;
         let currentEditServiceId = null;
         let currentEditProspectoNombre = null;
+        let currentEditOperadorNombre = null;
         let isGlobalLoading = false;
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
@@ -1354,6 +1425,9 @@
             document.getElementById('modal-service-title').innerText = "Agregar Nuevo Servicio a";
             document.getElementById('service-modal').classList.remove('hidden');
             document.getElementById('new-service-form').reset();
+            populateOperadorSelect();
+            document.getElementById('autofill-group').classList.add('hidden');
+            document.getElementById('autofill-group-2').classList.add('hidden');
         }
 
         function editService(id) {
@@ -1364,7 +1438,11 @@
             document.getElementById('modal-client-label').innerText = currentUserClient;
             document.getElementById('modal-service-title').innerText = "Modificar Servicio de";
             
+            populateOperadorSelect();
             document.getElementById('fm-operador').value = row.operador === "-" ? "" : row.operador;
+            // Trigger autofill if the selected operator exists
+            onOperadorChange();
+            
             document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio.split('T')[0];
             document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
             document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
@@ -1440,6 +1518,124 @@
             if(rowToSync) {
                 syncServiceToDB(rowToSync);
             }
+        }
+
+        // ====================================================
+        // OPERADORES LOGIC (local state - demo mode)
+        // ====================================================
+
+        function populateOperadorSelect() {
+            const sel = document.getElementById('fm-operador');
+            const current = sel.value;
+            sel.innerHTML = '<option value="">— Sin operador registrado —</option>';
+            operadoresData.forEach(op => {
+                const opt = document.createElement('option');
+                opt.value = op.nombre;
+                opt.textContent = op.nombre;
+                sel.appendChild(opt);
+            });
+            // Restore previous selection if still valid
+            if(current && operadoresData.find(o => o.nombre === current)) sel.value = current;
+        }
+
+        function onOperadorChange() {
+            const nombre = document.getElementById('fm-operador').value;
+            const op = operadoresData.find(o => o.nombre === nombre);
+            const g1 = document.getElementById('autofill-group');
+            const g2 = document.getElementById('autofill-group-2');
+            if(op) {
+                document.getElementById('fm-patente').value = op.patente || '';
+                document.getElementById('fm-chofer').value = op.chofer || '';
+                g1.classList.remove('hidden');
+                g2.classList.remove('hidden');
+            } else {
+                document.getElementById('fm-patente').value = '';
+                document.getElementById('fm-chofer').value = '';
+                g1.classList.add('hidden');
+                g2.classList.add('hidden');
+            }
+        }
+
+        function renderOperadoresList() {
+            const tbody = document.getElementById('operadores-tbody');
+            if(!tbody) return;
+            if(operadoresData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400"><i class="fa-solid fa-truck mr-2"></i>No hay operadores registrados aún.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = operadoresData.map(op => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-semibold text-slate-700">
+                        <i class="fa-solid fa-truck text-slate-300 mr-2"></i>${op.nombre}
+                    </td>
+                    <td class="px-4 py-3 text-slate-500 font-mono">${op.rut || '<span class="text-slate-300">—</span>'}</td>
+                    <td class="px-4 py-3">
+                        ${op.patente ? `<span class="font-mono font-bold text-primary-900 bg-primary-50 border border-primary-200 px-2 py-0.5 rounded text-xs tracking-widest">${op.patente}</span>` : '<span class="text-slate-300">—</span>'}
+                    </td>
+                    <td class="px-4 py-3 text-slate-600">${op.chofer || '<span class="text-slate-300">—</span>'}</td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button data-op="${op.nombre}" onclick="editOperador(this.dataset.op)" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button data-op="${op.nombre}" onclick="deleteOperador(this.dataset.op)" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openOperadorModal() {
+            currentEditOperadorNombre = null;
+            document.getElementById('operador-modal-title').innerText = 'Nuevo Operador';
+            document.getElementById('operador-form').reset();
+            document.getElementById('fm-op-nombre').readOnly = false;
+            document.getElementById('fm-op-nombre').classList.remove('bg-gray-100');
+            document.getElementById('op-submit-btn').innerText = 'Guardar Operador';
+            document.getElementById('operador-modal').classList.remove('hidden');
+        }
+
+        function editOperador(nombre) {
+            const op = operadoresData.find(o => o.nombre === nombre);
+            if(!op) return;
+            currentEditOperadorNombre = nombre;
+            document.getElementById('operador-modal-title').innerText = 'Editar Operador';
+            document.getElementById('fm-op-nombre').value = op.nombre;
+            document.getElementById('fm-op-nombre').readOnly = true;
+            document.getElementById('fm-op-nombre').classList.add('bg-gray-100');
+            document.getElementById('fm-op-rut').value = op.rut;
+            document.getElementById('fm-op-patente').value = op.patente;
+            document.getElementById('fm-op-chofer').value = op.chofer;
+            document.getElementById('op-submit-btn').innerText = 'Actualizar';
+            document.getElementById('operador-modal').classList.remove('hidden');
+        }
+
+        function closeOperadorModal() {
+            document.getElementById('operador-modal').classList.add('hidden');
+            document.getElementById('operador-form').reset();
+            currentEditOperadorNombre = null;
+        }
+
+        function handleOperadorSubmit(e) {
+            e.preventDefault();
+            const op = {
+                nombre: document.getElementById('fm-op-nombre').value.trim(),
+                rut: document.getElementById('fm-op-rut').value.trim(),
+                patente: document.getElementById('fm-op-patente').value.trim().toUpperCase(),
+                chofer: document.getElementById('fm-op-chofer').value.trim()
+            };
+            const idx = operadoresData.findIndex(o => o.nombre === (currentEditOperadorNombre || op.nombre));
+            if(idx >= 0) operadoresData[idx] = op;
+            else operadoresData.push(op);
+
+            renderOperadoresList();
+            closeOperadorModal();
+            showToast(`Operador "${op.nombre}" guardado localmente.`);
+        }
+
+        function deleteOperador(nombre) {
+            if(!confirm(`¿Eliminar el operador "${nombre}"?`)) return;
+            operadoresData = operadoresData.filter(o => o.nombre !== nombre);
+            renderOperadoresList();
+            showToast(`Operador eliminado.`);
         }
     </script>
 </body>
