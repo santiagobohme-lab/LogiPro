@@ -676,8 +676,7 @@
                         nombre: p["Nombre"] || "",
                         telefono: p["Tel\u00e9fono"] || "",
                         email: p["Email"] || "",
-                        web: p["Sitio Web"] || "",
-                        notas: p["Notas"] || ""
+                        web: p["Sitio Web"] || ""
                     }));
                     
                     // Asegurar que leemos el nuevo array de colaboradores
@@ -1042,8 +1041,7 @@
                 nombre: document.getElementById('fm-pro-nombre').value.trim(),
                 telefono: document.getElementById('fm-pro-telefono').value.trim(),
                 email: document.getElementById('fm-pro-email').value.trim(),
-                web: document.getElementById('fm-pro-web').value.trim(),
-                notas: ""
+                web: document.getElementById('fm-pro-web').value.trim()
             };
 
             // Optimistic update local array (keyed by nombre)
@@ -1061,7 +1059,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'upsertPotential',
-                        data: { "Nombre": prospecto.nombre, "Tel\u00e9fono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web, "Notas": prospecto.notas }
+                        data: { "Nombre": prospecto.nombre, "Tel\u00e9fono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web }
                     })
                 });
                 const result = await res.json();

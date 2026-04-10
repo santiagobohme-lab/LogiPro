@@ -14,7 +14,7 @@ const SCRIPT_DB_HEADERS = [
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
 
 // NUEVO: Encabezados para la pestaña de Potenciales
-const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web", "Notas"];
+const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
