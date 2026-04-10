@@ -436,6 +436,39 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- SEC: OPERADOR SERVICIOS (DETAIL) -->
+            <div id="sec-operador-servicios" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <div class="flex items-center gap-4">
+                        <button onclick="backToOperadores()" class="text-slate-400 hover:text-primary-900 transition-colors">
+                            <i class="fa-solid fa-arrow-left text-xl"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Servicios de <span id="label-op-servicios"></span></h1>
+                            <p class="text-slate-500 text-sm mt-1">Historial de servicios y gesti&oacute;n de pagos del operador.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded border border-gray-100 overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-left whitespace-nowrap min-w-[700px]">
+                            <thead>
+                                <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                    <th class="px-4 py-3">Fecha Servicio</th>
+                                    <th class="px-4 py-3">Cliente</th>
+                                    <th class="px-4 py-3">Destino</th>
+                                    <th class="px-4 py-3">Costo (CLP)</th>
+                                    <th class="px-4 py-3">Estado de Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody id="op-servicios-tbody" class="divide-y divide-gray-100 text-sm font-medium">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal for Operador -->
             <div id="operador-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
@@ -598,6 +631,7 @@
         let currentEditServiceId = null;
         let currentEditProspectoNombre = null;
         let currentEditOperadorNombre = null;
+        let currentOperatorForServices = null;
         let isGlobalLoading = false;
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
@@ -1575,6 +1609,9 @@
                     <td class="px-4 py-3 text-slate-600">${op.chofer || '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
+                            <button data-op="${op.nombre}" onclick="viewOperatorServices(this.dataset.op)" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
+                                <i class="fa-solid fa-list-check"></i> Servicios
+                            </button>
                             <button data-op="${op.nombre}" onclick="editOperador(this.dataset.op)" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button data-op="${op.nombre}" onclick="deleteOperador(this.dataset.op)" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
@@ -1636,6 +1673,75 @@
             operadoresData = operadoresData.filter(o => o.nombre !== nombre);
             renderOperadoresList();
             showToast(`Operador eliminado.`);
+        }
+
+        // --- OPERATOR SERVICES DETAIL LOGIC ---
+
+        function viewOperatorServices(nombre) {
+            currentOperatorForServices = nombre;
+            // Hide list, show detail
+            document.getElementById('sec-operadores').classList.replace('block', 'hidden');
+            document.getElementById('sec-operador-servicios').classList.replace('hidden', 'block');
+            document.getElementById('label-op-servicios').innerText = nombre;
+            renderOperatorServicesTable();
+        }
+
+        function backToOperadores() {
+            currentOperatorForServices = null;
+            document.getElementById('sec-operador-servicios').classList.replace('block', 'hidden');
+            document.getElementById('sec-operadores').classList.replace('hidden', 'block');
+        }
+
+        function renderOperatorServicesTable() {
+            const tbody = document.getElementById('op-servicios-tbody');
+            if(!tbody) return;
+            
+            const services = excelData.filter(s => s.operador === currentOperatorForServices);
+            
+            if(services.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Este operador no tiene servicios registrados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = services.map(s => {
+                const status = (s.estado || "Pendiente").toLowerCase();
+                const isPaid = status === 'ok' || status === 'ok / pagado' || status === 'pagado';
+                
+                return `
+                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-50">
+                    <td class="px-4 py-3 text-slate-700">${s.fechaServicio}</td>
+                    <td class="px-4 py-3 font-semibold text-primary-900">${s.cliente}</td>
+                    <td class="px-4 py-3 text-slate-600">${s.destino}</td>
+                    <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString()}</td>
+                    <td class="px-4 py-3">
+                        <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
+                            <option value="Pendiente" ${!isPaid ? 'selected' : ''}>Pendiente</option>
+                            <option value="OK" ${isPaid ? 'selected' : ''}>Pagado</option>
+                        </select>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateOperatorServiceStatus(id, newStatus) {
+            const row = excelData.find(x => x.id.toString() === id.toString());
+            if(!row) return;
+
+            row.estado = newStatus; // Local update
+            showToast(`Estado actualizado a ${newStatus}. Sincronizando...`);
+            
+            // Re-render table to update styles
+            renderOperatorServicesTable();
+            
+            // Sync to DB
+            try {
+                await syncServiceToDB(row);
+                showToast("Cambio guardado en la base de datos.");
+            } catch(err) {
+                console.error(err);
+                showToast("Error al sincronizar con el backend.");
+            }
         }
     </script>
 </body>
