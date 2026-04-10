@@ -281,7 +281,6 @@
                                         <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
                                         <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
                                         <th class="px-3 py-2">F. Pago</th>
-                                        <th class="px-3 py-2 text-center">Estado de Pago</th>
                                         <th class="px-3 py-2">OC / HES</th>
                                         <th class="px-3 py-2">Cotización</th>
                                         <th class="px-3 py-2 text-center">Fact. / Nº</th>
@@ -1405,14 +1404,18 @@
 
                 return `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-slate-800 font-medium">${row.operador}</span>
+                            ${estadoSelect}
+                        </div>
+                    </td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
                     <td class="px-3 py-2 text-right text-slate-600">${safeCosto}</td>
                     <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
-                    <td class="px-3 py-2 text-center">${estadoSelect}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
                     <td class="px-3 py-2 text-center">${factColumn}</td>
