@@ -6,8 +6,8 @@ const FOLDER_ID = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0';
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 
 const SCRIPT_DB_HEADERS = [
-  "ID", "Cliente", "Operador", "Fecha de Servicio", "Tipo Servicio", 
-  "Destino", "Costo", "Monto", "Fecha de Pago", "Estado Pago", 
+  "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
+  "Destino", "Costo", "Monto", "Fecha de Pago", 
   "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo"
 ];
 
