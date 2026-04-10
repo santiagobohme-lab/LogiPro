@@ -493,6 +493,16 @@
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Chofer</label>
                             <input type="text" id="fm-op-chofer" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Pedro Gonz&aacute;lez">
                         </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono</label>
+                                <input type="text" id="fm-op-tel" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="+56 9 ...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
+                                <input type="email" id="fm-op-mail" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="ejemplo@mail.com">
+                            </div>
+                        </div>
                         <div class="pt-4 flex justify-end gap-2 mt-2">
                             <button type="button" onclick="closeOperadorModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
                             <button type="submit" id="op-submit-btn" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Guardar Operador</button>
@@ -563,6 +573,60 @@
             <!-- SEC: PERFIL -->
             <div id="sec-perfil" class="content-section animate-fade-in hidden">
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>
+            </div>
+            
+            <!-- Modal para Visualización de Contacto de Operador -->
+            <div id="operador-contact-modal" class="hidden fixed inset-0 bg-slate-900/40 z-[110] flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-2xl p-0 w-full max-w-sm overflow-hidden animate-fade-in border border-slate-200">
+                    <div class="bg-primary-900 px-6 py-8 text-center text-white relative">
+                        <button onclick="closeContactModal()" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                            <i class="fa-solid fa-id-card text-3xl"></i>
+                        </div>
+                        <h3 id="contact-modal-name" class="text-xl font-bold">Nombre del Operador</h3>
+                        <p id="contact-modal-rut" class="text-sm text-primary-200 font-mono mt-1"></p>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Teléfono de contacto</p>
+                                <div class="flex items-center justify-between">
+                                    <p id="contact-modal-tel" class="text-slate-700 font-semibold text-sm">--</p>
+                                    <a id="contact-modal-wa-btn" href="#" target="_blank" class="text-emerald-500 hover:text-emerald-700 flex items-center gap-1.5 text-xs font-bold bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 transition-all border border-emerald-200">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Correo electrónico</p>
+                                <div class="flex items-center justify-between">
+                                    <p id="contact-modal-mail" class="text-slate-700 font-semibold text-sm truncate max-w-[150px]">--</p>
+                                    <a id="contact-modal-mail-btn" href="#" class="text-blue-500 hover:text-blue-700 flex items-center gap-1.5 text-xs font-bold bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-all border border-blue-200">
+                                        <i class="fa-regular fa-paper-plane mr-0.5"></i> Enviar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+                        <button onclick="closeContactModal()" class="w-full bg-white border border-gray-200 text-slate-600 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-100 transition-all">
+                            Cerrar Ventana
+                        </button>
+                    </div>
+                </div>
             </div>
             
         </div>
@@ -650,14 +714,18 @@
             nombre: sheetObj["Nombre / Empresa"] || "",
             rut: sheetObj["RUT"] || "",
             patente: sheetObj["Patente"] || "",
-            chofer: sheetObj["Chofer"] || ""
+            chofer: sheetObj["Chofer"] || "",
+            telefono: sheetObj["Teléfono"] || "",
+            email: sheetObj["Correo"] || ""
         });
 
         const mapToSheetOperador = (row) => ({
             "Nombre / Empresa": row.nombre,
             "RUT": row.rut,
             "Patente": row.patente,
-            "Chofer": row.chofer
+            "Chofer": row.chofer,
+            "Teléfono": row.telefono,
+            "Correo": row.email
         });
 
         const mapFromSheetService = (sheetObj) => {
@@ -1630,6 +1698,9 @@
                     <td class="px-4 py-3 text-slate-600">${op.chofer || '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
+                            <button data-op="${op.nombre}" onclick="openContactModal(this.dataset.op)" title="Contacto" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary-800 border border-slate-200 hover:border-primary-400 bg-white hover:bg-primary-50 px-2.5 py-1.5 rounded transition-all font-bold shadow-sm">
+                                <i class="fa-solid fa-address-book text-sm"></i> Contacto
+                            </button>
                             <button data-op="${op.nombre}" onclick="viewOperatorServices(this.dataset.op)" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
                                 <i class="fa-solid fa-list-check"></i> Servicios
                             </button>
@@ -1662,6 +1733,8 @@
             document.getElementById('fm-op-rut').value = op.rut;
             document.getElementById('fm-op-patente').value = op.patente;
             document.getElementById('fm-op-chofer').value = op.chofer;
+            document.getElementById('fm-op-tel').value = op.telefono || '';
+            document.getElementById('fm-op-mail').value = op.email || '';
             document.getElementById('op-submit-btn').innerText = 'Actualizar';
             document.getElementById('operador-modal').classList.remove('hidden');
         }
@@ -1683,7 +1756,9 @@
                 nombre: document.getElementById('fm-op-nombre').value.trim(),
                 rut: document.getElementById('fm-op-rut').value.trim(),
                 patente: document.getElementById('fm-op-patente').value.trim().toUpperCase(),
-                chofer: document.getElementById('fm-op-chofer').value.trim()
+                chofer: document.getElementById('fm-op-chofer').value.trim(),
+                telefono: document.getElementById('fm-op-tel').value.trim(),
+                email: document.getElementById('fm-op-mail').value.trim()
             };
 
             try {
@@ -1719,6 +1794,42 @@
             operadoresData = operadoresData.filter(o => o.nombre !== nombre);
             renderOperadoresList();
             showToast(`Operador eliminado.`);
+        }
+
+        // --- CONTACT MODAL LOGIC ---
+        function openContactModal(nombre) {
+            const op = operadoresData.find(o => o.nombre === nombre);
+            if(!op) return;
+            
+            document.getElementById('contact-modal-name').innerText = op.nombre;
+            document.getElementById('contact-modal-rut').innerText = op.rut || "Sin RUT registrado";
+            document.getElementById('contact-modal-tel').innerText = op.telefono || "Sin teléfono";
+            document.getElementById('contact-modal-mail').innerText = op.email || "Sin correo";
+            
+            // WhatsApp Link
+            const waBtn = document.getElementById('contact-modal-wa-btn');
+            if(op.telefono && op.telefono.trim() !== "") {
+                const cleanTel = op.telefono.replace(/\D/g, ''); // Solo números
+                waBtn.href = `https://wa.me/${cleanTel}`;
+                waBtn.style.display = 'flex';
+            } else {
+                waBtn.style.display = 'none';
+            }
+            
+            // Mail Link
+            const mailBtn = document.getElementById('contact-modal-mail-btn');
+            if(op.email && op.email.trim() !== "") {
+                mailBtn.href = `mailto:${op.email}`;
+                mailBtn.style.display = 'flex';
+            } else {
+                mailBtn.style.display = 'none';
+            }
+            
+            document.getElementById('operador-contact-modal').classList.remove('hidden');
+        }
+
+        function closeContactModal() {
+            document.getElementById('operador-contact-modal').classList.add('hidden');
         }
 
         // --- OPERATOR SERVICES DETAIL LOGIC ---

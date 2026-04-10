@@ -17,7 +17,7 @@ const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
 const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 
 // NUEVO: EncabezADOS para la pestaña de Operadores
-const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer"];
+const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Correo"];
 
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
