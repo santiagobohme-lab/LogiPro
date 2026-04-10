@@ -989,8 +989,8 @@
                     <td class="px-4 py-3">${p.web ? `<a href="${p.web.startsWith('http') ? p.web : 'https://'+p.web}" target="_blank" class="text-primary-600 hover:underline text-xs">${p.web}</a>` : '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button onclick="editProspecto('${p.nombre.replace(/'/g, &quot;\\&quot;)}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="convertToClient('${p.nombre.replace(/'/g, &quot;\\&quot;)}')" title="Convertir a Cliente Real" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors font-medium">
+                            <button data-nombre="${p.nombre}" onclick="editProspecto(this.dataset.nombre)" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button data-nombre="${p.nombre}" onclick="convertToClient(this.dataset.nombre)" title="Convertir a Cliente Real" class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors font-medium">
                                 <i class="fa-solid fa-arrow-right-arrow-left"></i> Mover a Clientes
                             </button>
                         </div>
