@@ -453,7 +453,7 @@
         }
 
         // --- GLOBAL VARIABLES & GOOGLE APPS SCRIPT URL ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKuVWzyht1Xh96LxL1e9DZqqTsC5JeWtyYnQEKXJyEU15Pspz45xSNfq0-cKbtRoggpg/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrMmFzWDWGTNBxriKIlltgKh1HKKgLJpsLso6fOgcHoUUeBfZLnQaN4EFAQSGrIxc_/exec";
         
         let activeSession = null;
         let colaboradoresData = [];
@@ -604,8 +604,8 @@
                 const result = await res.json();
                 
                 if(result.status === "success") {
-                    clientsData = result.clientes.map(mapFromSheetClient);
-                    excelData = result.servicios.map(mapFromSheetService);
+                    clientsData = (result.clientes || []).map(mapFromSheetClient);
+                    excelData = (result.servicios || []).map(mapFromSheetService);
                     
                     // Asegurar que leemos el nuevo array de colaboradores
                     colaboradoresData = (result.colaboradores || []).map(u => ({
