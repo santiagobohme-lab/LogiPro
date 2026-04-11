@@ -379,7 +379,7 @@
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Costo ($ CLP)</label><input type="number" id="fm-costo" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto ($ CLP)</label><input type="number" id="fm-monto" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Pago</label><input type="date" id="fm-fechaPago" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
-                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado de Pago</label><select id="fm-estado" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK / Pagado</option><option value="Pendiente" selected>Pendiente</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado de Pago</label><select id="fm-estado" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="PAGADO">PAGADO</option><option value="Pendiente" selected>Pendiente</option></select></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="fm-estadoFactura" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">OC / HES</label><input type="text" id="fm-oc" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
                         <div><label class="block text-xs font-bold text-slate-700 mb-1">Cotización</label><input type="text" id="fm-cot" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none"></div>
@@ -472,12 +472,30 @@
 
             <!-- Modal for Operador -->
             <div id="operador-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
-                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
                         <h3 class="text-lg font-bold text-primary-900" id="operador-modal-title">Nuevo Operador</h3>
                         <button type="button" onclick="closeOperadorModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <form id="operador-form" onsubmit="handleOperadorSubmit(event)" class="space-y-4">
+                        <!-- Perfil Photo Header -->
+                        <div class="flex flex-col items-center mb-6">
+                            <div class="relative group cursor-pointer" onclick="document.getElementById('fm-op-foto-input').click()">
+                                <div id="op-fm-photo-preview" class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center border-2 border-dashed border-slate-300 overflow-hidden transition-all group-hover:border-primary-500 group-hover:bg-slate-50">
+                                    <i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>
+                                </div>
+                                <div id="op-fm-loading-spinner" class="hidden absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-primary-600 text-xl"></i>
+                                </div>
+                                <div class="absolute bottom-0 right-0 bg-primary-900 text-white w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-3">Foto de Perfil</p>
+                            <input type="file" id="fm-op-foto-input" class="hidden" accept="image/*" onchange="handleProfilePicSelect(event)">
+                            <input type="hidden" id="fm-op-foto-url" value="">
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nombre / Empresa <span class="text-red-400">*</span></label>
                             <input type="text" id="fm-op-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes Araya">
@@ -583,8 +601,11 @@
                         <button onclick="closeContactModal()" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
-                        <div class="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
-                            <i class="fa-solid fa-id-card text-3xl"></i>
+                        <div id="contact-modal-avatar-container" class="w-20 h-20 mx-auto mb-4 relative">
+                            <div id="contact-modal-icon" class="w-full h-full bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                                <i class="fa-solid fa-id-card text-3xl"></i>
+                            </div>
+                            <img id="contact-modal-photo" src="" alt="Operador" referrerpolicy="no-referrer" class="hidden w-full h-full rounded-full object-cover border-2 border-white/50 shadow-md">
                         </div>
                         <h3 id="contact-modal-name" class="text-xl font-bold">Nombre del Operador</h3>
                         <p id="contact-modal-rut" class="text-sm text-primary-200 font-mono mt-1"></p>
@@ -716,13 +737,21 @@
             "Email": row.email
         });
 
+        // Utility for Direct Drive Links
+        function getDirectDriveLink(url) {
+            if(!url) return null;
+            const fileId = url.match(/[-\w]{25,}/);
+            return fileId ? `https://drive.google.com/uc?export=view&id=${fileId[0]}` : url;
+        }
+
         const mapFromSheetOperador = (sheetObj) => ({
             nombre: sheetObj["Nombre / Empresa"] || "",
             rut: sheetObj["RUT"] || "",
             patente: sheetObj["Patente"] || "",
             chofer: sheetObj["Chofer"] || "",
             telefono: sheetObj["Teléfono"] || "",
-            email: sheetObj["Email"] || ""
+            email: sheetObj["Email"] || "",
+            foto: sheetObj["Foto"] || ""
         });
 
         const mapToSheetOperador = (row) => ({
@@ -731,7 +760,8 @@
             "Patente": row.patente,
             "Chofer": row.chofer,
             "Teléfono": row.telefono,
-            "Email": row.email
+            "Email": row.email,
+            "Foto": row.foto || ""
         });
 
         const mapFromSheetService = (sheetObj) => {
@@ -1470,11 +1500,12 @@
                 `;
 
                 // Select de Estado Pago
-                const isOk = row.estado.toLowerCase() === 'ok' || row.estado.toLowerCase() === 'pagado';
+                const statusValue = (row.estado || "Pendiente").toLowerCase();
+                const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <select onchange="updateEstado(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <select onchange="updateEstado(${row.id}, this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                         <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="OK" ${isOk ? 'selected' : ''}>OK</option>
+                        <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
                     </select>
                 `;
 
@@ -1499,13 +1530,17 @@
                     <td class="px-3 py-2">
                         <div class="flex flex-col gap-0.5">
                             <span class="text-slate-800 font-medium">${row.operador}</span>
-                            ${estadoSelect}
                         </div>
                     </td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
-                    <td class="px-3 py-2 text-right text-slate-600">${safeCosto}</td>
+                    <td class="px-3 py-2 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-slate-600">${safeCosto}</span>
+                            ${estadoSelect}
+                        </div>
+                    </td>
                     <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
@@ -1578,7 +1613,7 @@
             document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
             document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
-            document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" ? "OK" : "Pendiente";
+            document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" || row.estado === "PAGADO" ? "PAGADO" : "Pendiente";
             
             const eFact = row.estadoFactura || "Pendiente";
             document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
@@ -1698,7 +1733,7 @@
                 return;
             }
             tbody.innerHTML = operadoresData.map(op => `
-                <tr class="hover:bg-gray-50 transition-colors">
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="viewOperatorServices('${op.nombre}')">
                     <td class="px-4 py-3 font-semibold text-slate-700">
                         <i class="fa-solid fa-truck text-slate-300 mr-2"></i>${op.nombre}
                     </td>
@@ -1709,14 +1744,14 @@
                     <td class="px-4 py-3 text-slate-600">${op.chofer || '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button data-op="${op.nombre}" onclick="openContactModal(this.dataset.op)" title="Contacto" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary-800 border border-slate-200 hover:border-primary-400 bg-white hover:bg-primary-50 px-2.5 py-1.5 rounded transition-all font-bold shadow-sm">
+                            <button onclick="event.stopPropagation(); openContactModal('${op.nombre}')" title="Contacto" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary-800 border border-slate-200 hover:border-primary-400 bg-white hover:bg-primary-50 px-2.5 py-1.5 rounded transition-all font-bold shadow-sm">
                                 <i class="fa-solid fa-address-book text-sm"></i> Contacto
                             </button>
-                            <button data-op="${op.nombre}" onclick="viewOperatorServices(this.dataset.op)" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
+                            <button onclick="event.stopPropagation(); viewOperatorServices('${op.nombre}')" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
                                 <i class="fa-solid fa-list-check"></i> Servicios
                             </button>
-                            <button data-op="${op.nombre}" onclick="editOperador(this.dataset.op)" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button data-op="${op.nombre}" onclick="deleteOperador(this.dataset.op)" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
+                            <button onclick="event.stopPropagation(); editOperador('${op.nombre}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="event.stopPropagation(); deleteOperador('${op.nombre}')" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -1727,6 +1762,13 @@
             currentEditOperadorNombre = null;
             document.getElementById('operador-modal-title').innerText = 'Nuevo Operador';
             document.getElementById('operador-form').reset();
+            
+            // Reset profile photo UI
+            document.getElementById('fm-op-foto-url').value = '';
+            document.getElementById('op-fm-photo-preview').innerHTML = '<i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>';
+            document.getElementById('op-fm-photo-preview').classList.remove('border-solid', 'border-primary-500');
+            document.getElementById('op-fm-photo-preview').classList.add('border-dashed');
+
             document.getElementById('fm-op-nombre').readOnly = false;
             document.getElementById('fm-op-nombre').classList.remove('bg-gray-100');
             document.getElementById('op-submit-btn').innerText = 'Guardar Operador';
@@ -1746,6 +1788,21 @@
             document.getElementById('fm-op-chofer').value = op.chofer;
             document.getElementById('fm-op-tel').value = op.telefono || '';
             document.getElementById('fm-op-mail').value = op.email || '';
+            
+            // Set profile photo URL and Preview
+            const photoUrl = getDirectDriveLink(op.foto || "");
+            document.getElementById('fm-op-foto-url').value = photoUrl;
+            const preview = document.getElementById('op-fm-photo-preview');
+            if(photoUrl) {
+                preview.innerHTML = `<img src="${photoUrl}" referrerpolicy="no-referrer" class="w-full h-full object-cover">`;
+                preview.classList.replace('border-dashed', 'border-solid');
+                preview.classList.add('border-primary-500');
+            } else {
+                preview.innerHTML = '<i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>';
+                preview.classList.replace('border-solid', 'border-dashed');
+                preview.classList.remove('border-primary-500');
+            }
+
             document.getElementById('op-submit-btn').innerText = 'Actualizar';
             document.getElementById('operador-modal').classList.remove('hidden');
         }
@@ -1769,7 +1826,8 @@
                 patente: document.getElementById('fm-op-patente').value.trim().toUpperCase(),
                 chofer: document.getElementById('fm-op-chofer').value.trim(),
                 telefono: document.getElementById('fm-op-tel').value.trim(),
-                email: document.getElementById('fm-op-mail').value.trim()
+                email: document.getElementById('fm-op-mail').value.trim(),
+                foto: document.getElementById('fm-op-foto-url').value
             };
 
             try {
@@ -1816,6 +1874,19 @@
             document.getElementById('contact-modal-rut').innerText = op.rut || "Sin RUT registrado";
             document.getElementById('contact-modal-tel').innerText = op.telefono || "Sin teléfono";
             document.getElementById('contact-modal-mail').innerText = op.email || "Sin correo";
+            
+            // Photo Display logic
+            const photoImg = document.getElementById('contact-modal-photo');
+            const iconPlaceholder = document.getElementById('contact-modal-icon');
+            if(op.foto && op.foto.trim() !== "") {
+                photoImg.src = getDirectDriveLink(op.foto);
+                photoImg.classList.remove('hidden');
+                iconPlaceholder.classList.add('hidden');
+            } else {
+                photoImg.src = '';
+                photoImg.classList.add('hidden');
+                iconPlaceholder.classList.remove('hidden');
+            }
             
             // Call Link
             const callBtn = document.getElementById('contact-modal-call-btn');
@@ -1870,6 +1941,68 @@
             document.getElementById('operador-contact-modal').classList.add('hidden');
         }
 
+        // --- PROFILE PHOTO UPLOAD LOGIC ---
+        async function handleProfilePicSelect(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const preview = document.getElementById('op-fm-photo-preview');
+            const spinner = document.getElementById('op-fm-loading-spinner');
+            const urlInput = document.getElementById('fm-op-foto-url');
+
+            // 1. Show local preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover opacity-50">`;
+                spinner.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+
+            // 2. Upload to Drive
+            try {
+                const base64Data = await new Promise((resolve, reject) => {
+                    const r = new FileReader();
+                    r.onload = () => resolve(r.result.split(',')[1]);
+                    r.onerror = reject;
+                    r.readAsDataURL(file);
+                });
+
+                const fileName = `Perfil_${Date.now()}_${file.name}`;
+                
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'uploadFile',
+                        folderType: 'perfil', // Crucial parameter for backend
+                        fileName: fileName,
+                        base64: base64Data,
+                        mimeType: file.type || "image/jpeg"
+                    })
+                });
+                
+                const data = await res.json();
+                if(data.status === 'success' || data.url) {
+                    const finalUrl = getDirectDriveLink(data.url || data.link);
+                    urlInput.value = finalUrl;
+                    preview.innerHTML = `<img src="${finalUrl}" referrerpolicy="no-referrer" class="w-full h-full object-cover">`;
+                    preview.classList.replace('border-dashed', 'border-solid');
+                    preview.classList.add('border-primary-500');
+                    showToast("Foto de perfil subida correctamente.");
+                } else {
+                    throw new Error("Upload failed");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error al subir la foto. Intente de nuevo.");
+                preview.innerHTML = '<i class="fa-solid fa-camera text-2xl text-slate-400"></i>';
+                preview.classList.replace('border-solid', 'border-dashed');
+            } finally {
+                spinner.classList.add('hidden');
+                event.target.value = ''; // Reset input
+            }
+        }
+
         // --- OPERATOR SERVICES DETAIL LOGIC ---
 
         function viewOperatorServices(nombre) {
@@ -1909,9 +2042,9 @@
                     <td class="px-4 py-3 text-slate-600">${s.destino}</td>
                     <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString()}</td>
                     <td class="px-4 py-3">
-                        <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
-                            <option value="Pendiente" ${!isPaid ? 'selected' : ''}>Pendiente</option>
-                            <option value="OK" ${isPaid ? 'selected' : ''}>Pagado</option>
+                        <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-1.5 py-0.5 text-[10px] focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
+                            <option value="Pendiente" ${!isPaid ? 'selected' : ''}>PENDIENTE</option>
+                            <option value="PAGADO" ${isPaid ? 'selected' : ''}>PAGADO</option>
                         </select>
                     </td>
                 </tr>
