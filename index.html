@@ -873,9 +873,9 @@
                 showToast("Accediendo a la intranet segura...");
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: 'login', nombre, pass }),
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    credentials: 'omit' // Evita conflictos con múltiples sesiones de Google
                 });
 
                 if (!res.ok) {
@@ -1106,12 +1106,13 @@
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ 
                         action: 'upsertUser', 
                         data: row,
                         requesterRole: activeSession.rol 
-                    })
+                    }),
+                    redirect: 'follow',
+                    credentials: 'omit'
                 });
                 const responseData = await res.json();
                 if(responseData.status === 'success'){
@@ -1232,8 +1233,9 @@
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteClient', nombre: nombre })
+                    body: JSON.stringify({ action: 'deleteClient', nombre: nombre }),
+                    redirect: 'follow',
+                    credentials: 'omit'
                 });
                 const responseData = await res.json();
                 if(responseData.status === 'success'){
@@ -1947,8 +1949,9 @@
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteOperador', nombre: nombre })
+                    body: JSON.stringify({ action: 'deleteOperador', nombre: nombre }),
+                    redirect: 'follow',
+                    credentials: 'omit'
                 });
                 const result = await res.json();
                 if(result.status === 'success') {
