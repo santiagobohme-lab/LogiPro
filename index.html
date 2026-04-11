@@ -874,8 +874,15 @@
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'login', nombre, pass })
+                    body: JSON.stringify({ action: 'login', nombre, pass }),
+                    redirect: 'follow'
                 });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`Servidor respondió con estado ${res.status}: ${text.substring(0, 100)}`);
+                }
+
                 const result = await res.json();
                 
                 if (result.status === "success") {
@@ -907,8 +914,8 @@
                     sessionStorage.removeItem('logi_session');
                 }
             } catch(e) {
-                console.error(e);
-                showToast("Error de comunicación con el servidor.");
+                console.error("Login Error:", e);
+                showToast("Error de conexión: " + e.message);
             }
         }
 
@@ -927,6 +934,7 @@
                 showToast("Sincronizando con base de datos...");
                 
                 const res = await fetch(GOOGLE_SCRIPT_URL);
+                if (!res.ok) throw new Error(`Estado ${res.status}`);
                 const result = await res.json();
                 
                 if(result.status === "success") {
@@ -967,8 +975,8 @@
                     showToast("Datos sincronizados.");
                 }
             } catch(e) {
-                console.error(e);
-                showToast("Error de conexión con la base de datos.");
+                console.error("Hydration Error:", e);
+                showToast("Error de sincronización: " + e.message);
             } finally {
                 isGlobalLoading = false;
             }
