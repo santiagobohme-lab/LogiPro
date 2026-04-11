@@ -174,6 +174,13 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+
+    else if (action === "deleteClient") {
+      const sheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
+      deleteRowById(sheet, ["Nombre", "Teléfono", "Email"], "Nombre", payload.nombre);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     
     else if (action === "upsertUser") {
       if (payload.requesterRole !== "SuperAdmin") throw new Error("Sin permisos");

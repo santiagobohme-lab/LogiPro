@@ -1182,7 +1182,10 @@
                     </td>
                     <td class="px-4 py-3 text-slate-600"><span class="text-xs mr-2 text-slate-400">TEL</span> ${c.telefono} &nbsp;|&nbsp; <span class="text-xs mr-2 text-slate-400">MAIL</span> ${c.email}</td>
                     <td class="px-4 py-3 text-right">
-                        <button class="px-3 py-1 border border-gray-200 text-primary-900 bg-white hover:bg-gray-50 rounded text-xs transition-colors"><i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="event.stopPropagation(); deleteClient('${c.nombre}')" title="Eliminar Cliente" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
+                            <button class="px-3 py-1 border border-gray-200 text-primary-900 bg-white hover:bg-gray-50 rounded text-xs transition-colors"><i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1206,6 +1209,34 @@
             
             // Push to DB
             syncClientToDB(newClient);
+        }
+
+        // DELETE CLIENT
+        async function deleteClient(nombre) {
+            if(!confirm(`¿Estás seguro de que deseas eliminar permanentemente al cliente "${nombre}"? Esta acción no se puede deshacer.`)) return;
+            
+            // Optimistic Update
+            clientsData = clientsData.filter(c => c.nombre !== nombre);
+            renderClientsList();
+            showToast("Cliente eliminado de la vista local.");
+
+            // Sync with DB
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteClient', nombre: nombre })
+                });
+                const responseData = await res.json();
+                if(responseData.status === 'success'){
+                    showToast("Cliente eliminado permanentemente de la base de datos.");
+                } else {
+                    showToast("Error al sincronizar eliminación con la nube.");
+                }
+            } catch(err) {
+                console.error("Error eliminando cliente:", err);
+                showToast("Fallo de conexión al eliminar cliente.");
+            }
         }
 
         // CLIENT DETAIL LOGIC
@@ -1896,11 +1927,34 @@
             }
         }
 
-        function deleteOperador(nombre) {
-            if(!confirm(`¿Eliminar el operador "${nombre}"?`)) return;
+        async function deleteOperador(nombre) {
+            if(!confirm(`¿Eliminar permanentemente al operador "${nombre}"? Esta acción borrará su perfil de la base de datos.`)) return;
+            
+            const originalData = [...operadoresData];
+            // Optimistic
             operadoresData = operadoresData.filter(o => o.nombre !== nombre);
             renderOperadoresList();
-            showToast(`Operador eliminado.`);
+            showToast(`Operador eliminado de la vista.`);
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteOperador', nombre: nombre })
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    showToast(`Operador "${nombre}" eliminado de la nube.`);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error al sincronizar borrado de operador.");
+                // Rollback if needed
+                operadoresData = originalData;
+                renderOperadoresList();
+            }
         }
 
         // --- CONTACT MODAL LOGIC ---
