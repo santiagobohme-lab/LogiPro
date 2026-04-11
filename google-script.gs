@@ -3,6 +3,7 @@
 // ==========================================
 
 const FOLDER_ID = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0'; 
+const FOLDER_FOTOS_PERFIL = '1ExIVEFippvrARyDUw_lfPHbhC_LSPTK8'; 
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 
 const SCRIPT_DB_HEADERS = [
@@ -17,7 +18,7 @@ const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
 const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 
 // NUEVO: EncabezADOS para la pestaña de Operadores
-const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email"];
+const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email", "Foto"];
 
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -189,10 +190,20 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    else if (action === "deleteOperador") {
+      const sheet = initSheet("Base_Operadores", OPERATOR_HEADERS);
+      deleteRowById(sheet, OPERATOR_HEADERS, "Nombre / Empresa", payload.nombre);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     else if (action === "uploadFile") {
-      const folder = DriveApp.getFolderById(FOLDER_ID);
+      const targetFolderId = payload.folderType === 'perfil' ? FOLDER_FOTOS_PERFIL : FOLDER_ID;
+      const folder = DriveApp.getFolderById(targetFolderId);
+      
       const base64Data = payload.base64.split(',')[1] || payload.base64;
-      const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType || "application/pdf", payload.fileName);
+      const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType || "image/jpeg", payload.fileName);
+      
       const file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
