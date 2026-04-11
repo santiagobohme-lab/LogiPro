@@ -110,6 +110,20 @@ function doGet(e) {
       base_operadores: getSheetData(initSheet("Base_Operadores", OPERATOR_HEADERS), OPERATOR_HEADERS)
     })).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
+    // Si falla por GET, intentar procesar login
+    const payload = e.parameter;
+    if (payload.action === "login") {
+      const sheet = initSheet("Colaboradores", USER_HEADERS);
+      const users = getSheetData(sheet, USER_HEADERS);
+      const user = users.find(u => 
+        u.Nombre.toString().toLowerCase() === payload.nombre.toString().toLowerCase() && 
+        u.Clave.toString() === payload.pass.toString()
+      );
+      if (user) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", user: user }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
