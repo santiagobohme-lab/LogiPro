@@ -361,32 +361,98 @@
 
             <!-- Modal for New Client -->
             <div id="client-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
-                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
+                <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
                         <h3 id="client-modal-title" class="text-lg font-bold text-primary-900">Crear Cliente Nuevo</h3>
                         <button type="button" onclick="closeNewClientModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <form id="new-client-form" onsubmit="handleClientSubmit(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de la Empresa</label>
-                            <input type="text" id="fm-cli-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes ACME">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono Directo</label>
-                            <input type="text" id="fm-cli-telefono" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. +56 9...">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
-                            <input type="email" id="fm-cli-email" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="contacto@empresa.com">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de la Empresa <span class="text-red-500">*</span></label>
+                                <input type="text" id="fm-cli-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes ACME">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">RUT Cliente</label>
+                                <input type="text" id="fm-cli-rut" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="12.345.678-9">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Giro</label>
+                                <input type="text" id="fm-cli-giro" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Transporte de carga">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono</label>
+                                <input type="text" id="fm-cli-telefono" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="+56 9...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
+                                <input type="email" id="fm-cli-email" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="contacto@empresa.com">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Dirección</label>
+                                <input type="text" id="fm-cli-direccion" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Calle Ejemplo 123">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Comuna</label>
+                                <input type="text" id="fm-cli-comuna" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Santiago">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Ciudad</label>
+                                <input type="text" id="fm-cli-ciudad" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Santiago">
+                            </div>
                         </div>
                         
                         <div class="pt-4 flex justify-end gap-2 mt-2">
                             <button type="button" onclick="closeNewClientModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
                             <button type="submit" id="client-submit-btn" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
-                                Confirmar Creación
+                                Confirmar
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- [NEW] Modal for Client Full Data View -->
+            <div id="client-data-modal" class="hidden fixed inset-0 bg-slate-900/40 z-[120] flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-2xl p-0 w-full max-w-md overflow-hidden animate-fade-in border border-slate-200">
+                    <div class="bg-primary-900 px-6 py-8 text-center text-white relative">
+                        <button onclick="closeClientDataModal()" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <div class="w-20 h-20 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
+                            <i class="fa-solid fa-building text-3xl"></i>
+                        </div>
+                        <h3 id="view-cli-nombre" class="text-xl font-bold">Nombre del Cliente</h3>
+                        <p id="view-cli-rut" class="text-xs text-primary-200 font-mono mt-1 uppercase tracking-widest"></p>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Giro Comercial</p>
+                                <p id="view-cli-giro" class="text-slate-700 font-semibold"></p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Teléfono</p>
+                                <p id="view-cli-tel" class="text-slate-700 font-semibold"></p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Email</p>
+                                <p id="view-cli-email" class="text-slate-700 font-semibold truncate"></p>
+                            </div>
+                            <div class="col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Dirección Completa</p>
+                                <p id="view-cli-dir" class="text-slate-700 font-semibold"></p>
+                                <p class="text-[11px] text-slate-500 mt-1"><span id="view-cli-comuna"></span>, <span id="view-cli-ciudad"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 border-t border-gray-100">
+                        <button onclick="closeClientDataModal()" class="w-full bg-white border border-gray-200 text-slate-600 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-all">
+                            Cerrar Ficha
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -974,13 +1040,23 @@
         const mapFromSheetClient = (sheetObj) => ({
             nombre: sheetObj["Nombre"] || "",
             telefono: sheetObj["Teléfono"] || "",
-            email: sheetObj["Email"] || ""
+            email: sheetObj["Email"] || "",
+            rut: sheetObj["RUT Cliente"] || "",
+            giro: sheetObj["Giro"] || "",
+            direccion: sheetObj["Dirección"] || "",
+            comuna: sheetObj["Comuna"] || "",
+            ciudad: sheetObj["Ciudad"] || ""
         });
 
         const mapToSheetClient = (row) => ({
             "Nombre": row.nombre,
             "Teléfono": row.telefono,
-            "Email": row.email
+            "Email": row.email,
+            "RUT Cliente": row.rut,
+            "Giro": row.giro,
+            "Dirección": row.direccion,
+            "Comuna": row.comuna,
+            "Ciudad": row.ciudad
         });
 
         // Utility - Compress Image to Base64
@@ -1450,6 +1526,9 @@
                     </td>
                     <td class="px-4 py-4 text-right">
                         <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="event.stopPropagation(); showClientInfo('${c.nombre}')" title="Ver Datos" class="inline-flex items-center gap-1.5 text-xs text-primary-700 hover:text-white border border-primary-200 hover:bg-primary-900 bg-primary-50 px-2.5 py-1.5 rounded-lg transition-all font-bold shadow-sm">
+                                <i class="fa-solid fa-address-card text-sm"></i> Datos
+                            </button>
                             <button onclick="event.stopPropagation(); editClient('${c.nombre}')" title="Editar Datos" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-all border border-transparent hover:border-primary-100">
                                 <i class="fa-regular fa-pen-to-square"></i>
                             </button>
@@ -1490,8 +1569,36 @@
             document.getElementById('fm-cli-nombre').classList.add('bg-gray-100');
             document.getElementById('fm-cli-telefono').value = c.telefono || "";
             document.getElementById('fm-cli-email').value = c.email || "";
+            // New fields
+            document.getElementById('fm-cli-rut').value = c.rut || "";
+            document.getElementById('fm-cli-giro').value = c.giro || "";
+            document.getElementById('fm-cli-direccion').value = c.direccion || "";
+            document.getElementById('fm-cli-comuna').value = c.comuna || "";
+            document.getElementById('fm-cli-ciudad').value = c.ciudad || "";
+
             document.getElementById('client-submit-btn').innerText = 'Actualizar Datos';
             document.getElementById('client-modal').classList.remove('hidden');
+        }
+
+        // [NEW] Logic to show Client Full Info
+        function showClientInfo(nombre) {
+            const c = clientsData.find(x => x.nombre === nombre);
+            if(!c) return;
+            
+            document.getElementById('view-cli-nombre').innerText = c.nombre;
+            document.getElementById('view-cli-rut').innerText = c.rut || "SIN RUT REGISTRADO";
+            document.getElementById('view-cli-giro').innerText = c.giro || "No especificado";
+            document.getElementById('view-cli-tel').innerText = c.telefono || "Sin teléfono";
+            document.getElementById('view-cli-email').innerText = c.email || "Sin email";
+            document.getElementById('view-cli-dir').innerText = c.direccion || "Sin dirección registrada";
+            document.getElementById('view-cli-comuna').innerText = c.comuna || "--";
+            document.getElementById('view-cli-ciudad').innerText = c.ciudad || "--";
+            
+            document.getElementById('client-data-modal').classList.remove('hidden');
+        }
+
+        function closeClientDataModal() {
+            document.getElementById('client-data-modal').classList.add('hidden');
         }
 
         async function handleClientSubmit(e) {
@@ -1505,7 +1612,12 @@
             const newClient = {
                 nombre: nombre,
                 telefono: document.getElementById('fm-cli-telefono').value,
-                email: document.getElementById('fm-cli-email').value
+                email: document.getElementById('fm-cli-email').value,
+                rut: document.getElementById('fm-cli-rut').value,
+                giro: document.getElementById('fm-cli-giro').value,
+                direccion: document.getElementById('fm-cli-direccion').value,
+                comuna: document.getElementById('fm-cli-comuna').value,
+                ciudad: document.getElementById('fm-cli-ciudad').value
             };
             
             // Optimistic Update

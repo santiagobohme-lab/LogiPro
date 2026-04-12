@@ -21,6 +21,21 @@ const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 // NUEVO: EncabezADOS para la pestaña de Operadores
 const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email", "Foto"];
 
+// NUEVO: Encabezados para la pestaña de Clientes (Layout solicitado)
+const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
+
+/**
+ * Crea un menú en la hoja de cálculo al abrirse.
+ */
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🚀 Logi Pro')
+    .addItem('Actualizar Encabezados', 'setupHeaders')
+    .addSeparator()
+    .addItem('Sincronizar Todo', 'setupHeaders')
+    .addToUi();
+}
+
 function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
 }
@@ -120,11 +135,31 @@ function deleteRowById(sheet, headers, idField, targetId) {
   return false;
 }
 
+function setupHeaders() {
+  const ss = getSS();
+  
+  // Forzar actualización de Clientes
+  let sheet = ss.getSheetByName("Clientes");
+  if (sheet) {
+    sheet.getRange(1, 1, 1, CLIENT_HEADERS.length).setValues([CLIENT_HEADERS]);
+    sheet.getRange(1, 1, 1, CLIENT_HEADERS.length).setFontWeight("bold").setBackground("#f3f4f6");
+  } else {
+    initSheet(ss, "Clientes", CLIENT_HEADERS);
+  }
+
+  // También aprovechamos de asegurar las otras pestañas
+  initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
+  initSheet(ss, "Colaboradores", USER_HEADERS);
+  initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
+  
+  SpreadsheetApp.getUi().alert("✅ Proceso completado: Los encabezados han sido actualizados en todas las pestañas.");
+}
+
 function doGet(e) {
   const ss = getSS();
   try {
     const servicesSheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
-    const clientsSheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
+    const clientsSheet = initSheet(ss, "Clientes", CLIENT_HEADERS);
     const usersSheet = initSheet(ss, "Colaboradores", USER_HEADERS);
     const potentialSheet = initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
     const opsSheet = initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
@@ -132,7 +167,7 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       servicios: getSheetData(servicesSheet, SCRIPT_DB_HEADERS),
-      clientes: getSheetData(clientsSheet, ["Nombre", "Teléfono", "Email"]),
+      clientes: getSheetData(clientsSheet, CLIENT_HEADERS),
       colaboradores: getSheetData(usersSheet, USER_HEADERS),
       potenciales: getSheetData(potentialSheet, POTENTIAL_HEADERS),
       base_operadores: getSheetData(opsSheet, OPERATOR_HEADERS)
@@ -174,8 +209,8 @@ function doPost(e) {
     } 
     
     else if (action === "upsertClient") {
-      const sheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
-      upsertRow(sheet, ["Nombre", "Teléfono", "Email"], payload.data, "Nombre");
+      const sheet = initSheet(ss, "Clientes", CLIENT_HEADERS);
+      upsertRow(sheet, CLIENT_HEADERS, payload.data, "Nombre");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 
@@ -202,8 +237,8 @@ function doPost(e) {
     }
 
     else if (action === "deleteClient") {
-      const sheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
-      deleteRowById(sheet, ["Nombre", "Teléfono", "Email"], "Nombre", payload.nombre);
+      const sheet = initSheet(ss, "Clientes", CLIENT_HEADERS);
+      deleteRowById(sheet, CLIENT_HEADERS, "Nombre", payload.nombre);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
