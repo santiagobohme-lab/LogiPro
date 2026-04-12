@@ -341,6 +341,7 @@
                                     <th class="px-3 py-2">Servicio</th>
                                     <th class="px-3 py-2">Destino</th>
                                     <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
+                                    <th class="px-3 py-2">Cliente</th>
                                     <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
                                     <th class="px-3 py-2">F. Pago</th>
                                     <th class="px-3 py-2">OC / HES</th>
@@ -1941,7 +1942,7 @@
             const data = [...excelData].sort((a,b) => a.id - b.id);
             
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10"><div class="text-slate-400">No hay servicios registrados.</div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-10"><div class="text-slate-400">No hay servicios registrados.</div></td></tr>`;
                 return;
             }
 
@@ -1997,6 +1998,7 @@
                             ${estadoSelect}
                         </div>
                     </td>
+                    <td class="px-3 py-2 font-bold text-primary-900 text-xs">${row.cliente}</td>
                     <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
