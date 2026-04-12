@@ -648,6 +648,8 @@
                         </table>
                     </div>
                 </div>
+                <!-- Hidden input for payment receipts -->
+                <input type="file" id="fm-payment-receipt-input" class="hidden" accept=".pdf,image/*" onchange="processPaymentReceiptUpload(event)">
             </div>
 
             <!-- Modal for Operador -->
@@ -2296,14 +2298,75 @@
                     <td class="px-4 py-3 text-slate-600">${s.destino}</td>
                     <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString()}</td>
                     <td class="px-4 py-3">
-                        <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-1.5 py-0.5 text-[10px] focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
-                            <option value="Pendiente" ${!isPaid ? 'selected' : ''}>PENDIENTE</option>
-                            <option value="PAGADO" ${isPaid ? 'selected' : ''}>PAGADO</option>
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-1.5 py-0.5 text-[10px] focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
+                                <option value="Pendiente" ${!isPaid ? 'selected' : ''}>PENDIENTE</option>
+                                <option value="PAGADO" ${isPaid ? 'selected' : ''}>PAGADO</option>
+                            </select>
+                            <button onclick="triggerPaymentUpload('${s.id}', '${s.operador}')" title="Subir Comprobante de Pago" class="w-7 h-7 flex items-center justify-center rounded border ${s.driveUrl ? 'border-emerald-200 text-emerald-600 bg-emerald-50' : 'border-slate-200 text-slate-400 bg-white hover:border-primary-400 hover:text-primary-600'} transition-all">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 `;
             }).join('');
+        }
+
+        let pendingUploadData = null;
+
+        function triggerPaymentUpload(id, operatorName) {
+            pendingUploadData = { id, operatorName };
+            document.getElementById('fm-payment-receipt-input').click();
+        }
+
+        async function processPaymentReceiptUpload(event) {
+            const file = event.target.files[0];
+            if(!file || !pendingUploadData) return;
+
+            const { id, operatorName } = pendingUploadData;
+            showToast(`Procesando comprobante para ${operatorName}...`);
+            
+            try {
+                // Convert to Base64
+                const base64 = await toBase64(file);
+                
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'uploadPaymentReceipt',
+                        serviceId: id,
+                        operatorName: operatorName,
+                        base64: base64,
+                        mimeType: file.type
+                    })
+                });
+                
+                const result = await res.json();
+                if(result.status === 'success') {
+                    showToast("Comprobante subido y estado actualizado a PAGADO.");
+                    // Refrescar datos locales
+                    await initDataFromCloud();
+                } else {
+                    showToast(result.message || "Error al subir comprobante.");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error en la subida del archivo.");
+            } finally {
+                event.target.value = '';
+                pendingUploadData = null;
+            }
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
         }
 
         async function updateOperatorServiceStatus(id, newStatus) {

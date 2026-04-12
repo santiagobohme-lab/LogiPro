@@ -185,6 +185,14 @@ function renderServices() {
                     </div>
                     <i class="ph-bold ph-caret-right text-slate-300"></i>
                 </div>
+                ${s["Link Archivo"] ? `
+                <div class="mt-4 pt-3 border-t border-slate-50">
+                    <a href="${s["Link Archivo"]}" target="_blank" onclick="event.stopPropagation()" class="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-bold py-3 rounded-xl text-sm active:scale-95 transition-all shadow-lg shadow-blue-200">
+                        <i class="ph-bold ph-download-simple"></i>
+                        Descargar Comprobante de Pago
+                    </a>
+                </div>
+                ` : ''}
             </div>
         `;
     }).join('');

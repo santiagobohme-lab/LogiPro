@@ -248,6 +248,38 @@ function doPost(e) {
         id: file.getId()
       })).setMimeType(ContentService.MimeType.JSON);
     }
+    
+    else if (action === "uploadPaymentReceipt") {
+      const folderName = "Comprobantes pagos operadores";
+      let folder;
+      const folders = DriveApp.getFoldersByName(folderName);
+      if (folders.hasNext()) {
+        folder = folders.next();
+      } else {
+        folder = DriveApp.createFolder(folderName);
+      }
+      
+      const base64Data = payload.base64.split(',')[1] || payload.base64;
+      const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+      const fileName = `${payload.operatorName}_${today}`;
+      
+      const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType, fileName);
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      // Actualizar la hoja de Servicios
+      const sheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+      upsertRow(sheet, SCRIPT_DB_HEADERS, {
+        "ID": payload.serviceId,
+        "Link Archivo": file.getUrl(),
+        "Estado Pago": "PAGADO"
+      }, "ID");
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        url: file.getUrl()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
