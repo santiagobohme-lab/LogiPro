@@ -73,13 +73,12 @@ async function fetchServices() {
         const res = await fetch(API_URL);
         const data = await res.json();
         if (data.status === 'success') {
-            // FIX DUPLICATES: Filter out empty rows (must have ID and Cliente)
-            allServices = data.servicios.filter(s => 
-                s.Operador === currentOperator && 
-                s.ID && 
-                s.Cliente && 
-                s.Cliente !== "-"
-            );
+            // FIX DUPLICATES & MISMATCHES: Trim and ignore case
+            allServices = data.servicios.filter(s => {
+                const operatorInSheet = (s.Operador || "").toString().trim().toLowerCase();
+                const operatorCurrent = currentOperator.toString().trim().toLowerCase();
+                return operatorInSheet === operatorCurrent && s.ID && s.Cliente;
+            });
             
             localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
             renderServices();
