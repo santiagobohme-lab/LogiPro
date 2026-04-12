@@ -116,7 +116,7 @@ function renderServices() {
     }
 
     servicesList.innerHTML = filtered.map(s => {
-        const serviceStatus = s["Estado Servicio"] || "Pendiente";
+        const serviceStatus = s["Estado Ruta"] || "Pendiente";
         const paymentStatus = s["Estado Pago"] || "Pendiente";
         
         // Custom Label from user request: "Pago pendiente/Pagado"
@@ -217,7 +217,7 @@ async function updateStatus(newStatus) {
     if (!s) return;
 
     // Optimistic UI
-    s["Estado Servicio"] = newStatus;
+    s["Estado Ruta"] = newStatus;
     localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
 
     // Auto-switch tab based on state change
@@ -240,7 +240,7 @@ async function updateStatus(newStatus) {
                 action: 'upsertService',
                 data: {
                     "ID": s.ID,
-                    "Estado Servicio": newStatus
+                    "Estado Ruta": newStatus
                 }
             })
         });

@@ -9,7 +9,7 @@ const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
-  "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo", "Estado Servicio"
+  "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo", "Estado Ruta"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];
@@ -30,8 +30,15 @@ function initSheet(sheetName, headers) {
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     sheet.appendRow(headers);
-  } else if (sheet.getLastRow() === 0) {
-    sheet.appendRow(headers);
+  } else {
+    // Verificar si faltan encabezados y sincronizarlos
+    const lastCol = sheet.getLastColumn() || 1;
+    const currentHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    
+    // Si la cantidad de headers en el script es mayor a la de la hoja, actualizamos
+    if (headers.length > currentHeaders.length) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
   }
   return sheet;
 }
@@ -58,6 +65,7 @@ function upsertRow(sheet, headers, data, idField) {
   let foundRow = -1;
   const targetId = data[idField];
   
+  // 1. Buscar si la fila ya existe
   if (lastRow >= 2) {
     const idColumnIndex = headers.indexOf(idField) + 1;
     const ids = sheet.getRange(2, idColumnIndex, lastRow - 1, 1).getValues();
@@ -69,11 +77,17 @@ function upsertRow(sheet, headers, data, idField) {
     }
   }
 
-  const rowValues = headers.map(h => data[h] !== undefined ? data[h] : "");
-
+  // 2. Si existe, obtenemos valores actuales y parcheamos
   if (foundRow !== -1) {
-    sheet.getRange(foundRow, 1, 1, headers.length).setValues([rowValues]);
+    const currentValues = sheet.getRange(foundRow, 1, 1, headers.length).getValues()[0];
+    const newValues = headers.map((h, i) => {
+      // Si el campo viene en 'data', lo actualizamos. Si no, mantenemos el anterior.
+      return data[h] !== undefined ? data[h] : currentValues[i];
+    });
+    sheet.getRange(foundRow, 1, 1, headers.length).setValues([newValues]);
   } else {
+    // 3. Si no existe, creamos fila nueva con vacíos para lo no provisto
+    const rowValues = headers.map(h => data[h] !== undefined ? data[h] : "");
     sheet.appendRow(rowValues);
   }
 }
