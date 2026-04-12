@@ -76,8 +76,8 @@ function getSheetData(sheet, headers) {
   });
 }
 
-function upsertRow(sheet, headers, data, idField) {
-  const targetId = data[idField];
+function upsertRow(sheet, headers, data, idField, originalId) {
+  const targetId = originalId || data[idField];
   
   // GUARD: Evitar actualizar o crear si el ID es nulo o vacío
   if (targetId === undefined || targetId === null || targetId.toString().trim() === "") {
@@ -210,7 +210,27 @@ function doPost(e) {
     
     else if (action === "upsertClient") {
       const sheet = initSheet(ss, "Clientes", CLIENT_HEADERS);
-      upsertRow(sheet, CLIENT_HEADERS, payload.data, "Nombre");
+      const oldName = payload.oldNombre;
+      const newName = payload.data["Nombre"];
+
+      upsertRow(sheet, CLIENT_HEADERS, payload.data, "Nombre", oldName);
+
+      // Si hubo cambio de nombre, actualizar en cascada la pestaña Servicios
+      if (oldName && oldName !== newName) {
+        const servicesSheet = ss.getSheetByName("Servicios");
+        if (servicesSheet) {
+          const servicesData = servicesSheet.getDataRange().getValues();
+          const clientColIndex = SCRIPT_DB_HEADERS.indexOf("Cliente");
+          if (clientColIndex !== -1) {
+            for (let i = 1; i < servicesData.length; i++) {
+              if (servicesData[i][clientColIndex] === oldName) {
+                servicesSheet.getRange(i + 1, clientColIndex + 1).setValue(newName);
+              }
+            }
+          }
+        }
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 

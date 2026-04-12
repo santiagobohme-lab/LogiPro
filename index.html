@@ -1565,8 +1565,8 @@
             currentEditClientNombre = nombre;
             document.getElementById('client-modal-title').innerText = 'Editar Datos de Cliente';
             document.getElementById('fm-cli-nombre').value = c.nombre;
-            document.getElementById('fm-cli-nombre').readOnly = true;
-            document.getElementById('fm-cli-nombre').classList.add('bg-gray-100');
+            document.getElementById('fm-cli-nombre').readOnly = false;
+            document.getElementById('fm-cli-nombre').classList.remove('bg-gray-100');
             document.getElementById('fm-cli-telefono').value = c.telefono || "";
             document.getElementById('fm-cli-email').value = c.email || "";
             // New fields
@@ -1633,7 +1633,20 @@
             
             // Push to DB
             try {
-                await syncClientToDB(newClient);
+                const payload = { 
+                    action: 'upsertClient', 
+                    data: mapToSheetClient(newClient),
+                    oldNombre: currentEditClientNombre !== newClient.nombre ? currentEditClientNombre : null
+                };
+                
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if(!res.ok) throw new Error("Error en servidor");
+                
                 showToast(currentEditClientNombre ? "Datos actualizados en la nube." : "Cliente registrado exitosamente.");
             } catch(err) {
                 console.error(err);
