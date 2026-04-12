@@ -307,13 +307,15 @@ function switchTab(tab) {
 }
 
 function showToast(msg) {
-    toast.innerText = msg;
+    const toastText = document.getElementById('toast-text');
+    if (toastText) toastText.innerText = msg;
+    
     toast.classList.replace('opacity-0', 'opacity-100');
-    toast.classList.replace('translate-y-4', 'translate-y-0');
+    toast.classList.replace('translate-y-6', 'translate-y-0');
     
     setTimeout(() => {
         toast.classList.replace('opacity-100', 'opacity-0');
-        toast.classList.replace('translate-y-0', 'translate-y-4');
+        toast.classList.replace('translate-y-0', 'translate-y-6');
     }, 3000);
 }
 

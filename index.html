@@ -52,32 +52,46 @@
             appearance: none;
         }
 
-        /* Toast Component Styles */
+        /* Toast Component Styles (UX Redesign: Sobrio & Fluido) */
         #toast-container {
             position: fixed;
-            bottom: 32px;
-            right: 32px;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
         }
         .toast {
-            background: #1e3a8a;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: #ffffff;
-            padding: 14px 20px;
-            border-radius: 4px;
-            border-left: 4px solid #3b82f6;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 10px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
-            gap: 12px;
-            transform: translateX(120%);
-            transition: transform 0.3s ease-out;
-            font-family: inherit;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            pointer-events: auto;
         }
         .toast.show {
-            transform: translateX(0);
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast i {
+            font-size: 14px;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -847,23 +861,22 @@
 
     <!-- JS Logic -->
     <script>
-        // UI TOAST FEEDBACK
+        // UI TOAST FEEDBACK (UX Redesign)
         function showToast(message) {
             const container = document.getElementById('toast-container');
             if(!container) return;
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `<span class="font-medium text-sm"><i class="fa-regular fa-circle-check text-white text-lg mr-2"></i> ${message}</span>`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${message}</span>`;
             container.appendChild(toast);
             
-            // Allow DOM render
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => toast.classList.add('show'));
             });
             
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300); // Wait for transition
+                setTimeout(() => toast.remove(), 400);
             }, 3000);
         }
 

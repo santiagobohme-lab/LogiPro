@@ -142,9 +142,10 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-xl opacity-0 translate-y-4 transition-all z-[200]">
-        Estado actualizado
+    <!-- Toast Container (UX Redesign: Sobrio & Fluido) -->
+    <div id="toast" class="fixed bottom-28 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-xs font-semibold shadow-2xl opacity-0 translate-y-6 transition-all duration-500 z-[200] border border-white/10 flex items-center gap-2">
+        <i class="ph-bold ph-check-circle text-sm text-emerald-400"></i>
+        <span id="toast-text">Estado actualizado</span>
     </div>
 
     <script src="app.js"></script>
