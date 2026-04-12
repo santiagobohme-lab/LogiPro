@@ -93,10 +93,14 @@ async function fetchServices() {
     }
 }
 
+function isStatusCompleted(status) {
+    const s = (status || "").toLowerCase();
+    return s.includes('completado') || s.includes('finalizado') || s.includes('terminado');
+}
+
 function renderServices() {
     const filtered = allServices.filter(s => {
-        const status = (s["Estado Servicio"] || "").toLowerCase();
-        const isCompleted = status.includes('completado') || status.includes('finalizado');
+        const isCompleted = isStatusCompleted(s["Estado Ruta"]);
         return currentTab === 'ruta' ? !isCompleted : isCompleted;
     });
 
@@ -154,11 +158,8 @@ function renderServices() {
             <div class="service-card" onclick="openDetail('${s.ID}')">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="status-pill ${statusClass}">${pillLabel}</span>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">${s["Tipo Servicio"]}</span>
-                        </div>
-                        <h3 class="text-lg font-black text-slate-800 mt-2">${s.Cliente}</h3>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">${s["Tipo Servicio"]}</span>
+                        <h3 class="text-lg font-black text-slate-800 mt-1">${s.Cliente}</h3>
                     </div>
                     <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
                         #${s.ID}
@@ -175,9 +176,12 @@ function renderServices() {
                     </div>
                 </div>
                 <div class="flex justify-between items-center pt-3 border-t border-slate-50">
-                    <div class="cost-tag">
-                        <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
-                        ${formatCLP(s.Costo)}
+                    <div class="flex items-center gap-3">
+                        <div class="cost-tag">
+                            <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
+                            ${formatCLP(s.Costo)}
+                        </div>
+                        <span class="status-pill ${statusClass}">${pillLabel}</span>
                     </div>
                     <i class="ph-bold ph-caret-right text-slate-300"></i>
                 </div>
@@ -220,14 +224,15 @@ async function updateStatus(newStatus) {
     localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
 
     // Auto-switch tab based on state change
-    const isCompleted = newStatus.toLowerCase().includes('completado') || newStatus.toLowerCase().includes('finalizado');
+    const isCompleted = isStatusCompleted(newStatus);
     if (isCompleted && currentTab !== 'historial') {
         switchTab('historial');
     } else if (!isCompleted && currentTab !== 'ruta') {
         switchTab('ruta');
+    } else {
+        renderServices(); // Always refresh to reflect internal logical changes
     }
 
-    renderServices();
     closeModal();
     showToast(`Estado cambiado a: ${newStatus}`);
 
