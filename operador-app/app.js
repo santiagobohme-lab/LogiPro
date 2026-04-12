@@ -76,7 +76,7 @@ async function fetchServices() {
             // FIX DUPLICATES & MISMATCHES: Trim and ignore case
             allServices = data.servicios.filter(s => {
                 const operatorInSheet = (s.Operador || "").toString().trim().toLowerCase();
-                const operatorCurrent = currentOperator.toString().trim().toLowerCase();
+                const operatorCurrent = (currentOperator || "").toString().trim().toLowerCase();
                 return operatorInSheet === operatorCurrent && s.ID && s.Cliente;
             });
             
@@ -230,22 +230,19 @@ async function updateStatus(newStatus) {
     const s = allServices.find(srv => srv.ID == currentServiceId);
     if (!s) return;
 
+    // UI Elements for feedback
+    const btnId = newStatus === 'En Ruta' ? 'btn-en-ruta' : 'btn-completado';
+    const btn = document.getElementById(btnId);
+    const originalText = btn.innerHTML;
+    
+    // Disable buttons and show loading
+    btn.disabled = true;
+    btn.innerHTML = `<i class="ph-bold ph-circle-notch animate-spin"></i> <span>Actualizando...</span>`;
+
     // Optimistic UI
+    const oldStatus = s["Estado Ruta"];
     s["Estado Ruta"] = newStatus;
     localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
-
-    // Auto-switch tab based on state change
-    const isCompleted = isStatusCompleted(newStatus);
-    if (isCompleted && currentTab !== 'historial') {
-        switchTab('historial');
-    } else if (!isCompleted && currentTab !== 'ruta') {
-        switchTab('ruta');
-    } else {
-        renderServices(); // Always refresh to reflect internal logical changes
-    }
-
-    closeModal();
-    showToast(`Estado cambiado a: ${newStatus}`);
 
     try {
         const res = await fetch(API_URL, {
@@ -260,10 +257,32 @@ async function updateStatus(newStatus) {
             })
         });
         const result = await res.json();
-        if (result.status !== 'success') throw new Error();
+        if (result.status !== 'success') throw new Error(result.message || "Error en el servidor");
+        
+        // Success: Auto-switch tab based on state change
+        const isCompleted = isStatusCompleted(newStatus);
+        if (isCompleted && currentTab !== 'historial') {
+            switchTab('historial');
+        } else if (!isCompleted && currentTab !== 'ruta') {
+            switchTab('ruta');
+        } else {
+            renderServices(); 
+        }
+
+        closeModal();
+        showToast(`Estado cambiado a: ${newStatus}`);
     } catch (err) {
-        showToast("Error al sincronizar con Matriz");
-        fetchServices(); // Revert
+        console.error("Error updating status:", err);
+        showToast("Error al sincronizar: " + err.message);
+        
+        // Revert Optimistic UI
+        s["Estado Ruta"] = oldStatus;
+        localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
+        renderServices();
+    } finally {
+        // Restore button state
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 

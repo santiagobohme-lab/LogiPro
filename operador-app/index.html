@@ -127,11 +127,11 @@
                 <div class="pt-6 border-t border-gray-100">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Actualizar Estado</p>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="updateStatus('En Ruta')" class="bg-amber-100 text-amber-700 font-bold py-4 rounded-2xl active:scale-95 transition-all">
-                            En Ruta
+                        <button id="btn-en-ruta" onclick="updateStatus('En Ruta')" class="bg-amber-100 text-amber-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>En Ruta</span>
                         </button>
-                        <button onclick="updateStatus('Completado')" class="bg-emerald-100 text-emerald-700 font-bold py-4 rounded-2xl active:scale-95 transition-all">
-                            Finalizado
+                        <button id="btn-completado" onclick="updateStatus('Completado')" class="bg-emerald-100 text-emerald-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>Finalizado</span>
                         </button>
                     </div>
                     <button id="upload-btn" class="w-full mt-3 bg-slate-50 text-slate-500 font-bold py-4 rounded-2xl flex items-center justify-center gap-2">

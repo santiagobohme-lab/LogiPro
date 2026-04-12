@@ -25,19 +25,19 @@ function getSS() {
   return SpreadsheetApp.openById(SPREADSHEET_ID);
 }
 
-function initSheet(sheetName, headers) {
-  const ss = getSS();
+/**
+ * Inicializa una hoja y asegura que los encabezados existan.
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss - El objeto Spreadsheet activo.
+ */
+function initSheet(ss, sheetName, headers) {
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     sheet.appendRow(headers);
   } else {
-    // Verificar si faltan encabezados y sincronizarlos
+    // Verificar si faltan encabezados y sincronizarlos solo si la hoja está casi vacía o faltan columnas
     const lastCol = sheet.getLastColumn() || 1;
-    const currentHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-    
-    // Si la cantidad de headers en el script es mayor a la de la hoja, actualizamos
-    if (headers.length > currentHeaders.length) {
+    if (lastCol < headers.length) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
   }
@@ -62,9 +62,16 @@ function getSheetData(sheet, headers) {
 }
 
 function upsertRow(sheet, headers, data, idField) {
+  const targetId = data[idField];
+  
+  // GUARD: Evitar actualizar o crear si el ID es nulo o vacío
+  if (targetId === undefined || targetId === null || targetId.toString().trim() === "") {
+    console.warn("Intento de upsert con ID vacío/inválido ignorado.");
+    return;
+  }
+
   const lastRow = sheet.getLastRow();
   let foundRow = -1;
-  const targetId = data[idField];
   
   // 1. Buscar si la fila ya existe
   if (lastRow >= 2) {
@@ -94,6 +101,12 @@ function upsertRow(sheet, headers, data, idField) {
 }
 
 function deleteRowById(sheet, headers, idField, targetId) {
+  // GUARD: Evitar borrar si el ID es nulo o vacío
+  if (targetId === undefined || targetId === null || targetId.toString().trim() === "") {
+    console.warn("Intento de eliminación con ID vacío ignorado.");
+    return false;
+  }
+
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return false;
   const idColumnIndex = headers.indexOf(idField) + 1;
@@ -108,13 +121,13 @@ function deleteRowById(sheet, headers, idField, targetId) {
 }
 
 function doGet(e) {
+  const ss = getSS();
   try {
-    const servicesSheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
-    const clientsSheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
-    const usersSheet = initSheet("Colaboradores", USER_HEADERS);
-    
-    // NUEVO: Inicializar hoja de Potenciales
-    const potentialSheet = initSheet("Potenciales", POTENTIAL_HEADERS);
+    const servicesSheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
+    const clientsSheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
+    const usersSheet = initSheet(ss, "Colaboradores", USER_HEADERS);
+    const potentialSheet = initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
+    const opsSheet = initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
@@ -122,35 +135,22 @@ function doGet(e) {
       clientes: getSheetData(clientsSheet, ["Nombre", "Teléfono", "Email"]),
       colaboradores: getSheetData(usersSheet, USER_HEADERS),
       potenciales: getSheetData(potentialSheet, POTENTIAL_HEADERS),
-      base_operadores: getSheetData(initSheet("Base_Operadores", OPERATOR_HEADERS), OPERATOR_HEADERS)
+      base_operadores: getSheetData(opsSheet, OPERATOR_HEADERS)
     })).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
-    // Si falla por GET, intentar procesar login
-    const payload = e.parameter;
-    if (payload.action === "login") {
-      const sheet = initSheet("Colaboradores", USER_HEADERS);
-      const users = getSheetData(sheet, USER_HEADERS);
-      const user = users.find(u => 
-        u.Nombre.toString().toLowerCase() === payload.nombre.toString().toLowerCase() && 
-        u.Clave.toString() === payload.pass.toString()
-      );
-      if (user) {
-        return ContentService.createTextOutput(JSON.stringify({ status: "success", user: user }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-    }
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function doPost(e) {
+  const ss = getSS();
   try {
     const payload = JSON.parse(e.postData.contents);
     const action = payload.action;
 
     if (action === "login") {
-      const sheet = initSheet("Colaboradores", USER_HEADERS);
+      const sheet = initSheet(ss, "Colaboradores", USER_HEADERS);
       const users = getSheetData(sheet, USER_HEADERS);
       const user = users.find(u => 
         u.Nombre.toString().toLowerCase() === payload.nombre.toString().toLowerCase() && 
@@ -167,45 +167,42 @@ function doPost(e) {
     }
 
     if (action === "upsertService") {
-      const sheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+      const sheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
       upsertRow(sheet, SCRIPT_DB_HEADERS, payload.data, "ID");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 
     
     else if (action === "upsertClient") {
-      const sheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
+      const sheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
       upsertRow(sheet, ["Nombre", "Teléfono", "Email"], payload.data, "Nombre");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 
 
-    // NUEVO: Acción para guardar Clientes Potenciales (clave: Nombre)
     else if (action === "upsertPotential") {
-      const sheet = initSheet("Potenciales", POTENTIAL_HEADERS);
+      const sheet = initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
       upsertRow(sheet, POTENTIAL_HEADERS, payload.data, "Nombre");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 
 
-    // NUEVO: Acción para guardar Perfil de Operador (clave: Nombre / Empresa)
     else if (action === "upsertOperadorPerfil") {
-      const sheet = initSheet("Base_Operadores", OPERATOR_HEADERS);
+      const sheet = initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
       upsertRow(sheet, OPERATOR_HEADERS, payload.data, "Nombre / Empresa");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     } 
 
-    // Eliminar prospecto por Nombre al convertir a cliente real
     else if (action === "deletePotential") {
-      const sheet = initSheet("Potenciales", POTENTIAL_HEADERS);
+      const sheet = initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
       deleteRowById(sheet, POTENTIAL_HEADERS, "Nombre", payload.nombre);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
     else if (action === "deleteClient") {
-      const sheet = initSheet("Clientes", ["Nombre", "Teléfono", "Email"]);
+      const sheet = initSheet(ss, "Clientes", ["Nombre", "Teléfono", "Email"]);
       deleteRowById(sheet, ["Nombre", "Teléfono", "Email"], "Nombre", payload.nombre);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
@@ -213,21 +210,21 @@ function doPost(e) {
     
     else if (action === "upsertUser") {
       if (payload.requesterRole !== "SuperAdmin") throw new Error("Sin permisos");
-      const sheet = initSheet("Colaboradores", USER_HEADERS);
+      const sheet = initSheet(ss, "Colaboradores", USER_HEADERS);
       upsertRow(sheet, USER_HEADERS, payload.data, "Nombre");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
     else if (action === "deleteService") {
-      const sheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+      const sheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
       deleteRowById(sheet, SCRIPT_DB_HEADERS, "ID", payload.id);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
     else if (action === "deleteOperador") {
-      const sheet = initSheet("Base_Operadores", OPERATOR_HEADERS);
+      const sheet = initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
       deleteRowById(sheet, OPERATOR_HEADERS, "Nombre / Empresa", payload.nombre);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
         .setMimeType(ContentService.MimeType.JSON);
@@ -255,14 +252,15 @@ function doPost(e) {
       
       const base64Data = payload.base64.split(',')[1] || payload.base64;
       const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
-      const fileName = `${payload.operatorName}_${today}`;
+      // Estandarizar nombre: [TIPO]_[OPERADOR]_[FECHA]
+      const fileName = `COMPROBANTE_${payload.operatorName}_${today}`;
       
       const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType, fileName);
       const file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       
       // Actualizar la hoja de Servicios
-      const sheet = initSheet("Servicios", SCRIPT_DB_HEADERS);
+      const sheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
       upsertRow(sheet, SCRIPT_DB_HEADERS, {
         "ID": payload.serviceId,
         "Link Archivo": file.getUrl(),
