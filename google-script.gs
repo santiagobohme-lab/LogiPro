@@ -9,7 +9,7 @@ const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
-  "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo"
+  "Estado Factura", "OC / HES", "Cotización", "Nº Factura", "Link Archivo", "Estado Servicio"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email"];

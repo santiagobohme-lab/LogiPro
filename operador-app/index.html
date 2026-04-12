@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Logi Pro - Operadores</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-slate-900 font-sans">
+    
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-blue-900 to-blue-800 text-white">
+        <div class="mb-8 text-center">
+            <div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                <img src="icon-512.png" alt="Logi Pro" class="w-16 h-16">
+            </div>
+            <h1 class="text-3xl font-black tracking-tight">Logi Pro</h1>
+            <p class="text-blue-200 text-sm">Operadores</p>
+        </div>
+        
+        <div class="w-full max-w-sm space-y-4">
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+                <label class="block text-xs font-bold uppercase tracking-wider text-blue-100 mb-2">Selecciona tu Nombre</label>
+                <select id="operator-select" class="w-full bg-white text-slate-900 px-4 py-3 rounded-xl appearance-none outline-none focus:ring-4 focus:ring-blue-400 transition-all font-medium">
+                    <option value="">Cargando operadores...</option>
+                </select>
+                <button id="login-btn" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 rounded-xl mt-6 shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                    Entrar a mis servicios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Screen (Hidden initially) -->
+    <div id="app-screen" class="hidden min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div>
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hola, <span id="operator-name-header" class="text-blue-600">...</span></h2>
+                <p class="text-lg font-black text-slate-800">Tus Servicios</p>
+            </div>
+            <button id="refresh-btn" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Services List -->
+        <main id="services-list" class="flex-1 p-4 space-y-4 overflow-y-auto">
+            <!-- Loader -->
+            <div id="loader" class="flex flex-col items-center justify-center py-20 text-slate-400">
+                <i class="ph-bold ph-circle-notch animate-spin text-4xl mb-4"></i>
+                <p>Buscando ruta...</p>
+            </div>
+            <!-- Services will be injected here -->
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-gray-100 px-8 py-4 flex justify-around items-center sticky bottom-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+            <button class="flex flex-col items-center gap-1 text-blue-600">
+                <i class="ph-fill ph-truck text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase">Ruta</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-slate-300">
+                <i class="ph-bold ph-clock-counter-clockwise text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase">Historial</span>
+            </button>
+            <button id="logout-btn" class="flex flex-col items-center gap-1 text-slate-300">
+                <i class="ph-bold ph-sign-out text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase">Salir</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/40 z-[100] hidden flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-slide-up">
+            <div class="w-12 h-1 bg-slate-100 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 id="modal-service-id" class="text-xs font-bold text-slate-400 uppercase">SERVICIO #...</h3>
+                    <h2 id="modal-client-name" class="text-xl font-black text-slate-800">Cargando...</h2>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-bold ph-map-pin text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Destino</p>
+                        <p id="modal-destination" class="text-slate-700 font-medium">...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-bold ph-package text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo de Carga</p>
+                        <p id="modal-type" class="text-slate-700 font-medium">...</p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Actualizar Estado</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="updateStatus('En Ruta')" class="bg-amber-100 text-amber-700 font-bold py-4 rounded-2xl active:scale-95 transition-all">
+                            En Ruta
+                        </button>
+                        <button onclick="updateStatus('Completado')" class="bg-emerald-100 text-emerald-700 font-bold py-4 rounded-2xl active:scale-95 transition-all">
+                            Finalizado
+                        </button>
+                    </div>
+                    <button id="upload-btn" class="w-full mt-3 bg-slate-50 text-slate-500 font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-camera"></i> Subir Foto Comprobante
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-xl opacity-0 translate-y-4 transition-all z-[200]">
+        Estado actualizado
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

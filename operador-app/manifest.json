@@ -1,0 +1,16 @@
+{
+  "name": "Logi Pro Operador",
+  "short_name": "LogiOperador",
+  "description": "App exclusiva para operadores de Logi Pro",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

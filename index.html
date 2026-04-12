@@ -399,7 +399,187 @@
 
             <!-- SEC: FACTURACIÓN -->
             <div id="sec-facturacion" class="content-section animate-fade-in hidden">
-                <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Gestión de Facturita</h1>
+                <div class="flex justify-between items-end mb-6 border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Gestión de Facturita</h1>
+                        <p class="text-slate-500 text-sm mt-1">Control de emisiones, cobranzas y estados de pago.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-white hover:bg-gray-50 text-slate-700 px-4 py-2 rounded text-sm font-medium transition-colors border border-gray-200 flex items-center gap-2">
+                            <i class="fa-solid fa-file-export"></i> Exportar
+                        </button>
+                        <button class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Nueva Factura
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Facturado (Mes)</p>
+                                <h3 class="text-2xl font-black text-slate-800">$ 12.450.000</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pendiente de Cobro</p>
+                                <h3 class="text-2xl font-black text-slate-800">$ 3.120.500</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Vencidas / Alerta</p>
+                                <h3 class="text-2xl font-black text-rose-600">$ 890.300</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="Buscar por Nº o Cliente..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-gray-200 rounded-lg text-sm focus:border-primary-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <select class="w-full px-3 py-2 bg-slate-50 border border-gray-200 rounded-lg text-sm focus:border-primary-500 outline-none transition-all">
+                                <option value="">Todos los Estados</option>
+                                <option value="pagado">Pagado</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="vencido">Vencido</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select class="w-full px-3 py-2 bg-slate-50 border border-gray-200 rounded-lg text-sm focus:border-primary-500 outline-none transition-all">
+                                <option value="">Mes Actual (Abril)</option>
+                                <option value="03">Marzo 2026</option>
+                                <option value="02">Febrero 2026</option>
+                            </select>
+                        </div>
+                        <button onclick="applyInvoiceFilters()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-filter"></i> Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Invoices Table -->
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead>
+                                <tr class="text-xs text-slate-500 font-bold bg-gray-50 border-b border-gray-200 uppercase tracking-wider">
+                                    <th class="px-6 py-4">Nº Factura</th>
+                                    <th class="px-6 py-4">Cliente</th>
+                                    <th class="px-6 py-4">F. Emisión</th>
+                                    <th class="px-6 py-4">Monto</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                <tr class="hover:bg-slate-50/50 transition-colors border-b border-gray-50">
+                                    <td class="px-6 py-4 font-mono font-bold text-primary-900">#F-2026-0042</td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-800">Industrias Automotrices del Sur</div>
+                                        <div class="text-[10px] text-slate-500 uppercase font-medium">Servicios de Transporte Logístico</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600">10/04/2026</td>
+                                    <td class="px-6 py-4 font-black text-slate-800">$ 4.560.000</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">Pagado</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex justify-center gap-2">
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-primary-900 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 transition-colors border-b border-gray-50">
+                                    <td class="px-6 py-4 font-mono font-bold text-primary-900">#F-2026-0039</td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-800">Distribuciones Pacífico S.A.</div>
+                                        <div class="text-[10px] text-slate-500 uppercase font-medium">Distribución Local</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600">05/04/2026</td>
+                                    <td class="px-6 py-4 font-black text-slate-800">$ 1.250.000</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider">Pendiente</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex justify-center gap-2">
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-primary-900 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 transition-colors border-b border-gray-50">
+                                    <td class="px-6 py-4 font-mono font-bold text-primary-900">#F-2026-0035</td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-800">Constructora El Mañío</div>
+                                        <div class="text-[10px] text-slate-500 uppercase font-medium">Transporte de Maquinaria</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600">28/03/2026</td>
+                                    <td class="px-6 py-4 font-black text-slate-800">$ 2.890.300</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider">Vencido</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex justify-center gap-2">
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-primary-900 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 transition-colors border-b border-gray-50">
+                                    <td class="px-6 py-4 font-mono font-bold text-primary-900">#F-2026-0031</td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-800">Frigoríficos del Norte</div>
+                                        <div class="text-[10px] text-slate-500 uppercase font-medium">Cadena de Frío</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600">20/03/2026</td>
+                                    <td class="px-6 py-4 font-black text-slate-800">$ 3.120.000</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">Pagado</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex justify-center gap-2">
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-primary-900 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-eye text-xs"></i></button>
+                                            <button class="w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-file-pdf text-xs"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center text-xs font-medium text-slate-500">
+                        <span>Mostrando 4 de 128 facturas</span>
+                        <div class="flex gap-1">
+                            <button class="w-8 h-8 rounded border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center">1</button>
+                            <button class="w-8 h-8 rounded border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50">2</button>
+                            <button class="w-8 h-8 rounded border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50">3</button>
+                            <button class="w-8 h-8 rounded border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- SEC: BALANCE -->
             <div id="sec-balance" class="content-section animate-fade-in hidden">
@@ -2144,6 +2324,11 @@
                 console.error(err);
                 showToast("Error al sincronizar con el backend.");
             }
+        }
+
+        // --- INVOICE INTERFACE LOGIC (PREVIEW) ---
+        function applyInvoiceFilters() {
+            showToast("Iniciando búsqueda filtrada... (Vista previa)");
         }
     </script>
 </body>

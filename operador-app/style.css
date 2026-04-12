@@ -1,0 +1,60 @@
+/* Custom Mobile Styles for Logi Pro Operador */
+
+:root {
+    --safe-area-bottom: env(safe-area-inset-bottom);
+}
+
+body {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Scrollbar hide but keep functionality */
+#services-list::-webkit-scrollbar {
+    width: 0;
+    display: none;
+}
+
+/* Card Styling */
+.service-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease;
+}
+
+.service-card:active {
+    transform: scale(0.98);
+    background-color: #f8fafc;
+}
+
+/* Status Badges */
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pill.pendiente { background: #fef3c7; color: #92400e; }
+.status-pill.ruta { background: #dcfce7; color: #166534; }
+.status-pill.completado { background: #dbeafe; color: #1e40af; }
+
+/* Safe Area Bottom for Nav */
+nav {
+    padding-bottom: calc(1rem + var(--safe-area-bottom));
+}
