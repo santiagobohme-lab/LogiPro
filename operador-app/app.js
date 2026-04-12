@@ -155,7 +155,10 @@ function renderServices() {
             <div class="service-card" onclick="openDetail('${s.ID}')">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <span class="status-pill ${statusClass}">${pillLabel}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="status-pill ${statusClass}">${pillLabel}</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">${s["Tipo Servicio"]}</span>
+                        </div>
                         <h3 class="text-lg font-black text-slate-800 mt-2">${s.Cliente}</h3>
                     </div>
                     <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
