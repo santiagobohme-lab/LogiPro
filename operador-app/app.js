@@ -219,6 +219,15 @@ async function updateStatus(newStatus) {
     // Optimistic UI
     s["Estado Servicio"] = newStatus;
     localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
+
+    // Auto-switch tab based on state change
+    const isCompleted = newStatus.toLowerCase().includes('completado') || newStatus.toLowerCase().includes('finalizado');
+    if (isCompleted && currentTab !== 'historial') {
+        switchTab('historial');
+    } else if (!isCompleted && currentTab !== 'ruta') {
+        switchTab('ruta');
+    }
+
     renderServices();
     closeModal();
     showToast(`Estado cambiado a: ${newStatus}`);
