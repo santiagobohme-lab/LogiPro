@@ -1628,16 +1628,19 @@
                 clientsData.push(newClient);
             }
 
-            closeNewClientModal();
             renderClientsList();
             
             // Push to DB
             try {
+                const oldName = currentEditClientNombre; // Guardar temporalmente antes de cerrar modal
                 const payload = { 
                     action: 'upsertClient', 
                     data: mapToSheetClient(newClient),
-                    oldNombre: currentEditClientNombre !== newClient.nombre ? currentEditClientNombre : null
+                    oldNombre: (oldName && oldName !== newClient.nombre) ? oldName : null
                 };
+                
+                // Cerrar modal y limpiar aquí
+                closeNewClientModal();
                 
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -1647,7 +1650,7 @@
                 
                 if(!res.ok) throw new Error("Error en servidor");
                 
-                showToast(currentEditClientNombre ? "Datos actualizados en la nube." : "Cliente registrado exitosamente.");
+                showToast(oldName ? "Datos actualizados en la nube." : "Cliente registrado exitosamente.");
             } catch(err) {
                 console.error(err);
                 showToast("Error al sincronizar con Google Sheets.");
