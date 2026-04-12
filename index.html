@@ -2600,6 +2600,115 @@
         function applyInvoiceFilters() {
             showToast("Iniciando búsqueda filtrada... (Vista previa)");
         }
+        function generateOrdenCarga(serviceId) {
+            const row = excelData.find(r => r.id == serviceId);
+            if(!row) return showToast("No se encontró el servicio.");
+
+            const op = operadoresData.find(o => o.nombre === row.operador) || {};
+            const cli = clientsData.find(c => c.nombre === row.cliente) || {};
+
+            const printWindow = window.open('', '_blank');
+            const fechaActual = new Date().toLocaleDateString('es-CL');
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Orden de Carga #${row.id}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; color: black; background: white; margin: 0; padding: 20px; font-size: 12px; }
+                        .oc-container { width: 100%; max-width: 800px; margin: auto; border: 2px solid black; }
+                        .oc-section { border-bottom: 1px solid black; display: flex; }
+                        .oc-cell { padding: 8px; flex: 1; border-right: 1px solid black; }
+                        .oc-cell:last-child { border-right: none; }
+                        .oc-label { display: block; font-weight: bold; font-size: 10px; margin-bottom: 3px; border-bottom: 0.5px solid #eee; }
+                        .oc-value { font-size: 13px; font-weight: bold; }
+                        .bg-gray { background: #f2f2f2; }
+                        .text-center { text-center: center; }
+                        .header-main { text-align: center; padding: 10px; border-bottom: 2px solid black; background: #000; color: #fff; }
+                        .sig-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 10px; padding: 20px 10px; }
+                        .sig-box { border-top: 1px solid black; text-align: center; padding-top: 5px; font-size: 9px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="margin-bottom: 10px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer; background: #000; color: #fff; border: none; border-radius: 4px;">Imprimir Orden de Carga</button>
+                    </div>
+                    
+                    <div class="oc-container">
+                        <div class="header-main">
+                            <h2 style="margin:0; text-transform:uppercase; letter-spacing: 2px;">Logi & Trade - Orden de Carga</h2>
+                            <p style="margin:5px 0 0; font-size: 10px;">Comprobante Interno de Operación Logística</p>
+                        </div>
+
+                        <div class="oc-section">
+                            <div class="oc-cell"><small class="oc-label">CLIENTE:</small><div class="oc-value">${row.cliente}</div></div>
+                            <div class="oc-cell"><small class="oc-label">DIRECCIÓN:</small><div class="oc-value">${cli.email || '-'}</div></div>
+                        </div>
+
+                        <div class="oc-section bg-gray">
+                            <div class="oc-cell" style="flex:0.5"><small class="oc-label">ID SERVICIO:</small><div class="oc-value">#${row.id}</div></div>
+                            <div class="oc-cell"><small class="oc-label">PLACA / PATENTE:</small><div class="oc-value">${row.patente || op.patente || '-'}</div></div>
+                            <div class="oc-cell" style="flex:1.5"><small class="oc-label">CONDUCTOR:</small><div class="oc-value">${row.chofer || op.chofer || '-'}</div></div>
+                            <div class="oc-cell"><small class="oc-label">FECHA TRABAJO:</small><div class="oc-value">${row.fechaServicio}</div></div>
+                        </div>
+
+                        <div class="oc-section">
+                            <div class="oc-cell"><small class="oc-label">OPERADOR TRANSPORTE:</small><div class="oc-value">${row.operador}</div></div>
+                            <div class="oc-cell"><small class="oc-label">RUT OPERADOR:</small><div class="oc-value">${op.rut || '-'}</div></div>
+                        </div>
+
+                        <div class="oc-section bg-gray">
+                            <div class="oc-cell"><small class="oc-label">ORIGEN / RUTA:</small><div class="oc-value">SANTIAGO - LOGI&TRADE</div></div>
+                            <div class="oc-cell"><small class="oc-label">DESTINO FINAL:</small><div class="oc-value">${row.destino}</div></div>
+                        </div>
+
+                        <div class="oc-section" style="height: 120px;">
+                            <div class="oc-cell" style="flex: 2;">
+                                <small class="oc-label">DESCRIPCIÓN DE LA ACTIVIDAD A REALIZAR:</small>
+                                <div style="font-size: 14px; margin-top: 10px;">${row.tipoServicio}</div>
+                                <div style="margin-top: 20px; font-size: 10px; color: #666;">
+                                    * Cumplir con protocolos de seguridad vigente.<br>
+                                    * Reportar cualquier anomalía en el viaje.
+                                </div>
+                            </div>
+                            <div class="oc-cell" style="background: #fafafa;">
+                                <small class="oc-label">ANÁLISIS DE COSTOS:</small>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                    <tr><td style="padding:4px 0;">COSTO SERV:</td><td align="right">$ ${Number(row.costo).toLocaleString('es-CL')}</td></tr>
+                                    <tr><td style="padding:4px 0;">VIÁTICOS:</td><td align="right">$ -</td></tr>
+                                    <tr><td style="padding:4px 0; border-top: 1px solid #777; font-weight:bold;">TOTAL OP:</td><td align="right" style="border-top: 1px solid #777; font-weight:bold;">$ ${Number(row.costo).toLocaleString('es-CL')}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="oc-section bg-gray" style="text-align: center; justify-content: space-around; font-size: 10px;">
+                            <div class="oc-cell">ODÓMETRO INICIAL: ___________</div>
+                            <div class="oc-cell">LLEGADA CARGA: ___________</div>
+                            <div class="oc-cell">SALIDA CARGA: ___________</div>
+                            <div class="oc-cell">ODÓMETRO FINAL: ___________</div>
+                        </div>
+
+                        <div class="sig-grid">
+                            <div class="sig-box"><br><br>Autorizado por: LogiPro</div>
+                            <div class="sig-box"><br><br>Firma del Conductor</div>
+                            <div class="sig-box"><br><br>Firma del Cliente</div>
+                            <div class="sig-box"><br><br>Revisado / Fecha: ${fechaActual}</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px; font-size: 10px; color: #999;">
+                        Documento generado automáticamente por LogiPro Intranet
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
     </script>
 </body>
 </html>
