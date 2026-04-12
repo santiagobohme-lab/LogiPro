@@ -965,12 +965,12 @@
         }
 
         const mapFromSheetOperador = (sheetObj) => ({
-            nombre: sheetObj["Nombre / Empresa"] || "",
-            rut: sheetObj["RUT"] || "",
-            patente: sheetObj["Patente"] || "",
-            chofer: sheetObj["Chofer"] || "",
-            telefono: sheetObj["Teléfono"] || "",
-            email: sheetObj["Email"] || "",
+            nombre: (sheetObj["Nombre / Empresa"] || "").toString().trim(),
+            rut: (sheetObj["RUT"] || "").toString().trim(),
+            patente: (sheetObj["Patente"] || "").toString().trim(),
+            chofer: (sheetObj["Chofer"] || "").toString().trim(),
+            telefono: (sheetObj["Teléfono"] || "").toString().trim(),
+            email: (sheetObj["Email"] || "").toString().trim(),
             foto: sheetObj["Foto"] || ""
         });
 
@@ -1992,8 +1992,8 @@
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400"><i class="fa-solid fa-truck mr-2"></i>No hay operadores registrados aún.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = operadoresData.map(op => `
-                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="viewOperatorServices('${op.nombre}')">
+            tbody.innerHTML = operadoresData.map((op, i) => `
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="viewOperatorServicesByIndex(${i})">
                     <td class="px-4 py-3 font-semibold text-slate-700">
                         <i class="fa-solid fa-truck text-slate-300 mr-2"></i>${op.nombre}
                     </td>
@@ -2004,14 +2004,14 @@
                     <td class="px-4 py-3 text-slate-600">${op.chofer || '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button onclick="event.stopPropagation(); openContactModal('${op.nombre}')" title="Contacto" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary-800 border border-slate-200 hover:border-primary-400 bg-white hover:bg-primary-50 px-2.5 py-1.5 rounded transition-all font-bold shadow-sm">
+                            <button onclick="event.stopPropagation(); openContactModalByIndex(${i})" title="Contacto" class="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-primary-800 border border-slate-200 hover:border-primary-400 bg-white hover:bg-primary-50 px-2.5 py-1.5 rounded transition-all font-bold shadow-sm">
                                 <i class="fa-solid fa-address-book text-sm"></i> Contacto
                             </button>
-                            <button onclick="event.stopPropagation(); viewOperatorServices('${op.nombre}')" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
+                            <button onclick="event.stopPropagation(); viewOperatorServicesByIndex(${i})" title="Ver Servicios" class="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 bg-primary-50 hover:bg-primary-100 px-2 py-1 rounded transition-colors font-medium">
                                 <i class="fa-solid fa-list-check"></i> Servicios
                             </button>
-                            <button onclick="event.stopPropagation(); editOperador('${op.nombre}')" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="event.stopPropagation(); deleteOperador('${op.nombre}')" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
+                            <button onclick="event.stopPropagation(); editOperadorByIndex(${i})" title="Editar" class="text-slate-300 hover:text-primary-700 transition-colors p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="event.stopPropagation(); deleteOperadorByIndex(${i})" title="Eliminar" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -2035,10 +2035,10 @@
             document.getElementById('operador-modal').classList.remove('hidden');
         }
 
-        function editOperador(nombre) {
-            const op = operadoresData.find(o => o.nombre === nombre);
+        function editOperadorByIndex(index) {
+            const op = operadoresData[index];
             if(!op) return;
-            currentEditOperadorNombre = nombre;
+            currentEditOperadorNombre = op.nombre;
             document.getElementById('operador-modal-title').innerText = 'Editar Operador';
             document.getElementById('fm-op-nombre').value = op.nombre;
             document.getElementById('fm-op-nombre').readOnly = true;
@@ -2118,12 +2118,15 @@
             }
         }
 
-        async function deleteOperador(nombre) {
+        async function deleteOperadorByIndex(index) {
+            const op = operadoresData[index];
+            if(!op) return;
+            const nombre = op.nombre;
             if(!confirm(`¿Eliminar permanentemente al operador "${nombre}"? Esta acción borrará su perfil de la base de datos.`)) return;
             
             const originalData = [...operadoresData];
             // Optimistic
-            operadoresData = operadoresData.filter(o => o.nombre !== nombre);
+            operadoresData = operadoresData.filter((_, i) => i !== index);
             renderOperadoresList();
             showToast(`Operador eliminado de la vista.`);
 
@@ -2150,9 +2153,12 @@
         }
 
         // --- CONTACT MODAL LOGIC ---
-        function openContactModal(nombre) {
-            const op = operadoresData.find(o => o.nombre === nombre);
-            if(!op) return;
+        function openContactModalByIndex(index) {
+            const op = operadoresData[index];
+            if(!op) {
+                showToast("Error: No se encontró la data del operador.");
+                return;
+            }
             
             document.getElementById('contact-modal-name').innerText = op.nombre;
             document.getElementById('contact-modal-rut').innerText = op.rut || "Sin RUT registrado";
@@ -2177,8 +2183,8 @@
             // WhatsApp Link
             const waBtn = document.getElementById('contact-modal-wa-btn');
             
-            if(op.telefono && op.telefono.trim() !== "") {
-                const cleanTel = op.telefono.replace(/\D/g, ''); // Solo números
+            if(op.telefono && op.telefono.toString().trim() !== "") {
+                const cleanTel = op.telefono.toString().replace(/\D/g, ''); // Solo números
                 callBtn.href = `tel:${cleanTel}`;
                 callBtn.style.display = 'flex';
                 
@@ -2261,7 +2267,10 @@
 
         // --- OPERATOR SERVICES DETAIL LOGIC ---
 
-        function viewOperatorServices(nombre) {
+        function viewOperatorServicesByIndex(index) {
+            const op = operadoresData[index];
+            if(!op) return;
+            const nombre = op.nombre;
             currentOperatorForServices = nombre;
             // Hide list, show detail
             document.getElementById('sec-operadores').classList.replace('block', 'hidden');
