@@ -54,6 +54,31 @@ body {
 .status-pill.ruta { background: #dcfce7; color: #166534; }
 .status-pill.completado { background: #dbeafe; color: #1e40af; }
 
+/* Cost Tag */
+.cost-tag {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* Nav Styles */
+.nav-btn {
+    transition: all 0.3s ease;
+}
+
+.nav-active {
+    color: #2563eb !important;
+}
+
+.nav-active i {
+    transform: translateY(-2px);
+    color: #2563eb !important;
+}
+
 /* Safe Area Bottom for Nav */
 nav {
     padding-bottom: calc(1rem + var(--safe-area-bottom));

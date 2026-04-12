@@ -1,18 +1,24 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxrMmFzWDWGTNBxriKIlltgKh1HKKgLJpsLso6fOgcHoUUeBfZLnQaN4EFAQSGrIxc_/exec";
 
 let currentOperator = localStorage.getItem('logipro-operator') || null;
-let allServices = [];
+let allServices = JSON.parse(localStorage.getItem('logipro-cache-services')) || [];
 let currentServiceId = null;
+let currentTab = 'ruta'; // 'ruta' or 'historial'
 
 // UI Elements
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const operatorSelect = document.getElementById('operator-select');
 const operatorNameHeader = document.getElementById('operator-name-header');
+const appViewTitle = document.getElementById('app-view-title');
 const servicesList = document.getElementById('services-list');
 const loader = document.getElementById('loader');
 const detailModal = document.getElementById('detail-modal');
 const toast = document.getElementById('toast');
+
+// Nav Buttons
+const navRuta = document.getElementById('nav-ruta');
+const navHistorial = document.getElementById('nav-historial');
 
 // Initialize
 async function init() {
@@ -24,84 +30,141 @@ async function init() {
 }
 
 async function loadOperators() {
+    const cachedOps = localStorage.getItem('logipro-cache-operators');
+    if (cachedOps) {
+        renderOperatorSelect(JSON.parse(cachedOps));
+    }
+
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
         if (data.status === 'success') {
-            const ops = data.base_operadores;
-            operatorSelect.innerHTML = '<option value="">Selecciona tu nombre...</option>' + 
-                ops.map(op => `<option value="${op["Nombre / Empresa"]}">${op["Nombre / Empresa"]}</option>`).join('');
+            localStorage.setItem('logipro-cache-operators', JSON.stringify(data.base_operadores));
+            renderOperatorSelect(data.base_operadores);
         }
     } catch (err) {
         console.error("Error loading operators:", err);
-        operatorSelect.innerHTML = '<option value="">Error al cargar</option>';
+        if (!cachedOps) operatorSelect.innerHTML = '<option value="">Error al cargar</option>';
     }
+}
+
+function renderOperatorSelect(ops) {
+    operatorSelect.innerHTML = '<option value="">Selecciona tu nombre...</option>' + 
+        ops.map(op => `<option value="${op["Nombre / Empresa"]}">${op["Nombre / Empresa"]}</option>`).join('');
 }
 
 function showApp() {
     loginScreen.classList.add('hidden');
     appScreen.classList.remove('hidden');
     operatorNameHeader.innerText = currentOperator;
+    
+    // Initial render from cache if available
+    if (allServices.length > 0) {
+        renderServices();
+    }
+    
     fetchServices();
 }
 
 async function fetchServices() {
     loader.classList.remove('hidden');
-    servicesList.innerHTML = '';
     
     try {
         const res = await fetch(API_URL);
         const data = await res.json();
         if (data.status === 'success') {
-            allServices = data.servicios.filter(s => s.Operador === currentOperator);
+            // FIX DUPLICATES: Filter out empty rows (must have ID and Cliente)
+            allServices = data.servicios.filter(s => 
+                s.Operador === currentOperator && 
+                s.ID && 
+                s.Cliente && 
+                s.Cliente !== "-"
+            );
+            
+            localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
             renderServices();
         }
     } catch (err) {
         console.error("Error fetching services:", err);
-        servicesList.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Error de conexión</p>';
+        if (allServices.length === 0) {
+            servicesList.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Error de conexión</p>';
+        }
     } finally {
         loader.classList.add('hidden');
     }
 }
 
 function renderServices() {
-    if (allServices.length === 0) {
+    const filtered = allServices.filter(s => {
+        const status = (s["Estado Servicio"] || "").toLowerCase();
+        const isCompleted = status.includes('completado') || status.includes('finalizado');
+        return currentTab === 'ruta' ? !isCompleted : isCompleted;
+    });
+
+    // Update Header Title
+    appViewTitle.innerText = currentTab === 'ruta' ? 'Próximos Servicios' : 'Historial de Viajes';
+
+    if (filtered.length === 0) {
+        const message = currentTab === 'ruta' ? 'No tienes servicios pendientes' : 'No hay viajes en el historial';
         servicesList.innerHTML = `
             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
                 <i class="ph-bold ph-smiley-blank text-5xl mb-4"></i>
-                <p class="font-bold">No tienes servicios asignados hoy</p>
+                <p class="font-bold">${message}</p>
             </div>
         `;
         return;
     }
 
-    servicesList.innerHTML = allServices.map(s => {
-        const status = s["Estado Servicio"] || "Pendiente";
-        const statusClass = status.toLowerCase().includes('completado') ? 'completado' : 
-                          status.toLowerCase().includes('ruta') ? 'ruta' : 'pendiente';
+    servicesList.innerHTML = filtered.map(s => {
+        const serviceStatus = s["Estado Servicio"] || "Pendiente";
+        const paymentStatus = s["Estado Pago"] || "Pendiente";
+        
+        const isCompletado = serviceStatus.toLowerCase().includes('completado') || serviceStatus.toLowerCase().includes('finalizado');
+        const statusClass = isCompletado ? 'completado' : 
+                          serviceStatus.toLowerCase().includes('ruta') ? 'ruta' : 'pendiente';
+        
+        // Custom Label from user request: "Pago pendiente/Pagado"
+        const isPaid = paymentStatus.toLowerCase().includes('pagado') || paymentStatus.toLowerCase().includes('ok');
+        const pillLabel = isPaid ? "PAGADO" : "PAGO PENDIENTE";
         
         return `
             <div class="service-card" onclick="openDetail('${s.ID}')">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <span class="status-pill ${statusClass}">${status}</span>
+                        <span class="status-pill ${statusClass}">${pillLabel}</span>
                         <h3 class="text-lg font-black text-slate-800 mt-2">${s.Cliente}</h3>
                     </div>
                     <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
                         #${s.ID}
                     </div>
                 </div>
-                <div class="flex items-center gap-2 text-slate-500 text-sm mb-1">
-                    <i class="ph-bold ph-map-pin"></i>
-                    <span>${s.Destino}</span>
+                <div class="flex flex-col gap-2 mb-4">
+                    <div class="flex items-center gap-2 text-slate-500 text-sm">
+                        <i class="ph-bold ph-map-pin"></i>
+                        <span>${s.Destino}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-500 text-sm">
+                        <i class="ph-bold ph-calendar-blank"></i>
+                        <span>${s["Fecha de Servicio"]}</span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 text-slate-500 text-sm">
-                    <i class="ph-bold ph-calendar-blank"></i>
-                    <span>${s["Fecha de Servicio"]}</span>
+                <div class="flex justify-between items-center pt-3 border-t border-slate-50">
+                    <div class="cost-tag">
+                        <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Costo Servicio</span>
+                        ${formatCLP(s.Costo)}
+                    </div>
+                    <i class="ph-bold ph-caret-right text-slate-300"></i>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function formatCLP(value) {
+    if (!value || value === "-") return "$0";
+    const num = parseFloat(value.toString().replace(/[^0-9.-]+/g, ""));
+    if (isNaN(num)) return value;
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(num);
 }
 
 function openDetail(id) {
@@ -128,6 +191,7 @@ async function updateStatus(newStatus) {
 
     // Optimistic UI
     s["Estado Servicio"] = newStatus;
+    localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
     renderServices();
     closeModal();
     showToast(`Estado cambiado a: ${newStatus}`);
@@ -150,6 +214,26 @@ async function updateStatus(newStatus) {
         showToast("Error al sincronizar con Matriz");
         fetchServices(); // Revert
     }
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    
+    // Update Nav UI
+    navRuta.classList.remove('nav-active', 'text-blue-600');
+    navRuta.classList.add('text-slate-300');
+    navRuta.querySelector('i').classList.replace('ph-fill', 'ph-bold');
+    
+    navHistorial.classList.remove('nav-active', 'text-blue-600');
+    navHistorial.classList.add('text-slate-300');
+    navHistorial.querySelector('i').classList.replace('ph-fill', 'ph-bold');
+    
+    const activeBtn = tab === 'ruta' ? navRuta : navHistorial;
+    activeBtn.classList.add('nav-active');
+    activeBtn.classList.remove('text-slate-300');
+    activeBtn.querySelector('i').classList.replace('ph-bold', 'ph-fill');
+    
+    renderServices();
 }
 
 function showToast(msg) {
@@ -177,9 +261,13 @@ document.getElementById('login-btn').addEventListener('click', () => {
 
 document.getElementById('refresh-btn').addEventListener('click', fetchServices);
 
+navRuta.addEventListener('click', () => switchTab('ruta'));
+navHistorial.addEventListener('click', () => switchTab('historial'));
+
 document.getElementById('logout-btn').addEventListener('click', () => {
     if (confirm("¿Cerrar sesión?")) {
         localStorage.removeItem('logipro-operator');
+        localStorage.removeItem('logipro-cache-services');
         location.reload();
     }
 });

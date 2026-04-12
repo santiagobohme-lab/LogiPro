@@ -41,7 +41,7 @@
         <header class="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
             <div>
                 <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hola, <span id="operator-name-header" class="text-blue-600">...</span></h2>
-                <p class="text-lg font-black text-slate-800">Tus Servicios</p>
+                <p id="app-view-title" class="text-lg font-black text-slate-800">Próximos Servicios</p>
             </div>
             <button id="refresh-btn" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
                 <i class="ph-bold ph-arrows-clockwise text-xl"></i>
@@ -60,15 +60,15 @@
 
         <!-- Bottom Navigation -->
         <nav class="bg-white border-t border-gray-100 px-8 py-4 flex justify-around items-center sticky bottom-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-            <button class="flex flex-col items-center gap-1 text-blue-600">
+            <button id="nav-ruta" class="nav-btn flex flex-col items-center gap-1 nav-active">
                 <i class="ph-fill ph-truck text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase">Ruta</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-300">
+            <button id="nav-historial" class="nav-btn flex flex-col items-center gap-1 text-slate-300">
                 <i class="ph-bold ph-clock-counter-clockwise text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase">Historial</span>
             </button>
-            <button id="logout-btn" class="flex flex-col items-center gap-1 text-slate-300">
+            <button id="logout-btn" class="nav-btn flex flex-col items-center gap-1 text-slate-300">
                 <i class="ph-bold ph-sign-out text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase">Salir</span>
             </button>
