@@ -362,7 +362,7 @@
             <div id="client-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
                 <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
                     <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3">
-                        <h3 class="text-lg font-bold text-primary-900">Crear Cliente Nuevo</h3>
+                        <h3 id="client-modal-title" class="text-lg font-bold text-primary-900">Crear Cliente Nuevo</h3>
                         <button type="button" onclick="closeNewClientModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <form id="new-client-form" onsubmit="handleClientSubmit(event)" class="space-y-4">
@@ -381,7 +381,7 @@
                         
                         <div class="pt-4 flex justify-end gap-2 mt-2">
                             <button type="button" onclick="closeNewClientModal()" class="bg-white border border-gray-300 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
-                            <button type="submit" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                            <button type="submit" id="client-submit-btn" class="bg-primary-900 hover:bg-primary-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
                                 Confirmar Creación
                             </button>
                         </div>
@@ -965,6 +965,7 @@
         let currentEditProspectoNombre = null;
         let currentEditOperadorNombre = null;
         let currentOperatorForServices = null;
+        let currentEditClientNombre = null;
         let isGlobalLoading = false;
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
@@ -1426,26 +1427,77 @@
 
             tbody.innerHTML = clientsData.map(c => `
                 <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="showClientDetail('${c.nombre}')">
-                    <td class="px-4 py-3 flex items-center">
-                        <i class="fa-regular fa-building text-slate-400 mr-3 hidden sm:inline"></i>
-                        <span class="font-bold text-slate-700">${c.nombre}</span>
+                    <td class="px-4 py-4 flex items-center">
+                        <div class="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center mr-3 hidden sm:flex border border-primary-100">
+                            <i class="fa-regular fa-building text-primary-600 text-sm"></i>
+                        </div>
+                        <span class="font-bold text-slate-700 text-sm">${c.nombre}</span>
                     </td>
-                    <td class="px-4 py-3 text-slate-600"><span class="text-xs mr-2 text-slate-400">TEL</span> ${c.telefono} &nbsp;|&nbsp; <span class="text-xs mr-2 text-slate-400">MAIL</span> ${c.email}</td>
-                    <td class="px-4 py-3 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <button onclick="event.stopPropagation(); deleteClient('${c.nombre}')" title="Eliminar Cliente" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-regular fa-trash-can"></i></button>
-                            <button class="px-3 py-1 border border-gray-200 text-primary-900 bg-white hover:bg-gray-50 rounded text-xs transition-colors"><i class="fa-solid fa-arrow-right"></i></button>
+                    <td class="px-4 py-4">
+                        <div class="inline-flex flex-col gap-1 bg-slate-50 border border-slate-200/60 rounded-lg px-2.5 py-1.5 min-w-[180px]">
+                            <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                                <i class="ph-bold ph-phone text-primary-500"></i>
+                                <span class="font-medium tracking-tight">${c.telefono || 'Sin teléfono'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                                <i class="ph-bold ph-envelope text-primary-500"></i>
+                                <span class="font-medium tracking-tight truncate max-w-[140px]">${c.email || 'Sin email'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="event.stopPropagation(); editClient('${c.nombre}')" title="Editar Datos" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-all border border-transparent hover:border-primary-100">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteClient('${c.nombre}')" title="Eliminar Cliente" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-600 hover:bg-red-50 transition-all border border-transparent hover:border-red-100">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                            <div class="w-8 h-8 flex items-center justify-center rounded-lg text-primary-900 bg-white border border-slate-200">
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </div>
                         </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function openNewClientModal() { document.getElementById('client-modal').classList.remove('hidden'); }
-        function closeNewClientModal() { document.getElementById('client-modal').classList.add('hidden'); document.getElementById('new-client-form').reset(); }
+        function openNewClientModal() { 
+            currentEditClientNombre = null;
+            document.getElementById('client-modal-title').innerText = 'Nuevo Cliente';
+            document.getElementById('client-submit-btn').innerText = 'Registrar Cliente';
+            document.getElementById('fm-cli-nombre').readOnly = false;
+            document.getElementById('fm-cli-nombre').classList.remove('bg-gray-100');
+            document.getElementById('client-modal').classList.remove('hidden'); 
+        }
 
-        function handleClientSubmit(e) {
+        function closeNewClientModal() { 
+            document.getElementById('client-modal').classList.add('hidden'); 
+            document.getElementById('new-client-form').reset(); 
+            currentEditClientNombre = null;
+        }
+
+        function editClient(nombre) {
+            const c = clientsData.find(x => x.nombre === nombre);
+            if(!c) return;
+            currentEditClientNombre = nombre;
+            document.getElementById('client-modal-title').innerText = 'Editar Datos de Cliente';
+            document.getElementById('fm-cli-nombre').value = c.nombre;
+            document.getElementById('fm-cli-nombre').readOnly = true;
+            document.getElementById('fm-cli-nombre').classList.add('bg-gray-100');
+            document.getElementById('fm-cli-telefono').value = c.telefono || "";
+            document.getElementById('fm-cli-email').value = c.email || "";
+            document.getElementById('client-submit-btn').innerText = 'Actualizar Datos';
+            document.getElementById('client-modal').classList.remove('hidden');
+        }
+
+        async function handleClientSubmit(e) {
             e.preventDefault();
+            const btn = document.getElementById('client-submit-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+            btn.disabled = true;
+
             const nombre = document.getElementById('fm-cli-nombre').value.trim();
             const newClient = {
                 nombre: nombre,
@@ -1453,12 +1505,28 @@
                 email: document.getElementById('fm-cli-email').value
             };
             
-            clientsData.push(newClient);
+            // Optimistic Update
+            if(currentEditClientNombre) {
+                const idx = clientsData.findIndex(c => c.nombre === currentEditClientNombre);
+                if(idx >= 0) clientsData[idx] = newClient;
+            } else {
+                clientsData.push(newClient);
+            }
+
             closeNewClientModal();
             renderClientsList();
             
             // Push to DB
-            syncClientToDB(newClient);
+            try {
+                await syncClientToDB(newClient);
+                showToast(currentEditClientNombre ? "Datos actualizados en la nube." : "Cliente registrado exitosamente.");
+            } catch(err) {
+                console.error(err);
+                showToast("Error al sincronizar con Google Sheets.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // DELETE CLIENT
