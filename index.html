@@ -702,6 +702,7 @@
                                     <th class="px-4 py-3">Destino</th>
                                     <th class="px-4 py-3">Costo (CLP)</th>
                                     <th class="px-4 py-3">Estado de Pago</th>
+                                    <th class="px-4 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="op-servicios-tbody" class="divide-y divide-gray-100 text-sm font-medium">
@@ -2490,7 +2491,7 @@
             const services = excelData.filter(s => s.operador === currentOperatorForServices);
             
             if(services.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Este operador no tiene servicios registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Este operador no tiene servicios registrados.</td></tr>`;
                 return;
             }
 
@@ -2500,10 +2501,10 @@
                 
                 return `
                 <tr class="hover:bg-gray-50 transition-colors border-b border-gray-50">
-                    <td class="px-4 py-3 text-slate-700">${s.fechaServicio}</td>
+                    <td class="px-4 py-3 text-slate-700 font-medium">${s.fechaServicio}</td>
                     <td class="px-4 py-3 font-semibold text-primary-900">${s.cliente}</td>
                     <td class="px-4 py-3 text-slate-600">${s.destino}</td>
-                    <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString('es-CL')}</td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2">
                             <select onchange="updateOperatorServiceStatus('${s.id}', this.value)" class="bg-white border rounded px-1.5 py-0.5 text-[10px] focus:outline-none ${isPaid ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 'border-amber-200 text-amber-700 bg-amber-50'}">
@@ -2514,6 +2515,11 @@
                                 <i class="fa-solid fa-paperclip"></i>
                             </button>
                         </div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                         <button onclick="event.stopPropagation(); generateOrdenCarga(${s.id})" title="Imprimir Orden" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded shadow-sm transition-all uppercase">
+                            <i class="fa-solid fa-file-invoice"></i> Orden de Carga
+                        </button>
                     </td>
                 </tr>
                 `;
