@@ -19,6 +19,12 @@ body {
     animation: slideUp 0.3s ease-out;
 }
 
+/* Toast Visibility */
+#toast.show {
+    opacity: 1 !important;
+    transform: translate(-50%, 0) !important;
+}
+
 /* Scrollbar hide but keep functionality */
 #services-list::-webkit-scrollbar {
     width: 0;

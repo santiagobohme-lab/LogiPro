@@ -70,20 +70,22 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             color: #ffffff;
-            padding: 10px 18px;
+            padding: 8px 14px;
             border-radius: 50px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             letter-spacing: -0.01em;
             pointer-events: auto;
+            max-width: 300px;
+            white-space: nowrap;
         }
         .toast.show {
             opacity: 1;
@@ -145,6 +147,10 @@
                 <a href="#clientes" onclick="switchSection('clientes')" id="nav-clientes" class="nav-item flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
                     <i class="fa-regular fa-users w-6 text-primary-900"></i>
                     <span>Clientes</span>
+                </a>
+                <a href="#servicios" onclick="switchSection('servicios')" id="nav-servicios" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-rectangle-list w-6 text-slate-400"></i>
+                    <span>Servicios</span>
                 </a>
                 <a href="#facturacion" onclick="switchSection('facturacion')" id="nav-facturacion" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-regular fa-file-lines w-6 text-slate-400"></i>
@@ -307,6 +313,47 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEC: SERVICIOS GLOBALES (Order by Creation) -->
+            <div id="sec-servicios" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Gestión Global de Servicios</h1>
+                        <p class="text-slate-500 text-sm mt-1">Listado maestro de todos los servicios registrados, ordenados por creación.</p>
+                    </div>
+                    <div class="flex gap-2">
+                         <button onclick="initDataFromCloud()" class="bg-white border border-gray-200 text-slate-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">
+                            <i class="fa-solid fa-rotate mr-1"></i> Sincronizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border border-gray-100 relative w-full max-w-full">
+                    <div class="table-container scroll-pb-2">
+                        <table class="w-full text-left whitespace-nowrap min-w-[1100px]">
+                            <thead>
+                                <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
+                                    <th class="px-3 py-2">Operador</th>
+                                    <th class="px-3 py-2">Fecha Srv.</th>
+                                    <th class="px-3 py-2">Servicio</th>
+                                    <th class="px-3 py-2">Destino</th>
+                                    <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
+                                    <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
+                                    <th class="px-3 py-2">F. Pago</th>
+                                    <th class="px-3 py-2">OC / HES</th>
+                                    <th class="px-3 py-2">Cotización</th>
+                                    <th class="px-3 py-2 text-center">Fact. / Nº</th>
+                                    <th class="px-3 py-2 text-center">Estado Fact.</th>
+                                    <th class="px-2 py-2 text-center"><i class="fa-solid fa-ellipsis text-slate-400"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="global-services-tbody" class="divide-y divide-gray-100 text-xs">
+                                <!-- Rendered dynamically by renderGlobalServicesTable() -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -857,26 +904,26 @@
     </div> <!-- END APP WRAPPER -->
 
     <!-- Global UI Overlays -->
-    <div id="toast-container"></div>
+     <!-- Toast Container (UX Redesign: Ultra-Narrow) -->
+    <div id="toast" class="fixed bottom-28 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-semibold shadow-2xl opacity-0 translate-y-6 transition-all duration-500 z-[200] border border-white/10 flex items-center gap-1.5 whitespace-nowrap">
+        <i class="ph-bold ph-check-circle text-xs text-emerald-400"></i>
+        <span id="toast-text">Estado actualizado</span>
+    </div>
 
     <!-- JS Logic -->
     <script>
         // UI TOAST FEEDBACK (UX Redesign)
+        // UI TOAST FEEDBACK (UX Redesign: Compacto)
         function showToast(message) {
-            const container = document.getElementById('toast-container');
-            if(!container) return;
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${message}</span>`;
-            container.appendChild(toast);
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            if(!toast || !text) return;
             
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => toast.classList.add('show'));
-            });
+            text.innerText = message;
+            toast.classList.add('show');
             
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
             }, 3000);
         }
 
@@ -901,6 +948,8 @@
                 if(activeIcon) { activeIcon.classList.replace('text-slate-400', 'text-primary-900'); }
             }
             if(sectionId === 'clientes' && typeof backToClientes === 'function') backToClientes();
+            if(sectionId === 'servicios') renderGlobalServicesTable();
+        }
         }
 
         // --- GLOBAL VARIABLES & GOOGLE APPS SCRIPT URL ---
@@ -1154,11 +1203,10 @@
                     }
 
                     renderClientsList();
-                    renderOperadoresList(); // Renderizar lista tras carga
-                    const detailModal = document.getElementById('cliente-detail');
-                    if(detailModal && !detailModal.classList.contains('hidden')) {
-                         renderClientTable();
-                    }
+                    renderOperadoresList(); 
+                    renderClientTable();
+                    renderGlobalServicesTable();
+                    
                     const prospList = document.getElementById('prospectos-list');
                     if(prospList && !prospList.classList.contains('hidden')) {
                          renderProspectosList();
@@ -1607,7 +1655,7 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.estado = val;
-                renderClientTable(); // optimistic update
+                refreshAllViews(); // optimistic update
                 syncServiceToDB(row);
             }
         }
@@ -1616,7 +1664,7 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.estadoFactura = val;
-                renderClientTable(); // optimistic update
+                refreshAllViews(); // optimistic update
                 syncServiceToDB(row);
             }
         }
@@ -1625,7 +1673,8 @@
             const row = excelData.find(x => x.id === id);
             if(row) {
                 row.nroFactura = val;
-                syncServiceToDB(row); // We don't render table so we don't lose focus
+                syncServiceToDB(row); 
+                // Note: We don't refresh all views here to avoid losing input focus while typing
             }
         }
 
@@ -1662,7 +1711,7 @@
                 const row = excelData.find(x => x.id === currentUploadRowId);
                 if(row) {
                     row.isUploading = true;
-                    renderClientTable();
+                    refreshAllViews();
                     showToast("Subiendo factura a Google Drive...");
 
                     const reader = new FileReader();
@@ -1703,7 +1752,7 @@
                         }
 
                         row.isUploading = false;
-                        renderClientTable();
+                        refreshAllViews();
                     };
                     reader.readAsDataURL(file);
                 }
@@ -1733,46 +1782,30 @@
             }
         }
 
+            }
+        }
+
+        function refreshAllViews() {
+            renderClientTable();
+            renderGlobalServicesTable();
+        }
+
         function renderClientTable() {
             const tbody = document.getElementById('client-services-tbody');
+            if(!tbody) return;
             const data = excelData.filter(d => d.cliente === currentUserClient);
             
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-10"><div class="text-slate-400 mt-2">Aún no hay servicios registrados para este cliente.</div><button class="mt-4 bg-white border border-gray-200 text-primary-900 hover:bg-gray-50 px-4 py-2 rounded text-xs font-medium transition-colors" onclick="openNewServiceModal()">Crear primer servicio</button></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10"><div class="text-slate-400 mt-2">Aún no hay servicios registrados para este cliente.</div><button class="mt-4 bg-white border border-gray-200 text-primary-900 hover:bg-gray-50 px-4 py-2 rounded text-xs font-medium transition-colors" onclick="openNewServiceModal()">Crear primer servicio</button></td></tr>`;
                 return;
             }
 
             tbody.innerHTML = data.map(row => {
+                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
+                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
+                const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
+                const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
                 
-                // Color Dinámico del Icono
-                let facturaIcon = '';
-                if(row.isUploading) {
-                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo a Google Drive..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                } else if(row.driveUrl) {
-                    let fileBtn = `<button onclick="window.open('${row.driveUrl}', '_blank')" title="Abrir en Drive" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100 transition-colors"><i class="fa-regular fa-file-pdf"></i></button>`;
-
-                    facturaIcon = `
-                        <div class="flex items-center justify-center gap-1">
-                            ${fileBtn}
-                            <button onclick="replaceFactura(${row.id})" title="Reemplazar archivo" class="w-7 h-7 rounded bg-white text-slate-400 border border-gray-200 hover:text-slate-700 hover:bg-gray-50 transition-colors flex items-center justify-center">
-                                <i class="fa-solid fa-rotate text-[10px]"></i>
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    facturaIcon = `<button onclick="clickFactura(${row.id})" title="Subir archivo" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200 hover:bg-gray-50 transition-colors"><i class="fa-solid fa-paperclip"></i></button>`;
-                }
-
-                // Nro Factura Input Block
-                const pNroFact = row.nroFactura || '';
-                const factColumn = `
-                    <div class="flex items-center justify-end gap-2 pr-1">
-                        <input type="text" value="${pNroFact}" placeholder="Nº..." onchange="updateNroFactura(${row.id}, this.value)" title="Ingresar Nro Factura" class="w-14 px-1.5 py-1 text-xs text-center border border-gray-200 text-slate-700 bg-white rounded outline-none focus:border-primary-900 transition-colors">
-                        ${facturaIcon}
-                    </div>
-                `;
-
-                // Select de Estado Pago
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
@@ -1782,7 +1815,6 @@
                     </select>
                 `;
 
-                // Select de Estado Factura
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
                     <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
@@ -1791,20 +1823,26 @@
                     </select>
                 `;
 
-                const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
-                const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
-                
-                // Formatear display de fechas quitando T00:00:00 si es que traen
-                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
-                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
+                let facturaIcon = '';
+                if(row.isUploading) {
+                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+                } else if(row.driveUrl) {
+                    facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
+                } else {
+                    facturaIcon = `<button onclick="clickFactura(${row.id})" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                }
+
+                const pNroFact = row.nroFactura || '';
+                const factColumn = `
+                    <div class="flex items-center justify-center gap-1">
+                        <input type="text" value="${pNroFact}" onchange="updateNroFactura(${row.id}, this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
+                        ${facturaIcon}
+                    </div>
+                `;
 
                 return `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-3 py-2">
-                        <div class="flex flex-col gap-0.5">
-                            <span class="text-slate-800 font-medium">${row.operador}</span>
-                        </div>
-                    </td>
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
@@ -1822,8 +1860,88 @@
                     <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editService(${row.id})" title="Modificar Fila" class="text-slate-400 hover:text-primary-900 p-1 transition-colors"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="deleteService(${row.id})" title="Eliminar Servicio" class="text-slate-300 hover:text-red-600 p-1 transition-colors"><i class="fa-regular fa-trash-can"></i></button>
+                            <button onclick="editService(${row.id})" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService(${row.id})" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function renderGlobalServicesTable() {
+            const tbody = document.getElementById('global-services-tbody');
+            if(!tbody) return;
+            
+            // Ordenar por ID (orden de creación)
+            const data = [...excelData].sort((a,b) => a.id - b.id);
+            
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10"><div class="text-slate-400">No hay servicios registrados.</div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(row => {
+                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
+                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
+                const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
+                const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
+                
+                const statusValue = (row.estado || "Pendiente").toLowerCase();
+                const isOk = statusValue === 'ok' || statusValue === 'pagado';
+                const estadoSelect = `
+                    <select onchange="updateEstado(${row.id}, this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
+                    </select>
+                `;
+
+                const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
+                const estadoFacturaSelect = `
+                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
+                    </select>
+                `;
+
+                let facturaIcon = '';
+                if(row.isUploading) {
+                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+                } else if(row.driveUrl) {
+                    facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
+                } else {
+                    facturaIcon = `<button onclick="clickFactura(${row.id})" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                }
+
+                const pNroFact = row.nroFactura || '';
+                const factColumn = `
+                    <div class="flex items-center justify-center gap-1">
+                        <input type="text" value="${pNroFact}" onchange="updateNroFactura(${row.id}, this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
+                        ${facturaIcon}
+                    </div>
+                `;
+
+                return `
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
+                    <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
+                    <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600">${row.destino}</td>
+                    <td class="px-3 py-2 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-slate-600">${safeCosto}</span>
+                            ${estadoSelect}
+                        </div>
+                    </td>
+                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
+                    <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
+                    <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
+                    <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
+                    <td class="px-3 py-2 text-center">${factColumn}</td>
+                    <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
+                    <td class="px-2 py-2 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editService(${row.id})" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService(${row.id})" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -1838,7 +1956,7 @@
             
             // Optimistic: remove from local array
             excelData = excelData.filter(x => x.id !== id);
-            renderClientTable();
+            refreshAllViews();
             showToast("Servicio eliminado localmente.");
             
             // Sync: send delete to backend
@@ -1949,7 +2067,7 @@
             }
             
             closeNewServiceModal();
-            renderClientTable();
+            refreshAllViews();
 
             // PUSH TO DB
             if(rowToSync) {

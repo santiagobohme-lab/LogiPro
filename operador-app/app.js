@@ -310,12 +310,10 @@ function showToast(msg) {
     const toastText = document.getElementById('toast-text');
     if (toastText) toastText.innerText = msg;
     
-    toast.classList.replace('opacity-0', 'opacity-100');
-    toast.classList.replace('translate-y-6', 'translate-y-0');
+    toast.classList.add('show');
     
     setTimeout(() => {
-        toast.classList.replace('opacity-100', 'opacity-0');
-        toast.classList.replace('translate-y-0', 'translate-y-6');
+        toast.classList.remove('show');
     }, 3000);
 }
 
