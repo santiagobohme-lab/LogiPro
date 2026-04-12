@@ -119,14 +119,38 @@ function renderServices() {
         const serviceStatus = s["Estado Servicio"] || "Pendiente";
         const paymentStatus = s["Estado Pago"] || "Pendiente";
         
-        const isCompletado = serviceStatus.toLowerCase().includes('completado') || serviceStatus.toLowerCase().includes('finalizado');
-        const statusClass = isCompletado ? 'completado' : 
-                          serviceStatus.toLowerCase().includes('ruta') ? 'ruta' : 'pendiente';
-        
         // Custom Label from user request: "Pago pendiente/Pagado"
         const isPaid = paymentStatus.toLowerCase().includes('pagado') || paymentStatus.toLowerCase().includes('ok');
         const pillLabel = isPaid ? "PAGADO" : "PAGO PENDIENTE";
+        const statusClass = isPaid ? 'pagado' : 'pendiente'; // Green if Pagado, Yellow if Pendiente
         
+        if (currentTab === 'historial') {
+            return `
+                <div class="service-card" onclick="openDetail('${s.ID}')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-black text-slate-800">${s.Cliente}</h3>
+                            <div class="flex items-center gap-2 text-slate-400 text-xs mt-1">
+                                <i class="ph-bold ph-calendar-blank"></i>
+                                <span>${s["Fecha de Servicio"]}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-400 text-xs mt-1">
+                                <i class="ph-bold ph-map-pin"></i>
+                                <span>${s.Destino}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+                            <div class="text-right">
+                                <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
+                                <span class="ganancia-large">${formatCLP(s.Costo)}</span>
+                            </div>
+                            <span class="status-pill ${statusClass}">${pillLabel}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         return `
             <div class="service-card" onclick="openDetail('${s.ID}')">
                 <div class="flex justify-between items-start mb-3">
@@ -150,7 +174,7 @@ function renderServices() {
                 </div>
                 <div class="flex justify-between items-center pt-3 border-t border-slate-50">
                     <div class="cost-tag">
-                        <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Costo Servicio</span>
+                        <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
                         ${formatCLP(s.Costo)}
                     </div>
                     <i class="ph-bold ph-caret-right text-slate-300"></i>

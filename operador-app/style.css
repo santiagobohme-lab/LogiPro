@@ -51,8 +51,15 @@ body {
 }
 
 .status-pill.pendiente { background: #fef3c7; color: #92400e; }
-.status-pill.ruta { background: #dcfce7; color: #166534; }
+.status-pill.pagado { background: #dcfce7; color: #166534; }
 .status-pill.completado { background: #dbeafe; color: #1e40af; }
+
+/* Ganancia Styles */
+.ganancia-large {
+    font-size: 18px;
+    font-weight: 900;
+    color: #1e3a8a;
+}
 
 /* Cost Tag */
 .cost-tag {
