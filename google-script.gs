@@ -4,6 +4,7 @@
 
 const FOLDER_ID = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0'; 
 const FOLDER_FOTOS_PERFIL = '1ExIVEFippvrARyDUw_lfPHbhC_LSPTK8'; 
+const FOLDER_COMPROBANTES_PAGO = '14qmuUkXL1C6wF600wIyKfurXPMLRnoIX';
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 
 const SCRIPT_DB_HEADERS = [
@@ -250,14 +251,7 @@ function doPost(e) {
     }
     
     else if (action === "uploadPaymentReceipt") {
-      const folderName = "Comprobantes pagos operadores";
-      let folder;
-      const folders = DriveApp.getFoldersByName(folderName);
-      if (folders.hasNext()) {
-        folder = folders.next();
-      } else {
-        folder = DriveApp.createFolder(folderName);
-      }
+      const folder = DriveApp.getFolderById(FOLDER_COMPROBANTES_PAGO);
       
       const base64Data = payload.base64.split(',')[1] || payload.base64;
       const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
