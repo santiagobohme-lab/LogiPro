@@ -1871,8 +1871,11 @@
                 return;
             }
 
-            // Selector robusto de bot\u00f3n
-            const btn = event.submitter || event.target.querySelector('button[type="submit"]');
+            // Selector robusto de botón (Incluso si está fuera del formulario por el atributo 'form')
+            let btn = event.submitter;
+            if(!btn) {
+                btn = document.querySelector('button[form="billing-review-form"]');
+            }
             if(!btn) return;
 
             const originalHtml = btn.innerHTML;
