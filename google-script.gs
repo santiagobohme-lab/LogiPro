@@ -62,15 +62,15 @@ function initSheet(ss, sheetName, headers) {
 function getSheetData(sheet, headers) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  
+  // OPTIMIZACIÓN TURBO: Usar getDisplayValues() para obtener strings ya formateados desde Sheets
+  // Esto elimina la necesidad de llamar a Utilities.formatDate en cada celda, que es muy lento.
+  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getDisplayValues();
+  
   return values.map(row => {
     let obj = {};
     headers.forEach((h, i) => {
-      let val = row[i];
-      if (val instanceof Date) {
-        val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
-      }
-      obj[h] = val;
+      obj[h] = row[i];
     });
     return obj;
   });
@@ -155,7 +155,7 @@ function setupHeaders() {
   SpreadsheetApp.getUi().alert("✅ Proceso completado: Los encabezados han sido actualizados en todas las pestañas.");
 }
 
-function getFullSystemData(ss) {
+function getFullSystemData(ss, colaboradoresPreLoaded) {
   const data = { status: "success" };
   const sheetsConfig = [
     { name: "Servicios", headers: SCRIPT_DB_HEADERS, key: "servicios" },
@@ -166,6 +166,12 @@ function getFullSystemData(ss) {
   ];
 
   sheetsConfig.forEach(cfg => {
+    // Si ya cargamos colaboradores en el login, no lo volvemos a leer
+    if (cfg.name === "Colaboradores" && colaboradoresPreLoaded) {
+      data[cfg.key] = colaboradoresPreLoaded;
+      return;
+    }
+    
     let sheet = ss.getSheetByName(cfg.name);
     if (!sheet) sheet = initSheet(ss, cfg.name, cfg.headers);
     data[cfg.key] = getSheetData(sheet, cfg.headers);
@@ -202,8 +208,8 @@ function doPost(e) {
       if (user) {
         if (user.Estado !== "Activo") throw new Error("Usuario inactivo");
         
-        // OPTIMIZACIÓN: Cargar todos los datos del sistema de una vez
-        const systemData = getFullSystemData(ss);
+        // OPTIMIZACIÓN TURBO: Pasar 'users' ya cargados para evitar doble lectura
+        const systemData = getFullSystemData(ss, users);
         return ContentService.createTextOutput(JSON.stringify({ 
           status: "success", 
           user: user,
