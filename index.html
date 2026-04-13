@@ -1825,7 +1825,7 @@
                 document.getElementById('br-srv-cotizacion').value = srv.cotizacion === "-" ? "" : (srv.cotizacion || "");
 
                 // 3. Cargar Glosa
-                let glosa = srv["DESCRIPCI&Oacute;N FACTURACI&Oacute;N"] || "";
+                let glosa = srv["DESCRIPCIÓN FACTURACIÓN"] || "";
                 if(!glosa || glosa === "-" || glosa === "") {
                     glosa = `SERVICIO DE TRANSPORTE - ${(srv.tipoServicio || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
                 }
@@ -1858,15 +1858,21 @@
 
         async function handleBillingReviewSubmit(event) {
             event.preventDefault();
-            if(!currentDetailServiceId) return;
+            if(!currentDetailServiceId) {
+                showToast("Error: No hay ID de servicio activo", "error");
+                return;
+            }
 
-            const btn = event.submitter;
+            // Selector robusto de bot\u00f3n
+            const btn = event.submitter || event.target.querySelector('button[type="submit"]');
+            if(!btn) return;
+
             const originalHtml = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
 
             try {
-                // Capturar todos los campos editables del servicio con los nombres de columna EXACTOS
+                // Capturar campos con nombres EXACTOS (Tildes literales)
                 const updatedData = {
                     "ID": currentDetailServiceId,
                     "Fecha de Servicio": document.getElementById('br-srv-fecha').value,
@@ -1878,25 +1884,30 @@
                     "DESCRIPCIÓN FACTURACIÓN": document.getElementById('br-glosa').value
                 };
 
+                // Validaci\u00f3n b\u00e1sica antes de enviar
+                if(!updatedData.Monto) { throw new Error("El monto es obligatorio"); }
+
                 await callGoogleScript("upsertService", { data: updatedData });
 
-                // Feedback Visual de Éxito en el Botón
-                btn.classList.replace('bg-primary-900', 'bg-emerald-500');
-                btn.innerHTML = '<span>¡Revisión Guardada!</span> <i class="fa-solid fa-check"></i>';
+                // Feedback Visual de \u00c9xito (CAMBIO A VERDE)
+                btn.classList.remove('bg-primary-900');
+                btn.classList.add('bg-emerald-500');
+                btn.innerHTML = '<span>\u00a1Revisi\u00f3n Guardada!</span> <i class="fa-solid fa-check ml-2"></i>';
                 
-                showToast("Cambios guardados correctamente", "success");
+                showToast("Cambios sincronizados correctamente", "success");
                 
-                // Pausa visual antes de cerrar y regresar
+                // Pausa antes de cerrar y refrescar
                 setTimeout(async () => {
                     await initDataFromCloud();
                     closeBillingReview();
-                    // Regresar a la lista principal (Cerrar el detalle)
                     switchSection('facturacion');
-                }, 800);
+                }, 1000);
 
             } catch (error) {
-                console.error(error);
-                showToast("Error al guardar: " + error.message, "error");
+                console.error("Error al guardar revisi\u00f3n:", error);
+                showToast("No se pudo guardar: " + error.message, "error");
+                
+                // Restaurar bot\u00f3n
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 btn.classList.remove('bg-emerald-500');
