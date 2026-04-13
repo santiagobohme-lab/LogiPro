@@ -1764,39 +1764,55 @@
         }
 
         function openBillingReview(id) {
-            const srv = excelData.find(s => s.id == id);
-            if(!srv) return;
-            
-            // B\u00fasqueda robusta de cliente (sin importar may\u00fasculas/min\u00fasculas)
-            const cli = clientsData.find(c => c.Nombre.toString().trim().toUpperCase() === srv.cliente.toString().trim().toUpperCase()) || {};
+            try {
+                const srv = excelData.find(s => s.id == id);
+                if(!srv) {
+                    console.error("Servicio no encontrado:", id);
+                    return;
+                }
+                
+                // B\u00fasqueda robusta de cliente (con protecci\u00f3n contra nulos/undefined)
+                const srvClienteName = (srv.cliente || "").toString().trim().toUpperCase();
+                const cli = clientsData.find(c => {
+                    const cName = (c.Nombre || "").toString().trim().toUpperCase();
+                    return cName === srvClienteName;
+                }) || {};
 
-            // 1. Cargar Datos Fiscales (READ ONLY)
-            document.getElementById('br-cli-nombre').value = srv.cliente;
-            document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "-";
-            document.getElementById('br-cli-giro').value = cli["Giro"] || "-";
-            document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "-";
-            document.getElementById('br-cli-comuna-ciudad').value = `${cli["Comuna"] || "-"} / ${cli["Ciudad"] || "-"}`;
-            document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "-";
+                // 1. Cargar Datos Fiscales (READ ONLY)
+                document.getElementById('br-cli-nombre').value = srv.cliente || "-";
+                document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "-";
+                document.getElementById('br-cli-giro').value = cli["Giro"] || "-";
+                document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "-";
+                document.getElementById('br-cli-comuna-ciudad').value = `${cli["Comuna"] || "-"} / ${cli["Ciudad"] || "-"}`;
+                document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "-";
 
-            // 2. Cargar Detalles del Servicio (EDITABLE)
-            document.getElementById('br-srv-fecha').value = srv["Fecha de Servicio"] || "";
-            document.getElementById('br-srv-tipo').value = srv["Tipo Servicio"] || "";
-            document.getElementById('br-srv-monto').value = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
-            document.getElementById('br-srv-fecha-pago').value = srv["Fecha de Pago"] || "";
-            document.getElementById('br-srv-oc').value = srv["OC / HES"] === "-" ? "" : srv["OC / HES"];
-            document.getElementById('br-srv-cotizacion').value = srv["Cotizaci\u00f3n"] === "-" ? "" : srv["Cotizaci\u00f3n"];
+                // 2. Cargar Detalles del Servicio (EDITABLE)
+                document.getElementById('br-srv-fecha').value = srv["Fecha de Servicio"] || "";
+                document.getElementById('br-srv-tipo').value = srv["Tipo Servicio"] || "";
+                document.getElementById('br-srv-monto').value = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
+                document.getElementById('br-srv-fecha-pago').value = srv["Fecha de Pago"] || "";
+                document.getElementById('br-srv-oc').value = srv["OC / HES"] === "-" ? "" : (srv["OC / HES"] || "");
+                document.getElementById('br-srv-cotizacion').value = srv["Cotizaci\u00f3n"] === "-" ? "" : (srv["Cotizaci\u00f3n"] || "");
 
-            // 3. Cargar Glosa
-            let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
-            if(!glosa || glosa === "-" || glosa === "") {
-                glosa = `SERVICIO DE TRANSPORTE - ${(srv["Tipo Servicio"] || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
+                // 3. Cargar Glosa
+                let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
+                if(!glosa || glosa === "-" || glosa === "") {
+                    glosa = `SERVICIO DE TRANSPORTE - ${(srv["Tipo Servicio"] || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
+                }
+                document.getElementById('br-glosa').value = glosa;
+
+                // 4. Calcular Totales Iniciales
+                updateBillingReviewTotals();
+
+                document.getElementById('billing-review-modal').classList.remove('hidden');
+            } catch (err) {
+                console.error("Error en openBillingReview:", err);
+                showToast("Error al abrir revisi\u00f3n: " + err.message, "error");
             }
-            document.getElementById('br-glosa').value = glosa;
+        }
 
-            // 4. Calcular Totales Iniciales
-            updateBillingReviewTotals();
-
-            document.getElementById('billing-review-modal').classList.remove('hidden');
+        function closeBillingReview() {
+            document.getElementById('billing-review-modal').classList.add('hidden');
         }
 
         function updateBillingReviewTotals() {
