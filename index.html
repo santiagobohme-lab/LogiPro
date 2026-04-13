@@ -1044,6 +1044,7 @@
         let currentOperatorForServices = null;
         let currentEditClientNombre = null;
         let isGlobalLoading = false;
+        let currentFacturasTab = 'pendientes';
 
         // DATA MAPPINGS FOR SPREADSHEET ROW
         const mapFromSheetClient = (sheetObj) => ({
@@ -2081,35 +2082,109 @@
 
         // --- SISTEMA DE FACTURACIÓN ---
         
+        function switchFacturasTab(tabName) {
+            currentFacturasTab = tabName;
+            const tabs = ['pendientes', 'facturadas', 'todas'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-fact-${t}`);
+                if(!btn) return;
+                if(t === tabName) {
+                    btn.classList.add('bg-white', 'text-primary-900', 'shadow-sm');
+                    btn.classList.remove('text-slate-500', 'hover:text-slate-700');
+                } else {
+                    btn.classList.remove('bg-white', 'text-primary-900', 'shadow-sm');
+                    btn.classList.add('text-slate-500', 'hover:text-slate-700');
+                }
+            });
+            renderFacturasTable();
+        }
+
         function renderFacturasTable() {
             const tbody = document.getElementById('facturas-pending-body');
             const search = document.getElementById('search-facturas') ? document.getElementById('search-facturas').value.toLowerCase() : '';
             if(!tbody) return;
 
-            const pending = excelData.filter(s => 
-                s.estadoFactura === "Pendiente" && 
-                (s.cliente.toLowerCase().includes(search) || (s.ocHes || '').toLowerCase().includes(search))
+            // 1. Filtrado base por pestaa
+            let filtered = excelData;
+            if(currentFacturasTab === 'pendientes') {
+                filtered = excelData.filter(s => s.estadoFactura === "Pendiente");
+            } else if(currentFacturasTab === 'facturadas') {
+                filtered = excelData.filter(s => s.estadoFactura === "OK");
+            }
+            
+            // 2. Bsqueda sobre el filtro activo
+            const dataToRender = filtered.filter(s => 
+                (s.cliente || '').toLowerCase().includes(search) || 
+                (s.ocHes || '').toLowerCase().includes(search) ||
+                (s.nroFactura || '').toString().includes(search)
             );
 
-            // Refrescar Estadísticas
+            // 3. Actualizar Contadores de Pestaas (Badges)
+            const countPend = excelData.filter(s => s.estadoFactura === "Pendiente").length;
+            const countOK = excelData.filter(s => s.estadoFactura === "OK").length;
+            const countAll = excelData.length;
+
+            if(document.getElementById('fact-count-pend')) document.getElementById('fact-count-pend').innerText = countPend;
+            if(document.getElementById('fact-count-ok')) document.getElementById('fact-count-ok').innerText = countOK;
+            if(document.getElementById('fact-count-all')) document.getElementById('fact-count-all').innerText = countAll;
+
+            // 4. Refrescar Estadsticas Globales (Cards superiores)
             const statPend = document.getElementById('stat-facturas-pendientes');
-            const statCount = document.getElementById('facturas-count');
             const statMonto = document.getElementById('stat-facturas-monto');
             const statMes = document.getElementById('stat-facturas-mes');
 
-            if(statPend) statPend.innerText = pending.length;
-            if(statCount) statCount.innerText = pending.length;
+            if(statPend) statPend.innerText = countPend;
             
-            const totalPendingMonto = pending.reduce((acc, s) => acc + (parseFloat(s.monto) || 0), 0);
+            const totalPendingMonto = excelData.filter(s => s.estadoFactura === "Pendiente").reduce((acc, s) => acc + (parseFloat(s.monto) || 0), 0);
             if(statMonto) statMonto.innerText = `$ ${totalPendingMonto.toLocaleString('es-CL')}`;
 
             const facturadoMes = excelData.filter(s => s.estadoFactura === "OK").reduce((acc, s) => acc + (parseFloat(s.monto) || 0), 0);
             if(statMes) statMes.innerText = `$ ${facturadoMes.toLocaleString('es-CL')}`;
 
-            if (pending.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-20 text-center"><div class="flex flex-col items-center"><i class="fa-solid fa-circle-check text-4xl text-emerald-100 mb-4"></i><p class="text-slate-400">¡Todo al día! No hay facturas pendientes.</p></div></td></tr>`;
+            if (dataToRender.length === 0) {
+                const emptyMsg = search ? 'No se encontraron resultados para tu bsqueda.' : 
+                               (currentFacturasTab === 'pendientes' ? 'Todo al da! No hay facturas pendientes.' : 
+                               (currentFacturasTab === 'facturadas' ? 'An no hay servicios facturados.' : 'No hay historial de servicios.'));
+                
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-20 text-center"><div class="flex flex-col items-center"><i class="fa-solid fa-circle-check text-4xl text-emerald-100 mb-4"></i><p class="text-slate-400">${emptyMsg}</p></div></td></tr>`;
                 return;
             }
+
+            tbody.innerHTML = dataToRender.map(s => `
+                <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <td class="px-6 py-4 text-xs font-mono font-bold text-slate-400">#${s.id}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-700 text-xs">${s.cliente}</div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">${s.ocHes || 'Sin OC/HES'}</div>
+                    </td>
+                    <td class="px-6 py-4 text-xs text-slate-500">${s.fechaServicio}</td>
+                    <td class="px-6 py-4">
+                        <div class="text-[11px] text-slate-600 font-medium">${s.tipoServicio}</div>
+                        <div class="text-[9px] text-primary-500 font-bold uppercase tracking-tight">${s.destino}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                         <div class="font-black text-slate-700 text-xs">$ ${parseFloat(s.monto || 0).toLocaleString('es-CL')}</div>
+                         ${s.estadoFactura === 'OK' ? `<div class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mt-0.5"><i class="fa-solid fa-check-double mr-1 text-[8px]"></i>Factura #${s.nroFactura}</div>` : '}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <button onclick="generateSimularFactura('${s.id}')" id="btn-sim-${s.id}" title="Simulacin PDF" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 rounded-lg transition-all">
+                                 <i class="fa-solid fa-file-pdf"></i>
+                            </button>
+                            ${s.estadoFactura === 'Pendiente' ? `
+                                <button onclick="openVincularModal('${s.id}')" class="bg-primary-900 text-white hover:bg-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                     Finalizar
+                                </button>
+                            ` : `
+                                <div class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    FACTURADO
+                                </div>
+                            `}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
             tbody.innerHTML = pending.map(s => `
                 <tr class="hover:bg-slate-50/50 transition-colors group">
