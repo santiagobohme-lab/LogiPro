@@ -370,19 +370,34 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de la Empresa <span class="text-red-500">*</span></label>
-                                <input type="text" id="fm-cli-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes ACME">
+                                <div class="relative group">
+                                    <input type="text" id="fm-cli-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all pr-10" placeholder="Ej. Transportes ACME">
+                                    <button type="button" id="btn-unlock-nombre" onclick="toggleFieldLock('fm-cli-nombre')" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all" title="Desbloquear para editar">
+                                        <i class="fa-solid fa-lock text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">RUT Cliente</label>
-                                <input type="text" id="fm-cli-rut" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="12.345.678-9">
+                                <div class="relative group">
+                                    <input type="text" id="fm-cli-rut" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all pr-10" placeholder="12.345.678-9">
+                                    <button type="button" id="btn-unlock-rut" onclick="toggleFieldLock('fm-cli-rut')" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all" title="Desbloquear para editar">
+                                        <i class="fa-solid fa-lock text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Giro</label>
-                                <input type="text" id="fm-cli-giro" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Transporte de carga">
+                                <div class="relative group">
+                                    <input type="text" id="fm-cli-giro" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all pr-10" placeholder="Transporte de carga">
+                                    <button type="button" id="btn-unlock-giro" onclick="toggleFieldLock('fm-cli-giro')" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all" title="Desbloquear para editar">
+                                        <i class="fa-solid fa-lock text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono</label>
-                                <input type="text" id="fm-cli-telefono" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="+56 9...">
+                                <input type="text" id="fm-cli-telefono" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all" placeholder="+56 9...">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
@@ -1548,8 +1563,16 @@
             currentEditClientNombre = null;
             document.getElementById('client-modal-title').innerText = 'Nuevo Cliente';
             document.getElementById('client-submit-btn').innerText = 'Registrar Cliente';
-            document.getElementById('fm-cli-nombre').readOnly = false;
-            document.getElementById('fm-cli-nombre').classList.remove('bg-gray-100');
+            
+            // Reset fields to editable for new client
+            ['fm-cli-nombre', 'fm-cli-rut', 'fm-cli-giro'].forEach(id => {
+                const input = document.getElementById(id);
+                input.readOnly = false;
+                input.classList.remove('bg-gray-50', 'text-slate-500');
+                const btn = document.getElementById('btn-unlock-' + id.split('-').pop());
+                if(btn) btn.classList.add('hidden');
+            });
+
             document.getElementById('client-modal').classList.remove('hidden'); 
         }
 
@@ -1564,20 +1587,54 @@
             if(!c) return;
             currentEditClientNombre = nombre;
             document.getElementById('client-modal-title').innerText = 'Editar Datos de Cliente';
+            
+            // Lock critical fields by default in edit mode
             document.getElementById('fm-cli-nombre').value = c.nombre;
-            document.getElementById('fm-cli-nombre').readOnly = false;
-            document.getElementById('fm-cli-nombre').classList.remove('bg-gray-100');
-            document.getElementById('fm-cli-telefono').value = c.telefono || "";
-            document.getElementById('fm-cli-email').value = c.email || "";
-            // New fields
             document.getElementById('fm-cli-rut').value = c.rut || "";
             document.getElementById('fm-cli-giro').value = c.giro || "";
+
+            ['fm-cli-nombre', 'fm-cli-rut', 'fm-cli-giro'].forEach(id => {
+                const input = document.getElementById(id);
+                input.readOnly = true;
+                input.classList.add('bg-gray-50', 'text-slate-500');
+                const suffix = id.split('-').pop();
+                const btn = document.getElementById('btn-unlock-' + suffix);
+                if(btn) {
+                    btn.classList.remove('hidden');
+                    btn.innerHTML = '<i class="fa-solid fa-lock text-xs"></i>';
+                    btn.title = "Haga clic para desbloquear este campo";
+                }
+            });
+
+            document.getElementById('fm-cli-telefono').value = c.telefono || "";
+            document.getElementById('fm-cli-email').value = c.email || "";
             document.getElementById('fm-cli-direccion').value = c.direccion || "";
             document.getElementById('fm-cli-comuna').value = c.comuna || "";
             document.getElementById('fm-cli-ciudad').value = c.ciudad || "";
 
             document.getElementById('client-submit-btn').innerText = 'Actualizar Datos';
             document.getElementById('client-modal').classList.remove('hidden');
+        }
+
+        // UI Security: Toggle field lock
+        function toggleFieldLock(id) {
+            const input = document.getElementById(id);
+            const suffix = id.split('-').pop();
+            const btn = document.getElementById('btn-unlock-' + suffix);
+            
+            if(input.readOnly) {
+                input.readOnly = false;
+                input.classList.remove('bg-gray-50', 'text-slate-500');
+                input.focus();
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square text-xs"></i>';
+                btn.title = "Campo desbloqueado";
+                showToast("Campo desbloqueado para edición.");
+            } else {
+                input.readOnly = true;
+                input.classList.add('bg-gray-50', 'text-slate-500');
+                btn.innerHTML = '<i class="fa-solid fa-lock text-xs"></i>';
+                btn.title = "Haga clic para desbloquear";
+            }
         }
 
         // [NEW] Logic to show Client Full Info
