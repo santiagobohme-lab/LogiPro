@@ -608,7 +608,7 @@
                         </div>
                     </div>
 
-                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar pb-40">
+                    <form id="billing-review-form" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar pb-40">
                         
                         <!-- SECCIÓN A: DETALLES DEL CLIENTE (FISCAL / NO EDITABLE) -->
                         <div class="space-y-4">
@@ -712,7 +712,7 @@
                             <!-- Acciones más discretas -->
                             <div class="flex items-center gap-2 mb-2">
                                 <button type="button" onclick="closeBillingReview()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600 transition-all">Descartar</button>
-                                <button type="submit" form="billing-review-form" class="bg-primary-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-800 transition-all shadow-md flex items-center gap-2">
+                                <button type="button" onclick="handleBillingReviewSubmit(event)" class="bg-primary-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-800 transition-all shadow-md flex items-center gap-2">
                                     <span>Guardar Revisión</span>
                                     <i class="fa-solid fa-check text-[9px]"></i>
                                 </button>
@@ -1907,12 +1907,12 @@
                 
                 showToast("Cambios sincronizados correctamente", "success");
                 
-                // Pausa antes de cerrar y refrescar
+                // Pausa m\u00e1s corta antes de cerrar y refrescar
                 setTimeout(async () => {
                     await initDataFromCloud();
                     closeBillingReview();
                     switchSection('facturacion');
-                }, 1000);
+                }, 600);
 
             } catch (error) {
                 console.error("Error al guardar revisi\u00f3n:", error);
