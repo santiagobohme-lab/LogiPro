@@ -132,7 +132,14 @@
                     </div>
                 </div>
                 
-                <button id="login-btn" type="submit" class="w-full bg-primary-900 hover:bg-primary-800 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-primary-900/20 transition-all mt-6 flex items-center justify-center gap-2">
+                <div class="flex items-center justify-between px-1">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="login-remember" class="w-4 h-4 rounded border-gray-300 text-primary-900 focus:ring-primary-900 cursor-pointer">
+                        <span class="text-[11px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors">Mantener sesión iniciada</span>
+                    </label>
+                </div>
+
+                <button id="login-btn" type="submit" class="w-full bg-primary-900 hover:bg-primary-800 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-primary-900/20 transition-all mt-4 flex items-center justify-center gap-2">
                     <span>Ingresar</span>
                 </button>
             </form>
@@ -1024,10 +1031,11 @@
 
         // AUTH & SESSION LOGIC
         function checkSession() {
-            const saved = sessionStorage.getItem('logi_session');
+            // Primero revisar localStorage (persistente), luego sessionStorage (temporal)
+            const saved = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
             if(saved) {
                 const creds = JSON.parse(saved);
-                performLogin(creds.nombre, creds.pass);
+                performLogin(creds.nombre, creds.pass, !!localStorage.getItem('logi_session'));
             }
         }
 
@@ -1035,18 +1043,19 @@
             e.preventDefault();
             const nombre = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value.trim();
+            const remember = document.getElementById('login-remember').checked;
             const btn = document.getElementById('login-btn');
             const originalContent = btn.innerHTML;
             btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Validando...`;
             btn.disabled = true;
 
-            await performLogin(nombre, pass);
+            await performLogin(nombre, pass, remember);
 
             btn.innerHTML = originalContent;
             btn.disabled = false;
         }
 
-        async function performLogin(nombre, pass) {
+        async function performLogin(nombre, pass, remember = false) {
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -1063,9 +1072,14 @@
                 const result = await res.json();
                 
                 if (result.status === "success") {
-                    // Adaptar a result.user proveído por el nuevo backend
                     activeSession = { nombre: result.user.Nombre, rol: result.user.Rol };
-                    sessionStorage.setItem('logi_session', JSON.stringify({ nombre, pass }));
+                    
+                    const sessionData = JSON.stringify({ nombre, pass });
+                    if (remember) {
+                        localStorage.setItem('logi_session', sessionData);
+                    } else {
+                        sessionStorage.setItem('logi_session', sessionData);
+                    }
                     
                     // Populate UI context
                     document.getElementById('sidebar-user-name').innerText = activeSession.nombre;
@@ -1084,11 +1098,10 @@
                     
                     showToast(`¡Bienvenido/a de nuevo, ${activeSession.nombre}!`);
                     
-                    // Hydrate all data by executing GET because the new backend doesn't send it on POST
                     await initDataFromCloud();
                 } else {
                     showToast(result.message || "Credenciales inválidas.");
-                    sessionStorage.removeItem('logi_session');
+                    localStorage.removeItem('logi_session');
                 }
             } catch(e) {
                 console.error("Login Error:", e);
@@ -1097,12 +1110,9 @@
         }
 
         function handleLogout() {
+            localStorage.removeItem('logi_session');
             sessionStorage.removeItem('logi_session');
-            activeSession = null;
-            document.getElementById('login-wrapper').classList.remove('hidden');
-            document.getElementById('app-wrapper').classList.replace('flex', 'hidden');
-            document.getElementById('login-pass').value = '';
-            showToast("Sesión cerrada correctamente.");
+            window.location.reload();
         }
 
         async function initDataFromCloud() {
