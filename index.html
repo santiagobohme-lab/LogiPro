@@ -608,9 +608,9 @@
                         </div>
                     </div>
 
-                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar">
+                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar pb-40">
                         
-                        <!-- SECCI\u00d3N A: DETALLES DEL CLIENTE (FISCAL / NO EDITABLE) -->
+                        <!-- SECCIÓN A: DETALLES DEL CLIENTE (FISCAL / NO EDITABLE) -->
                         <div class="space-y-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <div class="w-1.5 h-6 bg-primary-900 rounded-full"></div>
@@ -688,32 +688,40 @@
                             <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
                         </div>
 
-                        <!-- SECCI\u00d3N 3: Totales (Recalculo en Vivo) -->
-                        <div class="flex justify-end sticky bottom-0 bg-white/90 backdrop-blur-md -mx-8 px-8 py-6 border-t border-slate-100 z-10">
-                            <div class="bg-slate-900 p-6 rounded-[2rem] min-w-[280px] shadow-2xl shadow-slate-900/40 transform transition-all">
-                                <div class="flex justify-between items-center gap-8 mb-2 opacity-60">
-                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase">MONTO NETO</span>
-                                    <span id="br-total-neto" class="text-sm font-bold text-white tracking-tight">$ 0</span>
+                        </div>
+                    </form>
+
+                    <!-- PIE DE PÁGINA ANCLADO (TOTALES Y ACCIONES) -->
+                    <div class="p-8 bg-white border-t border-slate-100 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] z-20">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <!-- Totales Estilo Sobrio -->
+                            <div class="flex items-center gap-8 bg-slate-50 border border-slate-100 p-6 rounded-[2rem] flex-1">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">MONTO NETO</span>
+                                    <span id="br-total-neto" class="text-lg font-bold text-slate-800">$ 0</span>
                                 </div>
-                                <div class="flex justify-between items-center gap-8 mb-4 opacity-60">
-                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase">I.V.A. (19%)</span>
-                                    <span id="br-total-iva" class="text-sm font-bold text-white tracking-tight">$ 0</span>
+                                <div class="w-px h-10 bg-slate-200"></div>
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">I.V.A. (19%)</span>
+                                    <span id="br-total-iva" class="text-lg font-bold text-slate-800">$ 0</span>
                                 </div>
-                                <div class="pt-4 border-t border-white/20 flex justify-between items-center gap-8">
-                                    <span class="text-[10px] font-black text-white tracking-widest uppercase">TOTAL FACTURA</span>
-                                    <span id="br-total-final" class="text-2xl font-black text-primary-400 tracking-tight">$ 0</span>
+                                <div class="flex-1"></div>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[10px] font-black text-primary-900 tracking-widest uppercase mb-1">TOTAL FACTURA</span>
+                                    <span id="br-total-final" class="text-3xl font-black text-primary-900 tracking-tight">$ 0</span>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Acciones -->
-                        <div class="flex justify-end gap-3 pt-4">
-                            <button type="button" onclick="closeBillingReview()" class="px-8 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">Descartar</button>
-                            <button type="submit" class="bg-primary-900 text-white px-12 py-4 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-3 group">
-                                <span>Guardar Revisi&oacute;n</span>
-                                <i class="fa-solid fa-check text-[10px] bg-white/20 p-1.5 rounded-lg group-hover:bg-white/40 transition-all"></i>
-                            </button>
+                            <!-- Acciones -->
+                            <div class="flex gap-3">
+                                <button type="button" onclick="closeBillingReview()" class="px-6 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">Descartar</button>
+                                <button type="submit" form="billing-review-form" class="bg-primary-900 text-white px-10 py-4 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-3 group">
+                                    <span>Guardar Revisi&oacute;n</span>
+                                    <i class="fa-solid fa-check text-[10px] bg-white/20 p-1.5 rounded-lg group-hover:bg-white/40 transition-all"></i>
+                                </button>
+                            </div>
                         </div>
+                    </div>
                     </form>
                 </div>
             </div>
