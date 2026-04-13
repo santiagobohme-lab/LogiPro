@@ -99,8 +99,8 @@
             text-transform: uppercase;
         }
 
-        /* Ocultar flecha de autocompletado en navegadores webkit */
-        input::-webkit-calendar-picker-indicator {
+        /* Ocultar flecha de autocompletado excepto en campos de fecha */
+        input:not([type="date"]):not([type="datetime-local"])::-webkit-calendar-picker-indicator {
             display: none !important;
         }
     </style>
