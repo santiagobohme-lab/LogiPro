@@ -1866,7 +1866,7 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
 
             try {
-                // Capturar todos los campos editables del servicio
+                // Capturar todos los campos editables del servicio con los nombres de columna EXACTOS
                 const updatedData = {
                     "ID": currentDetailServiceId,
                     "Fecha de Servicio": document.getElementById('br-srv-fecha').value,
@@ -1874,23 +1874,33 @@
                     "Monto": document.getElementById('br-srv-monto').value,
                     "Fecha de Pago": document.getElementById('br-srv-fecha-pago').value,
                     "OC / HES": document.getElementById('br-srv-oc').value || "-",
-                    "Cotizaci\u00f3n": document.getElementById('br-srv-cotizacion').value || "-",
-                    "DESCRIPCI\u00d3N FACTURACI\u00d3N": document.getElementById('br-glosa').value
+                    "Cotización": document.getElementById('br-srv-cotizacion').value || "-",
+                    "DESCRIPCIÓN FACTURACIÓN": document.getElementById('br-glosa').value
                 };
 
                 await callGoogleScript("upsertService", { data: updatedData });
 
-                showToast("Revisi\u00f3n guardada y datos de servicio actualizados", "success");
-                await initDataFromCloud();
-                closeBillingReview();
-                openFacturaDetalle(currentDetailServiceId); 
+                // Feedback Visual de Éxito en el Botón
+                btn.classList.replace('bg-primary-900', 'bg-emerald-500');
+                btn.innerHTML = '<span>¡Revisión Guardada!</span> <i class="fa-solid fa-check"></i>';
+                
+                showToast("Cambios guardados correctamente", "success");
+                
+                // Pausa visual antes de cerrar y regresar
+                setTimeout(async () => {
+                    await initDataFromCloud();
+                    closeBillingReview();
+                    // Regresar a la lista principal (Cerrar el detalle)
+                    switchSection('facturacion');
+                }, 800);
 
             } catch (error) {
                 console.error(error);
                 showToast("Error al guardar: " + error.message, "error");
-            } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
+                btn.classList.remove('bg-emerald-500');
+                btn.classList.add('bg-primary-900');
             }
         }
 
