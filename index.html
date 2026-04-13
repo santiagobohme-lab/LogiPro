@@ -113,7 +113,8 @@
             <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-primary-900 to-primary-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
                 <i class="fa-solid fa-earth-americas text-xl"></i>
             </div>
-            <h2 class="text-2xl font-black text-center text-slate-800 mb-1 tracking-tight">Logi Pro</h2>
+            <h2 class="text-2xl font-black text-center text-slate-800 mb-0 tracking-tight">Logi Pro</h2>
+            <p class="text-[9px] font-black text-primary-900/40 text-center uppercase tracking-[0.2em] mb-1">v1.1.1</p>
             <p class="text-center text-xs text-slate-500 mb-8 font-medium">Intranet & Logística</p>
             
             <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
@@ -151,10 +152,13 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 md:flex z-20">
         <div class="h-16 flex items-center px-6 border-b border-gray-100 bg-white">
-            <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3">
+            <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
                 <i class="fa-solid fa-earth-americas text-sm"></i>
             </div>
-            <span class="text-xl font-bold text-primary-900 tracking-wide">Logi Pro</span>
+            <div class="flex flex-col">
+                <span class="text-xl font-bold text-primary-900 tracking-tight leading-none">Logi Pro</span>
+                <span class="text-[8px] font-black text-primary-900/30 uppercase tracking-widest mt-0.5 ml-0.5">v1.1.1</span>
+            </div>
         </div>
         
         <div class="flex-1 overflow-y-auto py-6">
