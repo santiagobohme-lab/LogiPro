@@ -586,6 +586,97 @@
                 </div>
             </div>
 
+            <!-- MODAL: REVISI\u00d3N DE DATOS DE FACTURACI\u00d3N (STYLE FACTURA) -->
+            <div id="billing-review-modal" class="hidden fixed inset-0 bg-slate-900/40 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-[2.5rem] shadow-2xl p-0 w-full max-w-2xl overflow-hidden animate-fade-in border border-slate-200">
+                    <!-- Cabecera Estilo Factura -->
+                    <div class="bg-slate-50 p-8 border-b border-slate-200 relative">
+                        <button onclick="closeBillingReview()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 transition-all shadow-sm">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <div class="flex items-start gap-6">
+                            <div class="w-16 h-16 rounded-2xl bg-primary-900 text-white flex items-center justify-center shadow-lg shadow-primary-900/20">
+                                <i class="fa-solid fa-file-invoice text-3xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-black text-slate-800 tracking-tight uppercase">Revisi\u00f3n de Datos de Facturaci\u00f3n</h3>
+                                <p class="text-xs text-slate-500 font-bold tracking-widest uppercase opacity-70 mt-1">Paso 1: Validaci\u00f3n de Glosa y Cabecera</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-8">
+                        <!-- Secci\u00f3n 1: Datos Fiscales (Layout Factura) -->
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz\u00f3n Social / Nombre</label>
+                                <input type="text" id="br-cli-nombre" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl text-sm font-bold cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">R.U.T. Cliente</label>
+                                <input type="text" id="br-cli-rut" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="12.345.678-9">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giro Comercial</label>
+                                <input type="text" id="br-cli-giro" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="Transporte de Carga">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci\u00f3n Fiscal</label>
+                                <input type="text" id="br-cli-direccion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comuna</label>
+                                <input type="text" id="br-cli-comuna" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Ciudad</label>
+                                <input type="text" id="br-cli-ciudad" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                            </div>
+                             <div class="col-span-2">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel\u00e9fono</label>
+                                <input type="text" id="br-cli-contacto" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Secci\u00f3n 2: Glosa de Facturaci\u00f3n -->
+                        <div class="p-5 bg-primary-50/30 rounded-[2rem] border border-primary-100">
+                            <label class="block text-[11px] font-black text-primary-900 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-nib"></i> Descripci\u00f3n Facturaci\u00f3n (Glosa)
+                            </label>
+                            <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
+                            <p class="text-[9px] text-slate-400 mt-2 italic ml-2">* Esta descripci\u00f3n aparecer\u00e1 tal cual en el documento final.</p>
+                        </div>
+
+                        <!-- Secci\u00f3n 3: Totales (No Editables) -->
+                        <div class="flex justify-end">
+                            <div class="bg-slate-900 p-6 rounded-[2rem] min-w-[240px] shadow-2xl shadow-slate-900/20">
+                                <div class="flex justify-between items-center gap-8 mb-2">
+                                    <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">MONTO NETO</span>
+                                    <span id="br-total-neto" class="text-sm font-bold text-white tracking-tight">$ 0</span>
+                                </div>
+                                <div class="flex justify-between items-center gap-8 mb-4">
+                                    <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">I.V.A. (19%)</span>
+                                    <span id="br-total-iva" class="text-sm font-bold text-white tracking-tight">$ 0</span>
+                                </div>
+                                <div class="pt-4 border-t border-white/10 flex justify-between items-center gap-8">
+                                    <span class="text-xs font-black text-white tracking-widest uppercase">TOTAL</span>
+                                    <span id="br-total-final" class="text-xl font-black text-primary-400">$ 0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button type="button" onclick="closeBillingReview()" class="px-8 py-3.5 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">Descartar</button>
+                            <button type="submit" class="bg-primary-900 text-white px-10 py-3.5 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-2 group">
+                                <span>Guardar Revisi\u00f3n</span>
+                                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Hidden generic file input for Factura Upload logic -->
             <input type="file" id="factura-upload-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" onchange="processFacturaUpload(event)">
 
@@ -1629,10 +1720,96 @@
             `;
 
             // Configurar botones
-            document.getElementById('btn-revisar-datos').onclick = () => editService(id);
+            document.getElementById('btn-revisar-datos').onclick = () => openBillingReview(id);
             // El de generar pre-factura queda como placeholder por ahora
             
             switchSection('factura-detalle');
+        }
+
+        function openBillingReview(id) {
+            const srv = excelData.find(s => s.id == id);
+            if(!srv) return;
+            const cli = clientsData.find(c => c.nombre === srv.cliente) || {};
+
+            // Cargar datos del Cliente
+            document.getElementById('br-cli-nombre').value = srv.cliente;
+            document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "";
+            document.getElementById('br-cli-giro').value = cli["Giro"] || "";
+            document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "";
+            document.getElementById('br-cli-comuna').value = cli["Comuna"] || "";
+            document.getElementById('br-cli-ciudad').value = cli["Ciudad"] || "";
+            document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "";
+
+            // Cargar Glosa (Descripci\u00f3n Facturaci\u00f3n)
+            // Sugerencia autom\u00e1tica si est\u00e1 vac\u00eda
+            let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
+            if(!glosa || glosa === "-") {
+                glosa = `SERVICIO DE TRANSPORTE - ${srv.tipoServicio.toUpperCase()} - DESTINO: ${srv.destino.toUpperCase()}`;
+            }
+            document.getElementById('br-glosa').value = glosa;
+
+            // Calcular Totales
+            const neto = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
+            const iva = Math.round(neto * 0.19);
+            const total = neto + iva;
+
+            document.getElementById('br-total-neto').innerText = `$ ${neto.toLocaleString('es-CL')}`;
+            document.getElementById('br-total-iva').innerText = `$ ${iva.toLocaleString('es-CL')}`;
+            document.getElementById('br-total-final').innerText = `$ ${total.toLocaleString('es-CL')}`;
+
+            document.getElementById('billing-review-modal').classList.remove('hidden');
+        }
+
+        function closeBillingReview() {
+            document.getElementById('billing-review-modal').classList.add('hidden');
+        }
+
+        async function handleBillingReviewSubmit(event) {
+            event.preventDefault();
+            if(!currentDetailServiceId) return;
+
+            const btn = event.submitter;
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
+
+            try {
+                // 1. Guardar Descripci\u00f3n en Servicio
+                const glosa = document.getElementById('br-glosa').value;
+                await callGoogleScript("upsertService", {
+                    data: {
+                        "ID": currentDetailServiceId,
+                        "DESCRIPCI\u00d3N FACTURACI\u00d3N": glosa
+                    }
+                });
+
+                // 2. Guardar Datos actualizados en Cliente
+                const clientName = document.getElementById('br-cli-nombre').value;
+                await callGoogleScript("upsertClient", {
+                    oldNombre: clientName,
+                    data: {
+                        "Nombre": clientName,
+                        "RUT Cliente": document.getElementById('br-cli-rut').value,
+                        "Giro": document.getElementById('br-cli-giro').value,
+                        "Direcci\u00f3n": document.getElementById('br-cli-direccion').value,
+                        "Comuna": document.getElementById('br-cli-comuna').value,
+                        "Ciudad": document.getElementById('br-cli-ciudad').value,
+                        "Tel\u00e9fono": document.getElementById('br-cli-contacto').value
+                    }
+                });
+
+                showToast("Datos de facturaci\u00f3n guardados correctamente", "success");
+                await initDataFromCloud(); // Sincronizar para reflejar cambios
+                closeBillingReview();
+                openFacturaDetalle(currentDetailServiceId); // Recargar vista detalle
+
+            } catch (error) {
+                console.error(error);
+                showToast("Error al guardar: " + error.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         }
 
         function renderClientsList() {
