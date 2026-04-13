@@ -155,23 +155,30 @@ function setupHeaders() {
   SpreadsheetApp.getUi().alert("✅ Proceso completado: Los encabezados han sido actualizados en todas las pestañas.");
 }
 
+function getFullSystemData(ss) {
+  const data = { status: "success" };
+  const sheetsConfig = [
+    { name: "Servicios", headers: SCRIPT_DB_HEADERS, key: "servicios" },
+    { name: "Clientes", headers: CLIENT_HEADERS, key: "clientes" },
+    { name: "Colaboradores", headers: USER_HEADERS, key: "colaboradores" },
+    { name: "Potenciales", headers: POTENTIAL_HEADERS, key: "potenciales" },
+    { name: "Base_Operadores", headers: OPERATOR_HEADERS, key: "base_operadores" }
+  ];
+
+  sheetsConfig.forEach(cfg => {
+    let sheet = ss.getSheetByName(cfg.name);
+    if (!sheet) sheet = initSheet(ss, cfg.name, cfg.headers);
+    data[cfg.key] = getSheetData(sheet, cfg.headers);
+  });
+
+  return data;
+}
+
 function doGet(e) {
   const ss = getSS();
   try {
-    const servicesSheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
-    const clientsSheet = initSheet(ss, "Clientes", CLIENT_HEADERS);
-    const usersSheet = initSheet(ss, "Colaboradores", USER_HEADERS);
-    const potentialSheet = initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
-    const opsSheet = initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
-
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      servicios: getSheetData(servicesSheet, SCRIPT_DB_HEADERS),
-      clientes: getSheetData(clientsSheet, CLIENT_HEADERS),
-      colaboradores: getSheetData(usersSheet, USER_HEADERS),
-      potenciales: getSheetData(potentialSheet, POTENTIAL_HEADERS),
-      base_operadores: getSheetData(opsSheet, OPERATOR_HEADERS)
-    })).setMimeType(ContentService.MimeType.JSON);
+    const responseData = getFullSystemData(ss);
+    return ContentService.createTextOutput(JSON.stringify(responseData)).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -185,7 +192,7 @@ function doPost(e) {
     const action = payload.action;
 
     if (action === "login") {
-      const sheet = initSheet(ss, "Colaboradores", USER_HEADERS);
+      const sheet = ss.getSheetByName("Colaboradores") || initSheet(ss, "Colaboradores", USER_HEADERS);
       const users = getSheetData(sheet, USER_HEADERS);
       const user = users.find(u => 
         u.Nombre.toString().toLowerCase() === payload.nombre.toString().toLowerCase() && 
@@ -194,8 +201,14 @@ function doPost(e) {
       
       if (user) {
         if (user.Estado !== "Activo") throw new Error("Usuario inactivo");
-        return ContentService.createTextOutput(JSON.stringify({ status: "success", user: user }))
-          .setMimeType(ContentService.MimeType.JSON);
+        
+        // OPTIMIZACIÓN: Cargar todos los datos del sistema de una vez
+        const systemData = getFullSystemData(ss);
+        return ContentService.createTextOutput(JSON.stringify({ 
+          status: "success", 
+          user: user,
+          ...systemData 
+        })).setMimeType(ContentService.MimeType.JSON);
       } else {
         throw new Error("Nombre o Clave incorrectos");
       }

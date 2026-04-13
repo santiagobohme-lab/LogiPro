@@ -1108,7 +1108,9 @@
                     document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
                     
                     showToast(`¡Bienvenido/a, ${activeSession.nombre}!`);
-                    await initDataFromCloud();
+                    
+                    // PROCESAR DATOS EMBEBIDOS (OPTIMIZACIÓN)
+                    processSystemData(result);
                 } else {
                     // Si las credenciales ya no son válidas, limpiar todo
                     if(localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session')) {
@@ -1153,47 +1155,57 @@
                 if (!res.ok) throw new Error(`Estado ${res.status}`);
                 const result = await res.json();
                 
-                if(result.status === "success") {
-                    clientsData = (result.clientes || []).map(mapFromSheetClient);
-                    excelData = (result.servicios || []).map(mapFromSheetService);
-                    potencialesData = (result.potenciales || []).map(p => ({
-                        nombre: p["Nombre"] || "",
-                        telefono: p["Tel\u00e9fono"] || "",
-                        email: p["Email"] || "",
-                        web: p["Sitio Web"] || ""
-                    }));
-                    
-                    // Asegurar que leemos el nuevo array de colaboradores
-                    colaboradoresData = (result.colaboradores || []).map(u => ({
-                        nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email
-                    }));
-                    
-                    // Nueva fuente de operadores
-                    operadoresData = (result.base_operadores || []).map(mapFromSheetOperador);
-                    
-                    if(clientsData.length > 0 && !currentUserClient) {
-                         currentUserClient = clientsData[0].nombre;
-                    }
-
-                    renderClientsList();
-                    renderOperadoresList(); 
-                    renderClientTable();
-                    renderGlobalServicesTable();
-                    
-                    const prospList = document.getElementById('prospectos-list');
-                    if(prospList && !prospList.classList.contains('hidden')) {
-                         renderProspectosList();
-                    }
-                    if(activeSession && activeSession.rol === 'SuperAdmin') {
-                         renderColaboradoresList();
-                    }
-                    showToast("Datos sincronizados.");
-                }
+                processSystemData(result);
             } catch(e) {
-                console.error("Hydration Error:", e);
-                showToast("Error de sincronización: " + e.message);
+                console.error("Init Data Error:", e);
+                showToast("Error al sincronizar datos del servidor.");
             } finally {
                 isGlobalLoading = false;
+            }
+        }
+
+        /**
+         * Centraliza el procesamiento del payload de datos recibido del servidor.
+         */
+        function processSystemData(result) {
+            if(result.status === "success") {
+                clientsData = (result.clientes || []).map(mapFromSheetClient);
+                excelData = (result.servicios || []).map(mapFromSheetService);
+                potencialesData = (result.potenciales || []).map(p => ({
+                    nombre: p["Nombre"] || "",
+                    telefono: p["Tel\u00e9fono"] || "",
+                    email: p["Email"] || "",
+                    web: p["Sitio Web"] || ""
+                }));
+                
+                colaboradoresData = (result.colaboradores || []).map(u => ({
+                    nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email
+                }));
+                
+                operadoresData = (result.base_operadores || []).map(mapFromSheetOperador);
+                
+                if(clientsData.length > 0 && !currentUserClient) {
+                     currentUserClient = clientsData[0].nombre;
+                }
+
+                renderClientsList();
+                renderOperadoresList();
+                
+                // Asegurar que se rendericen las tablas necesarias
+                if(typeof renderClientTable === 'function') renderClientTable();
+                if(typeof renderGlobalServicesTable === 'function') renderGlobalServicesTable();
+                
+                const prospList = document.getElementById('prospectos-list');
+                if(prospList && !prospList.classList.contains('hidden') && typeof renderProspectosList === 'function') {
+                     renderProspectosList();
+                }
+                if(activeSession && activeSession.rol === 'SuperAdmin' && typeof renderColaboradoresList === 'function') {
+                     renderColaboradoresList();
+                }
+                
+                // Actualizar vistas de servicios si existen
+                if(typeof renderServicesList === 'function') renderServicesList();
+                if(typeof renderSearchServicesList === 'function') renderSearchServicesList();
             }
         }
 
