@@ -25,7 +25,7 @@ const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Telé
 const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
 
 // CONFIGURACION FACTUREO
-const FOLDER_PRE_FACTURAS_ID = '1e3vWl-xSpxmHl8A1-x5eR0P4h_Z3K8Sj'; // Ejemplo, se puede crear dinámicamente
+const FOLDER_PRE_FACTURAS_ID = '1LtmEnnKHNVNhxWRLx0az_3ochXj-aHwv'; 
 const INVOICE_TEMPLATE_ID = ''; // Si el usuario no tiene una, generaremos una dinámica
 
 /**
