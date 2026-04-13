@@ -606,7 +606,7 @@
                 </div>
 
                 <!-- Listado de Servicios -->
-                <div id="facturacion-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div id="facturacion-container" class="flex flex-col gap-2 max-w-md">
                     <!-- Las tarjetas se cargar\u00e1n aqu\u00ed -->
                 </div>
             </div>
@@ -1489,16 +1489,16 @@
             
             filtered.forEach(srv => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group";
+                card.className = "bg-white p-3 px-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center";
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-bold text-slate-800 text-lg group-hover:text-primary-700 transition-colors">${srv.cliente}</span>
-                        <div class="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}">
-                            ${srv.estadoFactura}
+                    <div class="flex flex-col">
+                        <span class="font-bold text-slate-800 text-sm group-hover:text-primary-700 transition-colors uppercase">${srv.cliente}</span>
+                        <div class="flex items-center text-slate-400 text-[9px] font-medium mt-0.5">
+                            <i class="fa-solid fa-hashtag mr-1"></i> ${srv.id}
                         </div>
                     </div>
-                    <div class="flex items-center text-slate-400 text-[10px] font-medium">
-                        <i class="fa-solid fa-hashtag mr-1"></i> ID SERVICIO: ${srv.id}
+                    <div class="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
+                        ${srv.estadoFactura}
                     </div>
                 `;
                 container.appendChild(card);
