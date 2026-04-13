@@ -1036,11 +1036,15 @@
                 const creds = JSON.parse(saved);
                 // Mostrar estado de carga inmediato para mejorar UX
                 const btn = document.getElementById('login-btn');
+                const checkbox = document.getElementById('login-remember');
+                const isPersistent = !!localStorage.getItem('logi_session');
+                
+                if(checkbox) checkbox.checked = isPersistent;
+                
                 if(btn) {
                     btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Validando sesión...`;
                     btn.disabled = true;
                 }
-                const isPersistent = !!localStorage.getItem('logi_session');
                 performLogin(creds.nombre, creds.pass, isPersistent);
             }
         }
