@@ -691,32 +691,30 @@
                     </form>
 
                     <!-- PIE DE PÁGINA ANCLADO (TOTALES Y ACCIONES) -->
-                    <div class="p-8 bg-white border-t border-slate-100 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] z-20">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <!-- Totales Estilo Sobrio -->
-                            <div class="flex items-center gap-8 bg-slate-50 border border-slate-100 p-6 rounded-[2rem] flex-1">
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">MONTO NETO</span>
-                                    <span id="br-total-neto" class="text-lg font-bold text-slate-800">$ 0</span>
+                    <div class="p-6 bg-white border-t border-slate-100 shrink-0 z-20">
+                        <div class="flex items-end justify-between gap-6">
+                            <!-- Totales Estilo Sobrio (Ref: Imagen Usuario) -->
+                            <div class="border border-slate-200 p-5 rounded-[1.5rem] w-64">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">MONTO NETO</span>
+                                    <span id="br-total-neto" class="text-sm font-bold text-slate-700">$ 0</span>
                                 </div>
-                                <div class="w-px h-10 bg-slate-200"></div>
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">I.V.A. (19%)</span>
-                                    <span id="br-total-iva" class="text-lg font-bold text-slate-800">$ 0</span>
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">I.V.A. 19%</span>
+                                    <span id="br-total-iva" class="text-sm font-bold text-slate-700">$ 0</span>
                                 </div>
-                                <div class="flex-1"></div>
-                                <div class="flex flex-col items-end">
-                                    <span class="text-[10px] font-black text-primary-900 tracking-widest uppercase mb-1">TOTAL FACTURA</span>
-                                    <span id="br-total-final" class="text-3xl font-black text-primary-900 tracking-tight">$ 0</span>
+                                <div class="border-t-2 border-slate-900 pt-3 flex justify-between items-center">
+                                    <span class="text-[11px] font-black text-slate-900 uppercase">TOTAL</span>
+                                    <span id="br-total-final" class="text-xl font-black text-slate-900">$ 0</span>
                                 </div>
                             </div>
 
-                            <!-- Acciones -->
-                            <div class="flex gap-3">
-                                <button type="button" onclick="closeBillingReview()" class="px-6 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">Descartar</button>
-                                <button type="submit" form="billing-review-form" class="bg-primary-900 text-white px-10 py-4 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-3 group">
-                                    <span>Guardar Revisi&oacute;n</span>
-                                    <i class="fa-solid fa-check text-[10px] bg-white/20 p-1.5 rounded-lg group-hover:bg-white/40 transition-all"></i>
+                            <!-- Acciones más discretas -->
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="closeBillingReview()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600 transition-all">Descartar</button>
+                                <button type="submit" form="billing-review-form" class="bg-primary-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-800 transition-all shadow-md flex items-center gap-2">
+                                    <span>Guardar Revisión</span>
+                                    <i class="fa-solid fa-check text-[9px]"></i>
                                 </button>
                             </div>
                         </div>
