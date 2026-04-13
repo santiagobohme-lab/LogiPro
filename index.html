@@ -598,12 +598,16 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-slate-300 mb-4">
-                        <i class="fa-solid fa-file-invoice text-2xl"></i>
-                    </div>
-                    <h2 class="text-lg font-bold text-slate-800">M&oacute;dulo de Facturaci&oacute;n</h2>
-                    <p class="text-slate-500 text-sm max-w-xs text-center mt-2">Esta secci&oacute;n ha sido reiniciada. Estamos listos para comenzar a construir el nuevo flujo de trabajo.</p>
+                <!-- Tabs de Navegaci\u00f3n -->
+                <div class="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+                    <button onclick="setFacturaFilter('PENDIENTES')" id="btn-fact-pending" class="px-6 py-2 rounded-lg text-sm font-bold transition-all bg-white text-primary-900 shadow-sm border border-slate-200">PENDIENTES</button>
+                    <button onclick="setFacturaFilter('FACTURADOS')" id="btn-fact-done" class="px-6 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:bg-white/50">FACTURADOS</button>
+                    <button onclick="setFacturaFilter('TODOS')" id="btn-fact-all" class="px-6 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:bg-white/50">TODOS</button>
+                </div>
+
+                <!-- Listado de Servicios -->
+                <div id="facturacion-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Las tarjetas se cargar\u00e1n aqu\u00ed -->
                 </div>
             </div>
             <!-- SEC: BALANCE -->
@@ -1222,6 +1226,7 @@
 
                 renderClientsList();
                 renderOperadoresList();
+                renderFacturacionList();
                 
                 // Asegurar que se rendericen las tablas necesarias
                 if(typeof renderClientTable === 'function') renderClientTable();
@@ -1435,6 +1440,71 @@
         });
 
         // CLIENT DIRECTORY LOGIC
+        let currentFacturaFilter = 'PENDIENTES';
+
+        function setFacturaFilter(filter) {
+            currentFacturaFilter = filter;
+            
+            // Actualizar estilos de botones
+            const btnPending = document.getElementById('btn-fact-pending');
+            const btnDone = document.getElementById('btn-fact-done');
+            const btnAll = document.getElementById('btn-fact-all');
+            
+            if(btnPending && btnDone && btnAll) {
+                [btnPending, btnDone, btnAll].forEach(btn => {
+                    btn.classList.remove('bg-white', 'text-primary-900', 'shadow-sm', 'border', 'border-slate-200');
+                    btn.classList.add('text-slate-500', 'hover:bg-white/50');
+                });
+                
+                const activeBtn = filter === 'PENDIENTES' ? btnPending : (filter === 'FACTURADOS' ? btnDone : btnAll);
+                activeBtn.classList.remove('text-slate-500', 'hover:bg-white/50');
+                activeBtn.classList.add('bg-white', 'text-primary-900', 'shadow-sm', 'border', 'border-slate-200');
+            }
+            
+            renderFacturacionList();
+        }
+
+        function renderFacturacionList() {
+            const container = document.getElementById('facturacion-container');
+            if(!container) return;
+            
+            container.innerHTML = '';
+            
+            let filtered = excelData;
+            if(currentFacturaFilter === 'PENDIENTES') {
+                filtered = excelData.filter(s => s.estadoFactura !== 'OK' && s.estadoFactura !== 'OK / Pagado');
+            } else if(currentFacturaFilter === 'FACTURADOS') {
+                filtered = excelData.filter(s => s.estadoFactura === 'OK' || s.estadoFactura === 'OK / Pagado');
+            }
+            
+            if(filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-20 bg-slate-50 rounded-2xl border border-dotted border-slate-200">
+                        <i class="fa-solid fa-folder-open text-3xl text-slate-300 mb-2 block"></i>
+                        <p class="text-sm text-slate-500">No hay servicios en esta categor\u00eda</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filtered.forEach(srv => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-slate-800 text-lg group-hover:text-primary-700 transition-colors">${srv.cliente}</span>
+                        <div class="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}">
+                            ${srv.estadoFactura}
+                        </div>
+                    </div>
+                    <div class="flex items-center text-slate-400 text-[10px] font-medium">
+                        <i class="fa-solid fa-hashtag mr-1"></i> ID SERVICIO: ${srv.id}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
         function renderClientsList() {
             const tbody = document.getElementById('clients-tbody');
             if (clientsData.length === 0) {
