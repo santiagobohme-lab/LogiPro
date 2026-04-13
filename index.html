@@ -2841,8 +2841,37 @@
             });
         }
         
-        window.addEventListener('load', initAutocomplete);
+        // --- GLOBAL MODAL MANAGEMENT ---
+        const MODAL_IDS = [
+            'client-modal', 
+            'client-data-modal', 
+            'prospecto-modal', 
+            'service-modal', 
+            'operador-modal', 
+            'colab-modal'
+        ];
 
+        function closeAllModals() {
+            MODAL_IDS.forEach(id => {
+                const m = document.getElementById(id);
+                if(m) m.classList.add('hidden');
+            });
+        }
+
+        // Close on ESC
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAllModals();
+        });
+
+        // Close on Click Outside
+        window.addEventListener('click', (e) => {
+            MODAL_IDS.forEach(id => {
+                const modal = document.getElementById(id);
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+        });
+
+        window.addEventListener('load', initAutocomplete);
     </script>
 </body>
 </html>
