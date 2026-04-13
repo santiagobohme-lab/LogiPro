@@ -2164,7 +2164,7 @@
                     </td>
                     <td class="px-6 py-4">
                          <div class="font-black text-slate-700 text-xs">$ ${parseFloat(s.monto || 0).toLocaleString('es-CL')}</div>
-                         ${s.estadoFactura === 'OK' ? `<div class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mt-0.5"><i class="fa-solid fa-check-double mr-1 text-[8px]"></i>Factura #${s.nroFactura}</div>` : '}
+                         ${s.estadoFactura === 'OK' ? `<div class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest mt-0.5"><i class="fa-solid fa-check-double mr-1 text-[8px]"></i>Factura #${s.nroFactura}</div>` : ''}
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-1">
@@ -2184,209 +2184,6 @@
                     </td>
                 </tr>
             `).join('');
-        }
-
-            tbody.innerHTML = pending.map(s => `
-                <tr class="hover:bg-slate-50/50 transition-colors group">
-                    <td class="px-6 py-4 text-xs font-mono font-bold text-slate-400">#${s.id}</td>
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-slate-700 text-sm">${s.cliente}</div>
-                        <div class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">${s.ocHes || 'Sin OC/HES'}</div>
-                    </td>
-                    <td class="px-6 py-4 text-xs text-slate-500">${s.fechaServicio}</td>
-                    <td class="px-6 py-4">
-                        <div class="text-xs text-slate-600">${s.tipoServicio}</div>
-                        <div class="text-[9px] text-primary-500 font-bold uppercase tracking-tight">${s.destino}</div>
-                    </td>
-                    <td class="px-6 py-4 font-black text-slate-700 text-sm">$ ${parseFloat(s.monto || 0).toLocaleString('es-CL')}</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="generateSimularFactura('${s.id}')" id="btn-sim-${s.id}" class="bg-white border border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-2">
-                             <i class="fa-solid fa-file-pdf text-red-500"></i> Simular
-                        </button>
-                        <button onclick="openVincularModal('${s.id}')" class="bg-primary-900 text-white hover:bg-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ml-1 shadow-sm">
-                             Finalizar
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function generateSimularFactura(serviceId) {
-            const btn = document.getElementById(`btn-sim-${serviceId}`);
-            if(!btn) return;
-            const originalContent = btn.innerHTML;
-            
-            try {
-                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...`;
-                btn.disabled = true;
-
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'generatePreFactura', serviceId })
-                });
-                
-                const result = await res.json();
-                if(result.status === "success") {
-                    window.open(result.url, '_blank');
-                    showToast("Simulación generada exitosamente.");
-                } else {
-                    showToast(result.message || "Error al generar simulación.");
-                }
-            } catch(e) {
-                console.error(e);
-                showToast("Error de conexión con el generador de PDF.");
-            } finally {
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            }
-        }
-
-        function openVincularModal(id) {
-            const s = excelData.find(x => x.id.toString() === id.toString());
-            if(!s) return;
-            
-            document.getElementById('vincular-srv-id').innerText = s.id;
-            document.getElementById('vincular-id-hidden').value = s.id;
-            document.getElementById('vincular-cliente-display').innerText = s.cliente;
-            document.getElementById('fm-vin-nro').value = s.nroFactura || '';
-            document.getElementById('fm-vin-estado').value = "OK";
-            
-            document.getElementById('vincular-modal').classList.remove('hidden');
-        }
-
-        function closeVincularModal() {
-            document.getElementById('vincular-modal').classList.add('hidden');
-            document.getElementById('vincular-form').reset();
-        }
-
-        async function handleVincularSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('vincular-id-hidden').value;
-            const nro = document.getElementById('fm-vin-nro').value.trim();
-            const estado = document.getElementById('fm-vin-estado').value;
-            
-            const btn = document.getElementById('vincular-submit-btn');
-            const originalText = btn.innerText;
-            
-            try {
-                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
-                btn.disabled = true;
-
-                // Optimistic Update
-                const row = excelData.find(x => x.id.toString() === id.toString());
-                if(row) {
-                    row.nroFactura = nro;
-                    row.estadoFactura = estado;
-                }
-                renderFacturasTable();
-
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        action: 'upsertService',
-                        data: {
-                            "ID": id,
-                            "Nº Factura": nro,
-                            "Estado Factura": estado
-                        }
-                    })
-                });
-                
-                const result = await res.json();
-                if(result.status === "success") {
-                    showToast("Factura vinculada correctamente.");
-                    closeVincularModal();
-                    await initDataFromCloud(); // Refresh to ensure everything is in sync
-                } else {
-                    showToast(result.message || "Error al vincular factura.");
-                }
-            } catch(e) {
-                console.error(e);
-                showToast("Error de conexión al guardar factura.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        function renderClientTable() {
-            const tbody = document.getElementById('client-services-tbody');
-            if(!tbody) return;
-            const data = excelData.filter(d => d.cliente === currentUserClient);
-            
-            if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10"><div class="text-slate-400 mt-2">Aún no hay servicios registrados para este cliente.</div><button class="mt-4 bg-white border border-gray-200 text-primary-900 hover:bg-gray-50 px-4 py-2 rounded text-xs font-medium transition-colors" onclick="openNewServiceModal()">Crear primer servicio</button></td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.map(row => {
-                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
-                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
-                const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
-                const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
-                
-                const statusValue = (row.estado || "Pendiente").toLowerCase();
-                const isOk = statusValue === 'ok' || statusValue === 'pagado';
-                const estadoSelect = `
-                    <select onchange="updateEstado(${row.id}, this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
-                    </select>
-                `;
-
-                const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
-                const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
-                    </select>
-                `;
-
-                let facturaIcon = '';
-                if(row.isUploading) {
-                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                } else if(row.driveUrl) {
-                    facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
-                } else {
-                    facturaIcon = `<button onclick="clickFactura(${row.id})" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
-                }
-
-                const pNroFact = row.nroFactura || '';
-                const factColumn = `
-                    <div class="flex items-center justify-center gap-1">
-                        <input type="text" value="${pNroFact}" onchange="updateNroFactura(${row.id}, this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
-                        ${facturaIcon}
-                    </div>
-                `;
-
-                return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50">
-                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
-                    <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
-                    <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
-                    <td class="px-3 py-2 text-slate-600">${row.destino}</td>
-                    <td class="px-3 py-2 text-right">
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="text-slate-600">${safeCosto}</span>
-                            ${estadoSelect}
-                        </div>
-                    </td>
-                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
-                    <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
-                    <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
-                    <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
-                    <td class="px-3 py-2 text-center">${factColumn}</td>
-                    <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
-                    <td class="px-2 py-2 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                            <button onclick="editService(${row.id})" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="deleteService(${row.id})" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `}).join('');
         }
 
         function renderGlobalServicesTable() {
@@ -3216,7 +3013,10 @@
             });
         });
 
-        window.addEventListener('load', initAutocomplete);
+        window.addEventListener('load', () => {
+            initAutocomplete();
+            checkSession();
+        });
     </script>
 </body>
 </html>
