@@ -606,7 +606,7 @@
                 </div>
 
                 <!-- Listado de Servicios -->
-                <div id="facturacion-container" class="flex flex-col gap-2 max-w-md">
+                <div id="facturacion-container" class="flex flex-col gap-3 max-w-xl">
                     <!-- Las tarjetas se cargar\u00e1n aqu\u00ed -->
                 </div>
             </div>
@@ -1488,17 +1488,52 @@
             }
             
             filtered.forEach(srv => {
+                // L\u00f3gica financiera (Skill UX: Precisi\u00f3n en datos)
+                const neto = isNaN(Number(srv.monto)) || srv.monto === "-" ? 0 : Number(srv.monto);
+                const iva = Math.round(neto * 0.19);
+                const total = neto + iva;
+                
+                const fmtNeto = neto.toLocaleString('es-CL');
+                const fmtIva = iva.toLocaleString('es-CL');
+                const fmtTotal = total.toLocaleString('es-CL');
+                
+                // Formatear Fecha
+                const pFecha = srv.fechaServicio !== "-" ? srv.fechaServicio.split('T')[0].split('-').reverse().join('/') : "-";
+
                 const card = document.createElement('div');
-                card.className = "bg-white p-3 px-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center";
+                card.className = "bg-white p-4 px-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center gap-6";
                 card.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="font-bold text-slate-800 text-sm group-hover:text-primary-700 transition-colors uppercase">${srv.cliente}</span>
-                        <div class="flex items-center text-slate-400 text-[9px] font-medium mt-0.5">
-                            <i class="fa-solid fa-hashtag mr-1"></i> ${srv.id}
+                    <div class="flex flex-col flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="font-bold text-slate-800 text-base group-hover:text-primary-700 transition-colors uppercase tracking-tight">${srv.cliente}</span>
+                            <div class="text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}">
+                                ${srv.estadoFactura}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                           <div class="flex items-center text-slate-500 text-[10px] font-bold">
+                               <i class="fa-regular fa-calendar-days mr-1.5 text-slate-400"></i> ${pFecha}
+                           </div>
+                           <div class="flex items-center text-slate-400 text-[9px] font-medium bg-slate-50 px-2 py-0.5 rounded-md">
+                               <i class="fa-solid fa-hashtag mr-1"></i> ${srv.id}
+                           </div>
                         </div>
                     </div>
-                    <div class="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
-                        ${srv.estadoFactura}
+                    
+                    <!-- Cuadro de C\u00e1lculo Estilo Factura (Skill UX: Visibilidad del Sistema) -->
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 min-w-[160px] shadow-inner-sm">
+                        <div class="flex justify-between items-center gap-6 mb-1 text-[10px]">
+                            <span class="text-slate-400 font-bold uppercase tracking-tighter">MONTO NETO</span>
+                            <span class="font-bold text-slate-700 underline decoration-slate-200 underline-offset-4">$ ${fmtNeto}</span>
+                        </div>
+                        <div class="flex justify-between items-center gap-6 mb-1.5 text-[10px]">
+                            <span class="text-slate-400 font-bold uppercase tracking-tighter">I.V.A. 19%</span>
+                            <span class="font-bold text-slate-700">$ ${fmtIva}</span>
+                        </div>
+                        <div class="flex justify-between items-center gap-6 pt-1.5 border-t-2 border-slate-900 text-xs">
+                            <span class="font-black text-primary-950 tracking-tighter uppercase">TOTAL</span>
+                            <span class="font-black text-primary-950">$ ${fmtTotal}</span>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
