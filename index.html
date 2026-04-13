@@ -1816,18 +1816,18 @@
                 document.getElementById('br-cli-comuna-ciudad').value = `${cli.comuna || "-"} / ${cli.ciudad || "-"}`;
                 document.getElementById('br-cli-contacto').value = cli.telefono || "-";
 
-                // 2. Cargar Detalles del Servicio (EDITABLE)
-                document.getElementById('br-srv-fecha').value = formatDateForInput(srv["Fecha de Servicio"]);
-                document.getElementById('br-srv-tipo').value = srv["Tipo Servicio"] || "";
+                // 2. Cargar Detalles del Servicio (EDITABLE - Usando keys mapeadas camelCase)
+                document.getElementById('br-srv-fecha').value = formatDateForInput(srv.fechaServicio);
+                document.getElementById('br-srv-tipo').value = srv.tipoServicio === "-" ? "" : srv.tipoServicio;
                 document.getElementById('br-srv-monto').value = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
-                document.getElementById('br-srv-fecha-pago').value = formatDateForInput(srv["Fecha de Pago"]);
-                document.getElementById('br-srv-oc').value = srv["OC / HES"] === "-" ? "" : (srv["OC / HES"] || "");
-                document.getElementById('br-srv-cotizacion').value = srv["Cotizaci&oacute;n"] === "-" ? "" : (srv["Cotizaci&oacute;n"] || "");
+                document.getElementById('br-srv-fecha-pago').value = formatDateForInput(srv.fechaPago);
+                document.getElementById('br-srv-oc').value = srv.ocHes === "-" ? "" : (srv.ocHes || "");
+                document.getElementById('br-srv-cotizacion').value = srv.cotizacion === "-" ? "" : (srv.cotizacion || "");
 
                 // 3. Cargar Glosa
                 let glosa = srv["DESCRIPCI&Oacute;N FACTURACI&Oacute;N"] || "";
                 if(!glosa || glosa === "-" || glosa === "") {
-                    glosa = `SERVICIO DE TRANSPORTE - ${(srv["Tipo Servicio"] || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
+                    glosa = `SERVICIO DE TRANSPORTE - ${(srv.tipoServicio || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
                 }
                 document.getElementById('br-glosa').value = glosa;
 
