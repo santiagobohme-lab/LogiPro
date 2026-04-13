@@ -598,8 +598,8 @@
                                 <i class="fa-solid fa-file-invoice text-2xl"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-xl font-black text-slate-800 tracking-tight uppercase">Revisi\u00f3n de Datos Cliente</h3>
-                                <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase opacity-70 mt-1">Paso 1: Validaci\u00f3n de Glosa y Cabecera</p>
+                                <h3 class="text-xl font-black text-slate-800 tracking-tight uppercase">REVISIÓN DE DATOS</h3>
+                                <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase opacity-70 mt-1">Paso 1: Validación de Glosa y Cabecera</p>
                             </div>
                         </div>
                     </div>
@@ -610,11 +610,11 @@
                         <div class="space-y-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <div class="w-1.5 h-6 bg-primary-900 rounded-full"></div>
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Detalles Fiscales (Solo Lectura)</h4>
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">DATOS DEL CLIENTE</h4>
                             </div>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-4 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
                                 <div class="col-span-2">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz\u00f3n Social / Nombre</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz&oacute;n Social / Nombre</label>
                                     <input type="text" id="br-cli-nombre" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
                                 </div>
                                 <div>
@@ -626,7 +626,7 @@
                                     <input type="text" id="br-cli-giro" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
                                 </div>
                                 <div class="col-span-2">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci\u00f3n Fiscal</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci&oacute;n Fiscal</label>
                                     <input type="text" id="br-cli-direccion" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
                                 </div>
                                 <div>
@@ -634,7 +634,7 @@
                                     <input type="text" id="br-cli-comuna-ciudad" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel\u00e9fono</label>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel&eacute;fono</label>
                                     <input type="text" id="br-cli-contacto" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
                                 </div>
                             </div>
@@ -644,7 +644,7 @@
                         <div class="space-y-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">DETALLES DEL CLIENTE</h4>
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">DETALLES DEL SERVICIO</h4>
                             </div>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-5">
                                 <div>
@@ -669,9 +669,9 @@
                                     <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">OC / HES</label>
                                     <input type="text" id="br-srv-oc" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="Ej: AS-212121">
                                 </div>
-                                <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cotizaci\u00f3n (Opcional)</label>
-                                    <input type="text" id="br-srv-cotizacion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="N\u00ba Cotizaci\u00f3n">
+                                <div id="br-srv-cotizacion-wrapper">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cotizaci&oacute;n (Opcional)</label>
+                                    <input type="text" id="br-srv-cotizacion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="N&ordm; Cotizaci&oacute;n">
                                 </div>
                             </div>
                         </div>
@@ -679,7 +679,7 @@
                         <!-- SECCI\u00d3N 2: Glosa de Facturaci\u00f3n -->
                         <div class="p-6 bg-primary-50/30 rounded-[2.5rem] border border-primary-100 shadow-sm">
                             <label class="block text-[11px] font-black text-primary-900 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                                <i class="fa-solid fa-pen-nib"></i> Descripci\u00f3n Facturaci\u00f3n (Glosa)
+                                <i class="fa-solid fa-pen-nib"></i> Descripci&oacute;n Facturaci&oacute;n (Glosa)
                             </label>
                             <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
                         </div>
@@ -706,7 +706,7 @@
                         <div class="flex justify-end gap-3 pt-4">
                             <button type="button" onclick="closeBillingReview()" class="px-8 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">Descartar</button>
                             <button type="submit" class="bg-primary-900 text-white px-12 py-4 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-3 group">
-                                <span>Guardar Revisi\u00f3n</span>
+                                <span>Guardar Revisi&oacute;n</span>
                                 <i class="fa-solid fa-check text-[10px] bg-white/20 p-1.5 rounded-lg group-hover:bg-white/40 transition-all"></i>
                             </button>
                         </div>
@@ -1047,6 +1047,13 @@
         </div>
     </main>
     </div> <!-- END APP WRAPPER -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+        
+        body { font-family: 'Montserrat', sans-serif !important; -webkit-font-smoothing: antialiased; }
+        .tracking-widest { letter-spacing: 0.15em !important; }
+    </style>
 
     <!-- Global UI Overlays -->
      <!-- Toast Container (UX Redesign: Ultra-Narrow) -->
@@ -1763,6 +1770,29 @@
             switchSection('factura-detalle');
         }
 
+        // Helper UX: Formatear fecha para inputs de tipo Date
+        function formatDateForInput(dateStr) {
+            if(!dateStr || dateStr === "-") return "";
+            // Si ya viene formateada como YYYY-MM-DD
+            if(/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+            
+            // Si viene como DD-MM-YYYY (común en Sheets)
+            let parts = dateStr.split('-');
+            if(parts.length === 3) {
+                if(parts[0].length === 2 && parts[2].length === 4) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+            // Fallback: intentar parsear
+            try {
+                const d = new Date(dateStr);
+                if(!isNaN(d.getTime())) {
+                    return d.toISOString().split('T')[0];
+                }
+            } catch(e) {}
+            return "";
+        }
+
         function openBillingReview(id) {
             try {
                 const srv = excelData.find(s => s.id == id);
@@ -1771,31 +1801,31 @@
                     return;
                 }
                 
-                // B\u00fasqueda robusta de cliente (con protecci\u00f3n contra nulos/undefined)
+                // BÚSQUEDA ROBUSTA DE CLIENTE (Usando keys mapeadas correctamente)
                 const srvClienteName = (srv.cliente || "").toString().trim().toUpperCase();
                 const cli = clientsData.find(c => {
-                    const cName = (c.Nombre || "").toString().trim().toUpperCase();
+                    const cName = (c.nombre || "").toString().trim().toUpperCase();
                     return cName === srvClienteName;
                 }) || {};
 
                 // 1. Cargar Datos Fiscales (READ ONLY)
                 document.getElementById('br-cli-nombre').value = srv.cliente || "-";
-                document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "-";
-                document.getElementById('br-cli-giro').value = cli["Giro"] || "-";
-                document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "-";
-                document.getElementById('br-cli-comuna-ciudad').value = `${cli["Comuna"] || "-"} / ${cli["Ciudad"] || "-"}`;
-                document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "-";
+                document.getElementById('br-cli-rut').value = cli.rut || "-";
+                document.getElementById('br-cli-giro').value = cli.giro || "-";
+                document.getElementById('br-cli-direccion').value = cli.direccion || "-";
+                document.getElementById('br-cli-comuna-ciudad').value = `${cli.comuna || "-"} / ${cli.ciudad || "-"}`;
+                document.getElementById('br-cli-contacto').value = cli.telefono || "-";
 
                 // 2. Cargar Detalles del Servicio (EDITABLE)
-                document.getElementById('br-srv-fecha').value = srv["Fecha de Servicio"] || "";
+                document.getElementById('br-srv-fecha').value = formatDateForInput(srv["Fecha de Servicio"]);
                 document.getElementById('br-srv-tipo').value = srv["Tipo Servicio"] || "";
                 document.getElementById('br-srv-monto').value = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
-                document.getElementById('br-srv-fecha-pago').value = srv["Fecha de Pago"] || "";
+                document.getElementById('br-srv-fecha-pago').value = formatDateForInput(srv["Fecha de Pago"]);
                 document.getElementById('br-srv-oc').value = srv["OC / HES"] === "-" ? "" : (srv["OC / HES"] || "");
-                document.getElementById('br-srv-cotizacion').value = srv["Cotizaci\u00f3n"] === "-" ? "" : (srv["Cotizaci\u00f3n"] || "");
+                document.getElementById('br-srv-cotizacion').value = srv["Cotizaci&oacute;n"] === "-" ? "" : (srv["Cotizaci&oacute;n"] || "");
 
                 // 3. Cargar Glosa
-                let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
+                let glosa = srv["DESCRIPCI&Oacute;N FACTURACI&Oacute;N"] || "";
                 if(!glosa || glosa === "-" || glosa === "") {
                     glosa = `SERVICIO DE TRANSPORTE - ${(srv["Tipo Servicio"] || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
                 }
