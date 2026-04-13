@@ -1031,11 +1031,17 @@
 
         // AUTH & SESSION LOGIC
         function checkSession() {
-            // Primero revisar localStorage (persistente), luego sessionStorage (temporal)
             const saved = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
             if(saved) {
                 const creds = JSON.parse(saved);
-                performLogin(creds.nombre, creds.pass, !!localStorage.getItem('logi_session'));
+                // Mostrar estado de carga inmediato para mejorar UX
+                const btn = document.getElementById('login-btn');
+                if(btn) {
+                    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Validando sesión...`;
+                    btn.disabled = true;
+                }
+                const isPersistent = !!localStorage.getItem('logi_session');
+                performLogin(creds.nombre, creds.pass, isPersistent);
             }
         }
 
@@ -1077,11 +1083,11 @@
                     const sessionData = JSON.stringify({ nombre, pass });
                     if (remember) {
                         localStorage.setItem('logi_session', sessionData);
+                        sessionStorage.removeItem('logi_session'); // Limpiar el temporal si pasamos a persistente
                     } else {
                         sessionStorage.setItem('logi_session', sessionData);
                     }
                     
-                    // Populate UI context
                     document.getElementById('sidebar-user-name').innerText = activeSession.nombre;
                     document.getElementById('sidebar-user-initials').innerText = activeSession.nombre.substring(0, 2).toUpperCase();
                     document.getElementById('sidebar-user-role').innerText = activeSession.rol;
@@ -1092,20 +1098,37 @@
                         document.getElementById('nav-equipo').classList.remove('hidden');
                     }
 
-                    // Reveal App
                     document.getElementById('login-wrapper').classList.add('hidden');
                     document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
                     
-                    showToast(`¡Bienvenido/a de nuevo, ${activeSession.nombre}!`);
-                    
+                    showToast(`¡Bienvenido/a, ${activeSession.nombre}!`);
                     await initDataFromCloud();
                 } else {
-                    showToast(result.message || "Credenciales inválidas.");
+                    // Si las credenciales ya no son válidas, limpiar todo
+                    if(localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session')) {
+                        showToast("La sesión ha expirado o las credenciales cambiaron.");
+                    } else {
+                        showToast(result.message || "Credenciales inválidas.");
+                    }
                     localStorage.removeItem('logi_session');
+                    sessionStorage.removeItem('logi_session');
+                    
+                    // Restaurar botón si estaba en auto-login
+                    const btn = document.getElementById('login-btn');
+                    if(btn) {
+                        btn.innerHTML = `<span>Ingresar</span>`;
+                        btn.disabled = false;
+                    }
                 }
             } catch(e) {
                 console.error("Login Error:", e);
-                showToast("Error de conexión: " + e.message);
+                showToast("Error de conexión al iniciar sesión.");
+                // Si hay error de red, no borramos la sesión para permitir reintento al recargar
+                const btn = document.getElementById('login-btn');
+                if(btn) {
+                    btn.innerHTML = `<span>Ingresar</span>`;
+                    btn.disabled = false;
+                }
             }
         }
 
