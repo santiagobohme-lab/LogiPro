@@ -22,7 +22,7 @@ const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
 const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email", "Foto"];
 
 // NUEVO: Encabezados para la pestaña de Clientes (Layout solicitado)
-const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
+const CLIENT_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "RUT Cliente", "Giro", "Direcci\u00f3n", "Comuna", "Ciudad"];
 
 /**
  * Crea un menú en la hoja de cálculo al abrirse.

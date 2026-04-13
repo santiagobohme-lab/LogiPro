@@ -586,26 +586,25 @@
                 </div>
             </div>
 
-            <!-- MODAL: REVISI\u00d3N DE DATOS DE FACTURACI\u00d3N (STYLE FACTURA) -->
             <div id="billing-review-modal" class="hidden fixed inset-0 bg-slate-900/40 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
-                <div class="bg-white rounded-[2.5rem] shadow-2xl p-0 w-full max-w-2xl overflow-hidden animate-fade-in border border-slate-200">
+                <div class="bg-white rounded-[2.5rem] shadow-2xl p-0 w-full max-w-2xl overflow-hidden animate-fade-in border border-slate-200 flex flex-col max-h-[90vh]">
                     <!-- Cabecera Estilo Factura -->
-                    <div class="bg-slate-50 p-8 border-b border-slate-200 relative">
-                        <button onclick="closeBillingReview()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 transition-all shadow-sm">
+                    <div class="bg-slate-50 p-6 border-b border-slate-200 relative shrink-0">
+                        <button onclick="closeBillingReview()" class="absolute top-4 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 transition-all shadow-sm">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
-                        <div class="flex items-start gap-6">
-                            <div class="w-16 h-16 rounded-2xl bg-primary-900 text-white flex items-center justify-center shadow-lg shadow-primary-900/20">
-                                <i class="fa-solid fa-file-invoice text-3xl"></i>
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-primary-900 text-white flex items-center justify-center shadow-lg shadow-primary-900/20">
+                                <i class="fa-solid fa-file-invoice text-2xl"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-xl font-black text-slate-800 tracking-tight uppercase">Revisi\u00f3n de Datos de Facturaci\u00f3n</h3>
-                                <p class="text-xs text-slate-500 font-bold tracking-widest uppercase opacity-70 mt-1">Paso 1: Validaci\u00f3n de Glosa y Cabecera</p>
+                                <h3 class="text-xl font-black text-slate-800 tracking-tight uppercase">Revisi\u00f3n de Datos</h3>
+                                <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase opacity-70 mt-1">Paso 1: Validaci\u00f3n de Glosa y Cabecera</p>
                             </div>
                         </div>
                     </div>
 
-                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-8">
+                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
                         <!-- Secci\u00f3n 1: Datos Fiscales (Layout Factura) -->
                         <div class="grid grid-cols-2 gap-x-6 gap-y-4">
                             <div class="col-span-2">
@@ -614,11 +613,11 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">R.U.T. Cliente</label>
-                                <input type="text" id="br-cli-rut" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="12.345.678-9">
+                                <input type="text" id="br-cli-rut" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="12.345.678-9 font-mono">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giro Comercial</label>
-                                <input type="text" id="br-cli-giro" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="Transporte de Carga">
+                                <input type="text" id="br-cli-giro" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci\u00f3n Fiscal</label>
@@ -644,11 +643,10 @@
                                 <i class="fa-solid fa-pen-nib"></i> Descripci\u00f3n Facturaci\u00f3n (Glosa)
                             </label>
                             <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
-                            <p class="text-[9px] text-slate-400 mt-2 italic ml-2">* Esta descripci\u00f3n aparecer\u00e1 tal cual en el documento final.</p>
                         </div>
 
                         <!-- Secci\u00f3n 3: Totales (No Editables) -->
-                        <div class="flex justify-end">
+                        <div class="flex justify-end sticky bottom-0 bg-white/80 backdrop-blur-sm -mx-8 px-8 py-4 border-t border-slate-100">
                             <div class="bg-slate-900 p-6 rounded-[2rem] min-w-[240px] shadow-2xl shadow-slate-900/20">
                                 <div class="flex justify-between items-center gap-8 mb-2">
                                     <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">MONTO NETO</span>
@@ -1729,9 +1727,11 @@
         function openBillingReview(id) {
             const srv = excelData.find(s => s.id == id);
             if(!srv) return;
-            const cli = clientsData.find(c => c.nombre === srv.cliente) || {};
+            
+            // B\u00fasqueda robusta de cliente (sin importar may\u00fasculas/min\u00fasculas)
+            const cli = clientsData.find(c => c.Nombre.toString().trim().toUpperCase() === srv.cliente.toString().trim().toUpperCase()) || {};
 
-            // Cargar datos del Cliente
+            // Cargar datos del Cliente usando los nombres exactos de los encabezados del backend
             document.getElementById('br-cli-nombre').value = srv.cliente;
             document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "";
             document.getElementById('br-cli-giro').value = cli["Giro"] || "";
@@ -1743,8 +1743,8 @@
             // Cargar Glosa (Descripci\u00f3n Facturaci\u00f3n)
             // Sugerencia autom\u00e1tica si est\u00e1 vac\u00eda
             let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
-            if(!glosa || glosa === "-") {
-                glosa = `SERVICIO DE TRANSPORTE - ${srv.tipoServicio.toUpperCase()} - DESTINO: ${srv.destino.toUpperCase()}`;
+            if(!glosa || glosa === "-" || glosa === "") {
+                glosa = `SERVICIO DE TRANSPORTE - ${(srv.tipoServicio || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
             }
             document.getElementById('br-glosa').value = glosa;
 
