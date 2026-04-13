@@ -604,71 +604,110 @@
                         </div>
                     </div>
 
-                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
-                        <!-- Secci\u00f3n 1: Datos Fiscales (Layout Factura) -->
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
-                            <div class="col-span-2">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz\u00f3n Social / Nombre</label>
-                                <input type="text" id="br-cli-nombre" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl text-sm font-bold cursor-not-allowed">
+                    <form id="billing-review-form" onsubmit="handleBillingReviewSubmit(event)" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar">
+                        
+                        <!-- SECCI\u00d3N A: DETALLES DEL CLIENTE (FISCAL / NO EDITABLE) -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-1.5 h-6 bg-primary-900 rounded-full"></div>
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Detalles Fiscales (Solo Lectura)</h4>
                             </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">R.U.T. Cliente</label>
-                                <input type="text" id="br-cli-rut" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="12.345.678-9 font-mono">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giro Comercial</label>
-                                <input type="text" id="br-cli-giro" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
-                            </div>
-                            <div class="col-span-2">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci\u00f3n Fiscal</label>
-                                <input type="text" id="br-cli-direccion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comuna</label>
-                                <input type="text" id="br-cli-comuna" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Ciudad</label>
-                                <input type="text" id="br-cli-ciudad" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
-                            </div>
-                             <div class="col-span-2">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel\u00e9fono</label>
-                                <input type="text" id="br-cli-contacto" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-4 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz\u00f3n Social / Nombre</label>
+                                    <input type="text" id="br-cli-nombre" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">R.U.T. Cliente</label>
+                                    <input type="text" id="br-cli-rut" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giro Comercial</label>
+                                    <input type="text" id="br-cli-giro" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci\u00f3n Fiscal</label>
+                                    <input type="text" id="br-cli-direccion" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comuna / Ciudad</label>
+                                    <input type="text" id="br-cli-comuna-ciudad" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel\u00e9fono</label>
+                                    <input type="text" id="br-cli-contacto" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Secci\u00f3n 2: Glosa de Facturaci\u00f3n -->
-                        <div class="p-5 bg-primary-50/30 rounded-[2rem] border border-primary-100">
+                        <!-- SECCI\u00d3N B: DETALLES DEL SERVICIO (OPERATIVO / EDITABLE) -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Detalles del Servicio (Editable)</h4>
+                            </div>
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-2">
+                                        Fecha Servicio <i class="fa-solid fa-calendar-day text-[8px]"></i>
+                                    </label>
+                                    <input type="date" id="br-srv-fecha" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Tipo de Servicio</label>
+                                    <input type="text" id="br-srv-tipo" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all" placeholder="Ej: Mudanza">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Monto ($ CLP)</label>
+                                    <input type="number" id="br-srv-monto" oninput="updateBillingReviewTotals()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all font-bold">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Fecha Pago (Cli)</label>
+                                    <input type="date" id="br-srv-fecha-pago" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">OC / HES</label>
+                                    <input type="text" id="br-srv-oc" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="Ej: AS-212121">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cotizaci\u00f3n (Opcional)</label>
+                                    <input type="text" id="br-srv-cotizacion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="N\u00ba Cotizaci\u00f3n">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCI\u00d3N 2: Glosa de Facturaci\u00f3n -->
+                        <div class="p-6 bg-primary-50/30 rounded-[2.5rem] border border-primary-100 shadow-sm">
                             <label class="block text-[11px] font-black text-primary-900 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
                                 <i class="fa-solid fa-pen-nib"></i> Descripci\u00f3n Facturaci\u00f3n (Glosa)
                             </label>
                             <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
                         </div>
 
-                        <!-- Secci\u00f3n 3: Totales (No Editables) -->
-                        <div class="flex justify-end sticky bottom-0 bg-white/80 backdrop-blur-sm -mx-8 px-8 py-4 border-t border-slate-100">
-                            <div class="bg-slate-900 p-6 rounded-[2rem] min-w-[240px] shadow-2xl shadow-slate-900/20">
-                                <div class="flex justify-between items-center gap-8 mb-2">
-                                    <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">MONTO NETO</span>
+                        <!-- SECCI\u00d3N 3: Totales (Recalculo en Vivo) -->
+                        <div class="flex justify-end sticky bottom-0 bg-white/90 backdrop-blur-md -mx-8 px-8 py-6 border-t border-slate-100 z-10">
+                            <div class="bg-slate-900 p-6 rounded-[2rem] min-w-[280px] shadow-2xl shadow-slate-900/40 transform transition-all">
+                                <div class="flex justify-between items-center gap-8 mb-2 opacity-60">
+                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase">MONTO NETO</span>
                                     <span id="br-total-neto" class="text-sm font-bold text-white tracking-tight">$ 0</span>
                                 </div>
-                                <div class="flex justify-between items-center gap-8 mb-4">
-                                    <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">I.V.A. (19%)</span>
+                                <div class="flex justify-between items-center gap-8 mb-4 opacity-60">
+                                    <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase">I.V.A. (19%)</span>
                                     <span id="br-total-iva" class="text-sm font-bold text-white tracking-tight">$ 0</span>
                                 </div>
-                                <div class="pt-4 border-t border-white/10 flex justify-between items-center gap-8">
-                                    <span class="text-xs font-black text-white tracking-widest uppercase">TOTAL</span>
-                                    <span id="br-total-final" class="text-xl font-black text-primary-400">$ 0</span>
+                                <div class="pt-4 border-t border-white/20 flex justify-between items-center gap-8">
+                                    <span class="text-[10px] font-black text-white tracking-widest uppercase">TOTAL FACTURA</span>
+                                    <span id="br-total-final" class="text-2xl font-black text-primary-400 tracking-tight">$ 0</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Acciones -->
                         <div class="flex justify-end gap-3 pt-4">
-                            <button type="button" onclick="closeBillingReview()" class="px-8 py-3.5 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">Descartar</button>
-                            <button type="submit" class="bg-primary-900 text-white px-10 py-3.5 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-2 group">
+                            <button type="button" onclick="closeBillingReview()" class="px-8 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">Descartar</button>
+                            <button type="submit" class="bg-primary-900 text-white px-12 py-4 rounded-2xl font-black text-sm hover:bg-primary-800 transition-all shadow-xl shadow-primary-900/30 flex items-center gap-3 group">
                                 <span>Guardar Revisi\u00f3n</span>
-                                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                                <i class="fa-solid fa-check text-[10px] bg-white/20 p-1.5 rounded-lg group-hover:bg-white/40 transition-all"></i>
                             </button>
                         </div>
                     </form>
@@ -1731,37 +1770,44 @@
             // B\u00fasqueda robusta de cliente (sin importar may\u00fasculas/min\u00fasculas)
             const cli = clientsData.find(c => c.Nombre.toString().trim().toUpperCase() === srv.cliente.toString().trim().toUpperCase()) || {};
 
-            // Cargar datos del Cliente usando los nombres exactos de los encabezados del backend
+            // 1. Cargar Datos Fiscales (READ ONLY)
             document.getElementById('br-cli-nombre').value = srv.cliente;
-            document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "";
-            document.getElementById('br-cli-giro').value = cli["Giro"] || "";
-            document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "";
-            document.getElementById('br-cli-comuna').value = cli["Comuna"] || "";
-            document.getElementById('br-cli-ciudad').value = cli["Ciudad"] || "";
-            document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "";
+            document.getElementById('br-cli-rut').value = cli["RUT Cliente"] || "-";
+            document.getElementById('br-cli-giro').value = cli["Giro"] || "-";
+            document.getElementById('br-cli-direccion').value = cli["Direcci\u00f3n"] || "-";
+            document.getElementById('br-cli-comuna-ciudad').value = `${cli["Comuna"] || "-"} / ${cli["Ciudad"] || "-"}`;
+            document.getElementById('br-cli-contacto').value = cli["Tel\u00e9fono"] || "-";
 
-            // Cargar Glosa (Descripci\u00f3n Facturaci\u00f3n)
-            // Sugerencia autom\u00e1tica si est\u00e1 vac\u00eda
+            // 2. Cargar Detalles del Servicio (EDITABLE)
+            document.getElementById('br-srv-fecha').value = srv["Fecha de Servicio"] || "";
+            document.getElementById('br-srv-tipo').value = srv["Tipo Servicio"] || "";
+            document.getElementById('br-srv-monto').value = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
+            document.getElementById('br-srv-fecha-pago').value = srv["Fecha de Pago"] || "";
+            document.getElementById('br-srv-oc').value = srv["OC / HES"] === "-" ? "" : srv["OC / HES"];
+            document.getElementById('br-srv-cotizacion').value = srv["Cotizaci\u00f3n"] === "-" ? "" : srv["Cotizaci\u00f3n"];
+
+            // 3. Cargar Glosa
             let glosa = srv["DESCRIPCI\u00d3N FACTURACI\u00d3N"] || "";
             if(!glosa || glosa === "-" || glosa === "") {
-                glosa = `SERVICIO DE TRANSPORTE - ${(srv.tipoServicio || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
+                glosa = `SERVICIO DE TRANSPORTE - ${(srv["Tipo Servicio"] || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
             }
             document.getElementById('br-glosa').value = glosa;
 
-            // Calcular Totales
-            const neto = isNaN(Number(srv.monto)) ? 0 : Number(srv.monto);
+            // 4. Calcular Totales Iniciales
+            updateBillingReviewTotals();
+
+            document.getElementById('billing-review-modal').classList.remove('hidden');
+        }
+
+        function updateBillingReviewTotals() {
+            const montoVal = document.getElementById('br-srv-monto').value;
+            const neto = isNaN(Number(montoVal)) ? 0 : Number(montoVal);
             const iva = Math.round(neto * 0.19);
             const total = neto + iva;
 
             document.getElementById('br-total-neto').innerText = `$ ${neto.toLocaleString('es-CL')}`;
             document.getElementById('br-total-iva').innerText = `$ ${iva.toLocaleString('es-CL')}`;
             document.getElementById('br-total-final').innerText = `$ ${total.toLocaleString('es-CL')}`;
-
-            document.getElementById('billing-review-modal').classList.remove('hidden');
-        }
-
-        function closeBillingReview() {
-            document.getElementById('billing-review-modal').classList.add('hidden');
         }
 
         async function handleBillingReviewSubmit(event) {
@@ -1774,34 +1820,24 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
 
             try {
-                // 1. Guardar Descripci\u00f3n en Servicio
-                const glosa = document.getElementById('br-glosa').value;
-                await callGoogleScript("upsertService", {
-                    data: {
-                        "ID": currentDetailServiceId,
-                        "DESCRIPCI\u00d3N FACTURACI\u00d3N": glosa
-                    }
-                });
+                // Capturar todos los campos editables del servicio
+                const updatedData = {
+                    "ID": currentDetailServiceId,
+                    "Fecha de Servicio": document.getElementById('br-srv-fecha').value,
+                    "Tipo Servicio": document.getElementById('br-srv-tipo').value,
+                    "Monto": document.getElementById('br-srv-monto').value,
+                    "Fecha de Pago": document.getElementById('br-srv-fecha-pago').value,
+                    "OC / HES": document.getElementById('br-srv-oc').value || "-",
+                    "Cotizaci\u00f3n": document.getElementById('br-srv-cotizacion').value || "-",
+                    "DESCRIPCI\u00d3N FACTURACI\u00d3N": document.getElementById('br-glosa').value
+                };
 
-                // 2. Guardar Datos actualizados en Cliente
-                const clientName = document.getElementById('br-cli-nombre').value;
-                await callGoogleScript("upsertClient", {
-                    oldNombre: clientName,
-                    data: {
-                        "Nombre": clientName,
-                        "RUT Cliente": document.getElementById('br-cli-rut').value,
-                        "Giro": document.getElementById('br-cli-giro').value,
-                        "Direcci\u00f3n": document.getElementById('br-cli-direccion').value,
-                        "Comuna": document.getElementById('br-cli-comuna').value,
-                        "Ciudad": document.getElementById('br-cli-ciudad').value,
-                        "Tel\u00e9fono": document.getElementById('br-cli-contacto').value
-                    }
-                });
+                await callGoogleScript("upsertService", { data: updatedData });
 
-                showToast("Datos de facturaci\u00f3n guardados correctamente", "success");
-                await initDataFromCloud(); // Sincronizar para reflejar cambios
+                showToast("Revisi\u00f3n guardada y datos de servicio actualizados", "success");
+                await initDataFromCloud();
                 closeBillingReview();
-                openFacturaDetalle(currentDetailServiceId); // Recargar vista detalle
+                openFacturaDetalle(currentDetailServiceId); 
 
             } catch (error) {
                 console.error(error);
