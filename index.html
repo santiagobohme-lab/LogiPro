@@ -586,6 +586,62 @@
                 </div>
             </div>
 
+            <!-- MODAL: VINCULAR FACTURA -->
+            <div id="vincular-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 overflow-y-auto">
+                <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-scale-up overflow-hidden">
+                    <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-primary-900 text-white">
+                        <div>
+                            <h2 class="text-xl font-bold">Vincular Factura</h2>
+                            <p class="text-[10px] opacity-70 uppercase tracking-widest font-bold">Servicio #<span id="vincular-srv-id">--</span></p>
+                        </div>
+                        <button onclick="closeVincularModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="vincular-form" onsubmit="handleVincularSubmit(event)" class="p-6">
+                        <input type="hidden" id="vincular-id-hidden">
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Cliente / Receptor</label>
+                                <div id="vincular-cliente-display" class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm font-bold text-slate-700">--</div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Nº de Factura Real</label>
+                                    <input type="text" id="fm-vin-nro" required class="w-full bg-white border border-slate-200 text-slate-800 px-4 py-3 rounded-xl text-sm focus:border-primary-500 outline-none transition-all placeholder:text-slate-300 font-bold" placeholder="Ej: 1548">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Estado Final</label>
+                                    <select id="fm-vin-estado" class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-3 rounded-xl text-sm focus:border-primary-500 outline-none transition-all font-bold">
+                                        <option value="OK" selected>FACTURA OK</option>
+                                        <option value="Pendiente">MANTENER PENDIENTE</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-3">
+                                <i class="fa-solid fa-circle-info text-amber-500 mt-0.5"></i>
+                                <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
+                                    Al marcar como **OK**, el servicio desaparecerá de "Pendientes" y se registrará en el historial de facturación.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex gap-3">
+                            <button type="button" onclick="closeVincularModal()" class="flex-1 bg-white border border-slate-200 text-slate-500 py-3.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="vincular-submit-btn" class="flex-1 bg-primary-900 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-primary-900/20 hover:bg-primary-800 transition-all">
+                                Confirmar y Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Hidden generic file input for Factura Upload logic -->
             <input type="file" id="factura-upload-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" onchange="processFacturaUpload(event)">
 
@@ -598,12 +654,68 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-slate-300 mb-4">
-                        <i class="fa-solid fa-file-invoice text-2xl"></i>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- KPI: Pendientes -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
+                            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pendientes</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="stat-facturas-pendientes">0</h3>
+                        </div>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800">M&oacute;dulo de Facturaci&oacute;n</h2>
-                    <p class="text-slate-500 text-sm max-w-xs text-center mt-2">Esta secci&oacute;n ha sido reiniciada. Estamos listos para comenzar a construir el nuevo flujo de trabajo.</p>
+                    <!-- KPI: Por Cobrar -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600">
+                            <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Monto Total</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="stat-facturas-monto">0</h3>
+                        </div>
+                    </div>
+                    <!-- KPI: Meta Mensual -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
+                            <i class="fa-solid fa-chart-line text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Facturado (Mes)</p>
+                            <h3 class="text-2xl font-black text-slate-800" id="stat-facturas-mes">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
+                    <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-4">
+                            <h2 class="font-bold text-slate-800">Servicios Pendientes por Facturar</h2>
+                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full" id="facturas-count">0</span>
+                        </div>
+                        <div class="relative w-full md:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-facturas" oninput="renderFacturasTable()" placeholder="Buscar por cliente u OC..." class="w-full bg-slate-50 border border-slate-100 text-slate-700 pl-10 pr-4 py-2 rounded-xl text-sm focus:bg-white focus:border-primary-500 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <div class="table-container p-0">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead>
+                                <tr class="text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50 border-b border-slate-100">
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Cliente / OC</th>
+                                    <th class="px-6 py-4">Fecha</th>
+                                    <th class="px-6 py-4">Servicio / Destino</th>
+                                    <th class="px-6 py-4">Monto ($ CLP)</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facturas-pending-body" class="divide-y divide-slate-50">
+                                <!-- JS Hydrated -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <!-- SEC: BALANCE -->
@@ -1223,9 +1335,9 @@
                 renderClientsList();
                 renderOperadoresList();
                 
-                // Asegurar que se rendericen las tablas necesarias
                 if(typeof renderClientTable === 'function') renderClientTable();
                 if(typeof renderGlobalServicesTable === 'function') renderGlobalServicesTable();
+                if(typeof renderFacturasTable === 'function') renderFacturasTable();
                 
                 const prospList = document.getElementById('prospectos-list');
                 if(prospList && !prospList.classList.contains('hidden') && typeof renderProspectosList === 'function') {
@@ -1964,6 +2076,164 @@
         function refreshAllViews() {
             renderClientTable();
             renderGlobalServicesTable();
+            if(typeof renderFacturasTable === 'function') renderFacturasTable();
+        }
+
+        // --- SISTEMA DE FACTURACIÓN ---
+        
+        function renderFacturasTable() {
+            const tbody = document.getElementById('facturas-pending-body');
+            const search = document.getElementById('search-facturas') ? document.getElementById('search-facturas').value.toLowerCase() : '';
+            if(!tbody) return;
+
+            const pending = excelData.filter(s => 
+                s.estadoFactura === "Pendiente" && 
+                (s.cliente.toLowerCase().includes(search) || (s.ocHes || '').toLowerCase().includes(search))
+            );
+
+            // Refrescar Estadísticas
+            const statPend = document.getElementById('stat-facturas-pendientes');
+            const statCount = document.getElementById('facturas-count');
+            const statMonto = document.getElementById('stat-facturas-monto');
+            const statMes = document.getElementById('stat-facturas-mes');
+
+            if(statPend) statPend.innerText = pending.length;
+            if(statCount) statCount.innerText = pending.length;
+            
+            const totalPendingMonto = pending.reduce((acc, s) => acc + (parseFloat(s.monto) || 0), 0);
+            if(statMonto) statMonto.innerText = `$ ${totalPendingMonto.toLocaleString('es-CL')}`;
+
+            const facturadoMes = excelData.filter(s => s.estadoFactura === "OK").reduce((acc, s) => acc + (parseFloat(s.monto) || 0), 0);
+            if(statMes) statMes.innerText = `$ ${facturadoMes.toLocaleString('es-CL')}`;
+
+            if (pending.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-20 text-center"><div class="flex flex-col items-center"><i class="fa-solid fa-circle-check text-4xl text-emerald-100 mb-4"></i><p class="text-slate-400">¡Todo al día! No hay facturas pendientes.</p></div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pending.map(s => `
+                <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <td class="px-6 py-4 text-xs font-mono font-bold text-slate-400">#${s.id}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-700 text-sm">${s.cliente}</div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">${s.ocHes || 'Sin OC/HES'}</div>
+                    </td>
+                    <td class="px-6 py-4 text-xs text-slate-500">${s.fechaServicio}</td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs text-slate-600">${s.tipoServicio}</div>
+                        <div class="text-[9px] text-primary-500 font-bold uppercase tracking-tight">${s.destino}</div>
+                    </td>
+                    <td class="px-6 py-4 font-black text-slate-700 text-sm">$ ${parseFloat(s.monto || 0).toLocaleString('es-CL')}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="generateSimularFactura('${s.id}')" id="btn-sim-${s.id}" class="bg-white border border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-2">
+                             <i class="fa-solid fa-file-pdf text-red-500"></i> Simular
+                        </button>
+                        <button onclick="openVincularModal('${s.id}')" class="bg-primary-900 text-white hover:bg-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ml-1 shadow-sm">
+                             Finalizar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function generateSimularFactura(serviceId) {
+            const btn = document.getElementById(`btn-sim-${serviceId}`);
+            if(!btn) return;
+            const originalContent = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...`;
+                btn.disabled = true;
+
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'generatePreFactura', serviceId })
+                });
+                
+                const result = await res.json();
+                if(result.status === "success") {
+                    window.open(result.url, '_blank');
+                    showToast("Simulación generada exitosamente.");
+                } else {
+                    showToast(result.message || "Error al generar simulación.");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error de conexión con el generador de PDF.");
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        }
+
+        function openVincularModal(id) {
+            const s = excelData.find(x => x.id.toString() === id.toString());
+            if(!s) return;
+            
+            document.getElementById('vincular-srv-id').innerText = s.id;
+            document.getElementById('vincular-id-hidden').value = s.id;
+            document.getElementById('vincular-cliente-display').innerText = s.cliente;
+            document.getElementById('fm-vin-nro').value = s.nroFactura || '';
+            document.getElementById('fm-vin-estado').value = "OK";
+            
+            document.getElementById('vincular-modal').classList.remove('hidden');
+        }
+
+        function closeVincularModal() {
+            document.getElementById('vincular-modal').classList.add('hidden');
+            document.getElementById('vincular-form').reset();
+        }
+
+        async function handleVincularSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('vincular-id-hidden').value;
+            const nro = document.getElementById('fm-vin-nro').value.trim();
+            const estado = document.getElementById('fm-vin-estado').value;
+            
+            const btn = document.getElementById('vincular-submit-btn');
+            const originalText = btn.innerText;
+            
+            try {
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+                btn.disabled = true;
+
+                // Optimistic Update
+                const row = excelData.find(x => x.id.toString() === id.toString());
+                if(row) {
+                    row.nroFactura = nro;
+                    row.estadoFactura = estado;
+                }
+                renderFacturasTable();
+
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'upsertService',
+                        data: {
+                            "ID": id,
+                            "Nº Factura": nro,
+                            "Estado Factura": estado
+                        }
+                    })
+                });
+                
+                const result = await res.json();
+                if(result.status === "success") {
+                    showToast("Factura vinculada correctamente.");
+                    closeVincularModal();
+                    await initDataFromCloud(); // Refresh to ensure everything is in sync
+                } else {
+                    showToast(result.message || "Error al vincular factura.");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error de conexión al guardar factura.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         function renderClientTable() {

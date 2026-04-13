@@ -24,6 +24,10 @@ const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Telé
 // NUEVO: Encabezados para la pestaña de Clientes (Layout solicitado)
 const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
 
+// CONFIGURACION FACTUREO
+const FOLDER_PRE_FACTURAS_ID = '1e3vWl-xSpxmHl8A1-x5eR0P4h_Z3K8Sj'; // Ejemplo, se puede crear dinámicamente
+const INVOICE_TEMPLATE_ID = ''; // Si el usuario no tiene una, generaremos una dinámica
+
 /**
  * Crea un menú en la hoja de cálculo al abrirse.
  */
@@ -326,14 +330,12 @@ function doPost(e) {
       
       const base64Data = payload.base64.split(',')[1] || payload.base64;
       const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
-      // Estandarizar nombre: [TIPO]_[OPERADOR]_[FECHA]
       const fileName = `COMPROBANTE_${payload.operatorName}_${today}`;
       
       const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType, fileName);
       const file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       
-      // Actualizar la hoja de Servicios
       const sheet = initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
       upsertRow(sheet, SCRIPT_DB_HEADERS, {
         "ID": payload.serviceId,
@@ -346,6 +348,121 @@ function doPost(e) {
         url: file.getUrl()
       })).setMimeType(ContentService.MimeType.JSON);
     }
+
+    else if (action === "generatePreFactura") {
+      return handleGeneratePreFactura(ss, payload.serviceId);
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Lógica principal para generar el PDF de Pre-Factura
+ */
+function handleGeneratePreFactura(ss, serviceId) {
+  try {
+    const servicesSheet = ss.getSheetByName("Servicios");
+    const clientsSheet = ss.getSheetByName("Clientes");
+    
+    const services = getSheetData(servicesSheet, SCRIPT_DB_HEADERS);
+    const service = services.find(s => s.ID.toString() === serviceId.toString());
+    if (!service) throw new Error("Servicio no encontrado.");
+
+    const clients = getSheetData(clientsSheet, CLIENT_HEADERS);
+    const client = clients.find(c => c.Nombre === service.Cliente);
+    if (!client) throw new Error("Cliente no encontrado para este servicio.");
+
+    // 1. Obtener carpeta de destino
+    let folder;
+    try {
+      folder = DriveApp.getFolderById(FOLDER_PRE_FACTURAS_ID);
+    } catch(e) {
+      folder = DriveApp.createFolder("Pre-Facturas");
+    }
+
+    // 2. Cálculos Financieros
+    const total = parseFloat(service.Monto) || 0;
+    const neto = Math.round(total / 1.19);
+    const iva = total - neto;
+
+    // 3. Crear documento temporal basado en diseño solicitado
+    // Nota: Por simplicidad técnica inicial, creamos un Doc desde cero con el formato
+    const docName = `PRE_FACTURA_${client.Nombre}_${service.ID}`;
+    const doc = DocumentApp.create(docName);
+    const body = doc.getBody();
+
+    // Estilos generales
+    body.setMarginTop(30).setMarginBottom(30).setMarginLeft(40).setMarginRight(40);
+
+    // Encabezado
+    const headerTable = body.appendTable([
+      ["LOGO\nLOGI&TRADE", "LOGIPRO SPA\nGiro: Transporte de Carga\nCalle Ejemplo 123 - Santiago", "R.U.T.: 76.543.210-K\n\nSIMULACIÓN DE FACTURA\n\nNº " + service.ID]
+    ]);
+    headerTable.setBorderWidth(0);
+    headerTable.getRow(0).getCell(2).setBackgroundColor("#fffafa").setPaddingTop(10).setPaddingBottom(10);
+    // Nota: El cuadro rojo se simula con bordes en el PDF final o texto coloreado
+    headerTable.getRow(0).getCell(2).getChild(0).asParagraph().setColor("#ff0000").setBold(true);
+
+    body.appendHorizontalRule();
+
+    // Datos Receptor
+    const receptorBox = body.appendTable([
+      ["SEÑOR(ES): " + client.Nombre, "R.U.T.: " + (client["RUT Cliente"] || "---")],
+      ["GIRO: " + (client.Giro || "---"), "FECHA: " + service["Fecha de Servicio"]],
+      ["DIRECCIÓN: " + (client.Dirección || "---"), "COMUNA: " + (client.Comuna || "---")]
+    ]);
+    receptorBox.setBorderWidth(0.5).setColumnWidth(0, 300);
+
+    body.appendParagraph("\n");
+
+    // Tabla de Detalle
+    const detailTable = body.appendTable([
+      ["DESCRIPCIÓN", "CANT", "P. UNITARIO", "TOTAL"]
+    ]);
+    detailTable.getRow(0).setAttributes({[DocumentApp.Attribute.BACKGROUND_COLOR]: "#f3f4f6", [DocumentApp.Attribute.BOLD]: true});
+    detailTable.appendRow([service["Tipo Servicio"] + " - DESTINO: " + service.Destino, "1", total.toLocaleString('es-CL'), total.toLocaleString('es-CL')]);
+    
+    // Rellenar espacio para que se vea como factura
+    for(let i=0; i<5; i++) detailTable.appendRow(["", "", "", ""]);
+
+    body.appendParagraph("\n");
+
+    // Totales
+    const totalTable = body.appendTable([
+      ["", "MONTO NETO $", neto.toLocaleString('es-CL')],
+      ["", "I.V.A. 19% $", iva.toLocaleString('es-CL')],
+      ["", "TOTAL $", total.toLocaleString('es-CL')]
+    ]);
+    totalTable.setBorderWidth(0).setColumnWidth(1, 100).setColumnWidth(2, 80);
+    totalTable.getRow(2).getCell(2).setBold(true);
+
+    // Marca de Agua (Texto al final o pie de página)
+    body.appendParagraph("\n\n\n\n\n\nBORRADOR - NO VÁLIDO PARA SII").setAlignment(DocumentApp.HorizontalAlignment.CENTER).setItalic(true).setForegroundColor("#cccccc");
+
+    doc.saveAndClose();
+
+    // 4. Convertir a PDF y Guardar
+    const pdfBlob = doc.getAs('application/pdf');
+    const pdfFile = folder.createFile(pdfBlob);
+    pdfFile.setName(docName + ".pdf");
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // 5. Limpieza
+    DriveApp.getFileById(doc.getId()).setTrashed(true);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      url: pdfFile.getUrl(),
+      id: pdfFile.getId()
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch(e) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: e.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
