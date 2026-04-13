@@ -196,7 +196,9 @@
                     <p id="sidebar-user-name" class="text-xs font-bold text-slate-700 truncate">Usuario</p>
                     <p id="sidebar-user-role" class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Rol</p>
                 </div>
-                <i class="fa-solid fa-gear text-slate-400 text-xs"></i>
+                <button onclick="event.stopPropagation(); handleLogout()" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
             </a>
         </div>
     </aside>
