@@ -1901,7 +1901,7 @@
         }
 
         function updateEstado(id, val) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(row) {
                 row.estado = val;
                 refreshAllViews(); // optimistic update
@@ -1910,7 +1910,7 @@
         }
 
         function updateEstadoFactura(id, val) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(row) {
                 row.estadoFactura = val;
                 refreshAllViews(); // optimistic update
@@ -1919,7 +1919,7 @@
         }
 
         function updateNroFactura(id, val) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(row) {
                 row.nroFactura = val;
                 syncServiceToDB(row); 
@@ -1931,7 +1931,7 @@
         let currentUploadRowId = null;
 
         function clickFactura(id) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(row) {
                 if(row.driveUrl && !row.isUploading) {
                     // Open Drive URL instead of Local Blob
@@ -1957,7 +1957,7 @@
         async function processFacturaUpload(event) {
             const file = event.target.files[0];
             if(file && currentUploadRowId) {
-                const row = excelData.find(x => x.id === currentUploadRowId);
+                const row = excelData.find(x => x.id == currentUploadRowId);
                 if(row) {
                     row.isUploading = true;
                     refreshAllViews();
@@ -2011,7 +2011,7 @@
         }
 
         function replaceFactura(id) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(row && row.driveUrl) {
                 const estadoFact = row.estadoFactura ? row.estadoFactura.toLowerCase() : 'pendiente';
                 if (estadoFact !== 'ok' && estadoFact !== 'ok / pagado') {
@@ -2055,7 +2055,7 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <select onchange="updateEstado(${row.id}, this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <select onchange="updateEstado('${row.id}', this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                         <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
                         <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
                     </select>
@@ -2063,7 +2063,7 @@
 
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <select onchange="updateEstadoFactura('${row.id}', this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                         <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
                         <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
                     </select>
@@ -2075,13 +2075,13 @@
                 } else if(row.driveUrl) {
                     facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
                 } else {
-                    facturaIcon = `<button onclick="clickFactura(${row.id})" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                    facturaIcon = `<button onclick="clickFactura('${row.id}')" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
                 }
 
                 const pNroFact = row.nroFactura || '';
                 const factColumn = `
                     <div class="flex items-center justify-center gap-1">
-                        <input type="text" value="${pNroFact}" onchange="updateNroFactura(${row.id}, this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
+                        <input type="text" value="${pNroFact}" onchange="updateNroFactura('${row.id}', this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
                         ${facturaIcon}
                     </div>
                 `;
@@ -2106,8 +2106,8 @@
                     <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editService(${row.id})" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="deleteService(${row.id})" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
+                            <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -2135,7 +2135,7 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <select onchange="updateEstado(${row.id}, this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <select onchange="updateEstado('${row.id}', this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                         <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
                         <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
                     </select>
@@ -2143,7 +2143,7 @@
 
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura(${row.id}, this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <select onchange="updateEstadoFactura('${row.id}', this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                         <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
                         <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
                     </select>
@@ -2155,13 +2155,13 @@
                 } else if(row.driveUrl) {
                     facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
                 } else {
-                    facturaIcon = `<button onclick="clickFactura(${row.id})" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                    facturaIcon = `<button onclick="clickFactura('${row.id}')" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
                 }
 
                 const pNroFact = row.nroFactura || '';
                 const factColumn = `
                     <div class="flex items-center justify-center gap-1">
-                        <input type="text" value="${pNroFact}" onchange="updateNroFactura(${row.id}, this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
+                        <input type="text" value="${pNroFact}" onchange="updateNroFactura('${row.id}', this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
                         ${facturaIcon}
                     </div>
                 `;
@@ -2187,8 +2187,8 @@
                     <td class="px-3 py-2 text-center">${estadoFacturaSelect}</td>
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editService(${row.id})" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="deleteService(${row.id})" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
+                            <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -2197,12 +2197,12 @@
 
         // DELETE SERVICE
         async function deleteService(id) {
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(!row) return;
             if(!confirm(`¿Eliminar este servicio de ${row.tipoServicio} (${row.destino}) de forma permanente?`)) return;
             
             // Optimistic: remove from local array
-            excelData = excelData.filter(x => x.id !== id);
+            excelData = excelData.filter(x => x.id != id);
             refreshAllViews();
             showToast("Servicio eliminado localmente.");
             
@@ -2234,7 +2234,7 @@
 
         function editService(id) {
             currentEditServiceId = id;
-            const row = excelData.find(x => x.id === id);
+            const row = excelData.find(x => x.id == id);
             if(!row) return;
 
             document.getElementById('modal-client-label').innerText = currentUserClient;
@@ -2274,7 +2274,7 @@
             let rowToSync = null;
 
             if (currentEditServiceId) {
-                const row = excelData.find(x => x.id === currentEditServiceId);
+                const row = excelData.find(x => x.id == currentEditServiceId);
                 if(row) {
                     row.operador = document.getElementById('fm-operador').value || "-";
                     row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
@@ -2696,7 +2696,7 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-right">
-                         <button onclick="event.stopPropagation(); generateOrdenCarga(${s.id})" title="Imprimir Orden" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded shadow-sm transition-all uppercase">
+                         <button onclick="event.stopPropagation(); generateOrdenCarga('${s.id}')" title="Imprimir Orden" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded shadow-sm transition-all uppercase">
                             <i class="fa-solid fa-file-invoice"></i> Orden de Carga
                         </button>
                     </td>
@@ -2762,7 +2762,7 @@
         }
 
         async function updateOperatorServiceStatus(id, newStatus) {
-            const row = excelData.find(x => x.id.toString() === id.toString());
+            const row = excelData.find(x => x.id.toString() == id.toString());
             if(!row) return;
 
             row.estado = newStatus; // Local update
