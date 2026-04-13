@@ -610,6 +610,54 @@
                     <!-- Las tarjetas se cargar\u00e1n aqu\u00ed -->
                 </div>
             </div>
+
+            <!-- SEC: DETALLE DE FACTURA (WORKSPACE) -->
+            <div id="sec-factura-detalle" class="content-section animate-fade-in hidden">
+                <div class="flex items-center gap-4 mb-6 border-b border-gray-100 pb-4">
+                    <button onclick="switchSection('facturacion')" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-primary-900 hover:bg-white border border-transparent hover:border-slate-200 transition-all">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Espacio de Trabajo de Facturaci&oacute;n</h1>
+                        <p class="text-slate-500 text-sm mt-0.5" id="detail-factura-subtitle">Procesando servicio...</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <!-- Columna Izquierda: PRE-FACTURA -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">1</div>
+                            <h2 class="text-lg font-bold text-slate-800">Herramienta de Pre-Factura</h2>
+                        </div>
+                        
+                        <div id="pre-factura-info" class="space-y-4 mb-8">
+                            <!-- Info del servicio cargada din\u00e1micamente -->
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3">
+                            <button id="btn-revisar-datos" class="w-full bg-primary-900 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-primary-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary-900/10">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                Revisar datos de facturaci&oacute;n
+                            </button>
+                            <button id="btn-generar-prefactura" class="w-full bg-slate-50 text-slate-400 py-3.5 rounded-2xl font-bold text-sm cursor-not-allowed border border-slate-200 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                Generar pre factura
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: FACTURACI\u00d3N -->
+                    <div class="bg-slate-50/50 p-6 rounded-3xl border border-dashed border-slate-200 min-h-[400px] flex flex-col items-center justify-center text-center">
+                        <div class="flex items-center gap-3 mb-4 opacity-40">
+                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center font-bold">2</div>
+                            <h2 class="text-lg font-bold text-slate-800">Herramienta de Facturaci&oacute;n</h2>
+                        </div>
+                        <i class="fa-solid fa-lock text-3xl text-slate-200 mb-4"></i>
+                        <p class="text-slate-400 text-sm max-w-xs">Esta secci&oacute;n se habilitar&aacute; una vez que la pre-factura est&eacute; lista.</p>
+                    </div>
+                </div>
+            </div>
             <!-- SEC: BALANCE -->
             <div id="sec-balance" class="content-section animate-fade-in hidden">
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Balance Financiero</h1>
@@ -1502,6 +1550,7 @@
 
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 px-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center gap-6";
+                card.onclick = () => openFacturaDetalle(srv.id);
                 
                 const isFactOk = srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado';
                 const statusLabel = isFactOk ? 'FACTURADO' : 'PENDIENTE';
@@ -1544,6 +1593,46 @@
                 `;
                 container.appendChild(card);
             });
+        }
+
+        let currentDetailServiceId = null;
+
+        function openFacturaDetalle(id) {
+            currentDetailServiceId = id;
+            const srv = excelData.find(s => s.id == id);
+            if(!srv) return;
+
+            // Actualizar Subt\u00edtulo
+            document.getElementById('detail-factura-subtitle').innerText = `Servicio #${srv.id} - ${srv.cliente}`;
+            
+            // Cargar info en la columna de Pre-factura
+            const infoContainer = document.getElementById('pre-factura-info');
+            infoContainer.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cliente</p>
+                    <p class="font-bold text-slate-800">${srv.cliente}</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Detalle del Servicio</p>
+                    <p class="font-bold text-slate-800">${srv.tipoServicio || 'Servicio de Log\u00edstica'}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto Neto</p>
+                        <p class="font-bold text-slate-800">$${Number(srv.monto).toLocaleString('es-CL')}</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado</p>
+                        <p class="font-bold text-orange-600">${srv.estadoFactura || 'PENDIENTE'}</p>
+                    </div>
+                </div>
+            `;
+
+            // Configurar botones
+            document.getElementById('btn-revisar-datos').onclick = () => editService(id);
+            // El de generar pre-factura queda como placeholder por ahora
+            
+            switchSection('factura-detalle');
         }
 
         function renderClientsList() {
