@@ -98,6 +98,11 @@
         .force-uppercase {
             text-transform: uppercase;
         }
+
+        /* Ocultar flecha de autocompletado en navegadores webkit */
+        input::-webkit-calendar-picker-indicator {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800 selection:bg-primary-100 selection:text-primary-900 bg-slate-50 relative">
