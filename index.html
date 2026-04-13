@@ -712,7 +712,7 @@
                             <!-- Acciones más discretas -->
                             <div class="flex items-center gap-2 mb-2">
                                 <button type="button" onclick="closeBillingReview()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600 transition-all">Descartar</button>
-                                <button type="button" onclick="handleBillingReviewSubmit(event)" class="bg-primary-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-800 transition-all shadow-md flex items-center gap-2">
+                                <button type="button" id="btn-save-billing-review" onclick="handleBillingReviewSubmit(event, this)" class="bg-primary-900 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-primary-800 transition-all shadow-md flex items-center gap-2">
                                     <span>Guardar Revisión</span>
                                     <i class="fa-solid fa-check text-[9px]"></i>
                                 </button>
@@ -1864,18 +1864,16 @@
             document.getElementById('br-total-final').innerText = `$ ${total.toLocaleString('es-CL')}`;
         }
 
-        async function handleBillingReviewSubmit(event) {
-            event.preventDefault();
+        async function handleBillingReviewSubmit(event, btnElement = null) {
+            if(event) event.preventDefault();
+            
             if(!currentDetailServiceId) {
                 showToast("Error: No hay ID de servicio activo", "error");
                 return;
             }
 
-            // Selector robusto de botón (Incluso si está fuera del formulario por el atributo 'form')
-            let btn = event.submitter;
-            if(!btn) {
-                btn = document.querySelector('button[form="billing-review-form"]');
-            }
+            // Identificar el botón de forma infalible
+            let btn = btnElement || (event && event.currentTarget) || document.getElementById('btn-save-billing-review');
             if(!btn) return;
 
             const originalHtml = btn.innerHTML;
