@@ -529,6 +529,7 @@
                     </div>
                     
                     <form id="new-service-form" onsubmit="handleServiceSubmit(event)" class="space-y-6">
+                        <input type="hidden" id="fm-srv-id">
                         <div class="flex flex-col md:flex-row gap-0">
                             <!-- Columna Izquierda: OPERADOR -->
                             <div class="flex-1 p-2 md:pr-8 space-y-4">
@@ -642,6 +643,57 @@
                 </div>
             </div>
 
+            <!-- MODAL: CONFIGURAR PRE-FACTURA -->
+            <div id="modal-prefactura-config" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-scale-up overflow-hidden">
+                    <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-emerald-600 text-white">
+                        <div>
+                            <h2 class="text-xl font-bold">Generar Pre-Factura</h2>
+                            <p class="text-[10px] opacity-80 uppercase tracking-widest font-bold">Configuración de documento</p>
+                        </div>
+                        <button onclick="closePrefacturaConfig()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="prefactura-config-form" onsubmit="handlePrefacturaSubmit(event)" class="p-8 space-y-6">
+                        <input type="hidden" id="pf-srv-id">
+                        
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Cliente de Facturación</label>
+                                <input type="text" id="pf-cliente" readonly class="w-full bg-slate-50 border border-slate-100 text-slate-700 px-4 py-3 rounded-xl text-sm font-bold cursor-default">
+                            </div>
+                            
+                            <div class="col-span-2 space-y-3">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción de Servicios</label>
+                                <textarea id="pf-descripcion" required rows="4" class="w-full bg-white border border-slate-200 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-emerald-500 outline-none transition-all placeholder:text-slate-300 resize-none leading-relaxed" placeholder="Ej: Servicios de transporte logístico correspondientes al mes de Abril..."></textarea>
+                                <p class="text-[10px] text-slate-400 font-medium italic">Esta descripción aparecerá en el centro del documento PDF.</p>
+                            </div>
+
+                            <div class="col-span-2 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-emerald-600">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-emerald-800">Monto del Servicio</p>
+                                    <p id="pf-monto-display" class="text-lg font-black text-emerald-600">$ 0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 pt-4">
+                            <button type="button" onclick="closePrefacturaConfig()" class="flex-1 bg-white border border-slate-200 text-slate-500 py-3.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="flex-1 bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eye"></i> Visualizar y Generar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Hidden generic file input for Factura Upload logic -->
             <input type="file" id="factura-upload-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" onchange="processFacturaUpload(event)">
 
@@ -689,9 +741,20 @@
 
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
                     <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-4">
-                            <h2 class="font-bold text-slate-800">Servicios Pendientes por Facturar</h2>
-                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full" id="facturas-count">0</span>
+                        <div class="flex items-center gap-6">
+                            <h2 class="font-bold text-slate-800">Facturación</h2>
+                            <!-- Pestañas -->
+                            <div class="flex items-center bg-slate-100 p-1 rounded-xl">
+                                <button id="tab-fact-pendientes" onclick="switchFacturasTab('pendientes')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-primary-900 shadow-sm">
+                                    Pendientes <span id="fact-count-pend" class="ml-1 opacity-50 text-[10px]">0</span>
+                                </button>
+                                <button id="tab-fact-facturadas" onclick="switchFacturasTab('facturadas')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-700">
+                                    Facturadas <span id="fact-count-ok" class="ml-1 opacity-50 text-[10px]">0</span>
+                                </button>
+                                <button id="tab-fact-todas" onclick="switchFacturasTab('todas')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-700">
+                                    Todas <span id="fact-count-all" class="ml-1 opacity-50 text-[10px]">0</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="relative w-full md:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -1803,6 +1866,38 @@
             document.getElementById('clientes-list').classList.replace('hidden', 'block');
         }
 
+        function renderClientTable() {
+            const tbody = document.getElementById('client-services-tbody');
+            if(!tbody) return;
+            
+            const clientServices = excelData.filter(s => s.cliente === currentUserClient);
+            
+            if(clientServices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No hay servicios registrados para este cliente.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = clientServices.map(s => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 font-semibold text-slate-700">${s.fechaServicio}</td>
+                    <td class="px-4 py-3 text-slate-600">${s.tipoServicio}</td>
+                    <td class="px-4 py-3 text-slate-500">${s.destino}</td>
+                    <td class="px-4 py-3 font-bold text-slate-900">$ ${Number(s.monto || 0).toLocaleString('es-CL')}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${s.estado === 'PAGADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'} uppercase">
+                            ${s.estado}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="openServiceModal('edit', '${s.id}')" class="text-slate-400 hover:text-primary-900 transition-colors"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="deleteService('${s.id}')" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
         // PROSPECTOS LOGIC
         function showProspectos() {
             document.getElementById('clientes-list').classList.replace('block', 'hidden');
@@ -2168,8 +2263,8 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-1">
-                            <button onclick="generateSimularFactura('${s.id}')" id="btn-sim-${s.id}" title="Simulacin PDF" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 rounded-lg transition-all">
-                                 <i class="fa-solid fa-file-pdf"></i>
+                            <button onclick="openPrefacturaConfig('${s.id}')" title="Generar Pre-Factura" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-emerald-500 hover:border-emerald-200 rounded-lg transition-all">
+                                 <i class="fa-solid fa-file-invoice-dollar"></i>
                             </button>
                             ${s.estadoFactura === 'Pendiente' ? `
                                 <button onclick="openVincularModal('${s.id}')" class="bg-primary-900 text-white hover:bg-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
@@ -2342,29 +2437,33 @@
 
         function handleServiceSubmit(e) {
             e.preventDefault();
-            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
+            btn.disabled = true;
+
+            const rowId = document.getElementById('fm-srv-id').value;
             let rowToSync = null;
 
-            if (currentEditServiceId) {
-                const row = excelData.find(x => x.id === currentEditServiceId);
-                if(row) {
-                    row.operador = document.getElementById('fm-operador').value || "-";
-                    row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
-                    row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
-                    row.destino = document.getElementById('fm-destino').value || "-";
-                    row.costo = document.getElementById('fm-costo').value || "-";
-                    row.monto = document.getElementById('fm-monto').value || "-";
-                    row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
-                    row.estado = document.getElementById('fm-estado').value;
-                    row.estadoFactura = document.getElementById('fm-estadoFactura').value;
-                    row.ocHes = document.getElementById('fm-oc').value || "-";
-                    row.cotizacion = document.getElementById('fm-cot').value || "-";
-                    
-                    rowToSync = row;
-                }
+            const existingIdx = excelData.findIndex(x => x.id.toString() === rowId.toString());
+
+            if (existingIdx !== -1) {
+                const row = excelData[existingIdx];
+                row.operador = document.getElementById('fm-operador').value || "-";
+                row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
+                row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
+                row.destino = document.getElementById('fm-destino').value || "-";
+                row.costo = document.getElementById('fm-costo').value || "-";
+                row.monto = document.getElementById('fm-monto').value || "-";
+                row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
+                row.estado = document.getElementById('fm-estado').value;
+                row.estadoFactura = document.getElementById('fm-estadoFactura').value;
+                row.ocHes = document.getElementById('fm-oc').value || "-";
+                row.cotizacion = document.getElementById('fm-cot').value || "-";
+                rowToSync = row;
             } else {
                 const newRow = {
-                    id: Date.now(),
+                    id: rowId || Date.now(),
                     cliente: currentUserClient,
                     operador: document.getElementById('fm-operador').value || "-",
                     fechaServicio: document.getElementById('fm-fechaServicio').value || "-",
@@ -2390,7 +2489,13 @@
 
             // PUSH TO DB
             if(rowToSync) {
-                syncServiceToDB(rowToSync);
+                syncServiceToDB(rowToSync).finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            } else {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
@@ -3012,6 +3117,135 @@
                 if (e.target === modal) modal.classList.add('hidden');
             });
         });
+
+        // --- PRE-FACTURA SYSTEM ---
+
+        function openPrefacturaConfig(serviceId) {
+            const s = excelData.find(x => x.id.toString() === serviceId.toString());
+            if(!s) return showToast("No se encontr\u00f3 el servicio.");
+
+            document.getElementById('pf-srv-id').value = s.id;
+            document.getElementById('pf-cliente').value = s.cliente;
+            document.getElementById('pf-monto-display').innerText = `$ ${Number(s.monto || 0).toLocaleString('es-CL')}`;
+            // Pre-llenar descripci\u00f3n
+            document.getElementById('pf-descripcion').value = `SERVICIOS DE LOG\u00cdSTICA CORRESPONDIENTES A ${s.tipoServicio.toUpperCase()} CON DESTINO ${s.destino.toUpperCase()} - OC: ${s.ocHes || 'S/N'}`;
+            
+            document.getElementById('modal-prefactura-config').classList.remove('hidden');
+        }
+
+        function closePrefacturaConfig() {
+            document.getElementById('modal-prefactura-config').classList.add('hidden');
+        }
+
+        function handlePrefacturaSubmit(e) {
+            e.preventDefault();
+            const srvId = document.getElementById('pf-srv-id').value;
+            const descripcion = document.getElementById('pf-descripcion').value;
+            const service = excelData.find(x => x.id.toString() === srvId.toString());
+            
+            closePrefacturaConfig();
+            generatePrefacturaPDF(service, descripcion);
+        }
+
+        function generatePrefacturaPDF(row, descripcionPersonalizada) {
+            const printWindow = window.open('', '_blank');
+            const fechaActual = new Date().toLocaleDateString('es-CL');
+            const montoNeto = Number(row.monto || 0);
+            const iva = Math.round(montoNeto * 0.19);
+            const total = montoNeto + iva;
+
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Pre-Factura #${row.id}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; color: #334155; line-height: 1.6; }
+                        .pdf-container { max-width: 800px; margin: auto; border: 1px solid #e2e8f0; padding: 40px; border-top: 10px solid #059669; }
+                        .header-row { display: flex; justify-content: space-between; margin-bottom: 50px; }
+                        .logo-area h1 { margin: 0; color: #1e3a8a; font-size: 28px; letter-spacing: -1px; }
+                        .logo-area p { margin: 0; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+                        .doc-info { text-align: right; }
+                        .doc-info h2 { margin: 0; color: #059669; font-size: 20px; text-transform: uppercase; }
+                        .doc-info p { margin: 0; font-weight: bold; font-size: 14px; }
+                        .client-box { background: #f8fafc; padding: 20px; border-radius: 15px; margin-bottom: 40px; }
+                        .client-box h3 { margin: 0 0 10px 0; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+                        .client-box p { margin: 0; font-size: 16px; font-weight: bold; color: #1e292b; }
+                        .services-table { width: 100%; border-collapse: collapse; margin-bottom: 50px; }
+                        .services-table th { text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 12px; color: #64748b; text-transform: uppercase; }
+                        .services-table td { padding: 25px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+                        .totals-area { float: right; width: 300px; margin-top: -20px; }
+                        .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
+                        .total-row.grand { border-top: 2px solid #e2e8f0; margin-top: 10px; padding-top: 15px; color: #059669; font-size: 18px; font-weight: 900; }
+                        .footer { margin-top: 150px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+                        <button onclick="window.print()" style="background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Imprimir / Guardar PDF</button>
+                    </div>
+                    <div class="pdf-container">
+                        <div class="header-row">
+                            <div class="logo-area">
+                                <h1>LogiPro</h1>
+                                <p>Transporte & Log\u00edstica Integral</p>
+                            </div>
+                            <div class="doc-info">
+                                <h2>Pre-Factura de Cobro</h2>
+                                <p>Ref: #${row.id}</p>
+                                <p>Fecha: ${fechaActual}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="client-box">
+                            <h3>CLIENTE / SOLICITANTE</h3>
+                            <p>${row.cliente}</p>
+                        </div>
+
+                        <table class="services-table">
+                            <thead>
+                                <tr>
+                                    <th>Descripci\u00f3n de los Servicios</th>
+                                    <th style="text-align: right;">Total Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 500;">${descripcionPersonalizada}</td>
+                                    <td style="text-align: right; font-weight: bold;">$ ${montoNeto.toLocaleString('es-CL')}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="totals-area">
+                            <div class="total-row">
+                                <span>Sub-Total Neto:</span>
+                                <span>$ ${montoNeto.toLocaleString('es-CL')}</span>
+                            </div>
+                            <div class="total-row">
+                                <span>IVA (19%):</span>
+                                <span>$ ${iva.toLocaleString('es-CL')}</span>
+                            </div>
+                            <div class="total-row grand">
+                                <span>TOTAL A PAGAR:</span>
+                                <span>$ ${total.toLocaleString('es-CL')}</span>
+                            </div>
+                        </div>
+
+                        <div style="clear: both;"></div>
+                        
+                        <div class="footer">
+                            <p>LOGIPRO SPA - RUT: 77.234.XXX-X - Direcci\u00f3n: San Juan 1234, Santiago, Chile</p>
+                            <p>Este documento no constituye una factura legal para efectos del SII, es solo un comprobante de cobro anticipado.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
 
         window.addEventListener('load', () => {
             initAutocomplete();
