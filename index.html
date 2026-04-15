@@ -151,7 +151,7 @@
     <div id="app-wrapper" class="flex w-full h-full hidden">
     <!-- Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 md:flex z-20">
-        <div class="h-16 flex items-center px-6 border-b border-gray-100 bg-white">
+        <div id="sidebar-logo-container" class="h-16 flex items-center px-6 border-b border-gray-100 bg-white">
             <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
                 <i class="fa-solid fa-earth-americas text-sm"></i>
             </div>
@@ -191,7 +191,7 @@
         </div>
         
         <div class="border-t border-gray-100 bg-gray-50/50">
-            <a href="#perfil" onclick="switchSection('perfil')" id="nav-perfil" class="nav-item p-4 flex items-center hover:bg-gray-100 border-r-4 border-transparent transition-colors cursor-pointer">
+            <a onclick="openPasswordModal()" id="nav-perfil" class="nav-item p-4 flex items-center hover:bg-gray-100 border-r-4 border-transparent transition-colors cursor-pointer">
                 <div class="relative">
                     <div id="sidebar-user-initials" class="h-9 w-9 rounded bg-slate-200 flex items-center justify-center text-primary-900 font-bold border border-slate-300">??</div>
                     <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -207,8 +207,9 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen relative bg-white min-w-0">
-        <header class="h-16 glass-header flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+    <main id="main-container" class="flex-1 flex flex-col h-screen relative bg-white min-w-0 transition-colors">
+        <!-- HEADER ADMINISTRADOR -->
+        <header id="admin-header" class="h-16 glass-header flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
             <div class="flex items-center w-full max-w-lg relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-300"></i>
                 <input type="text" placeholder="Buscar clientes, facturas o ajustes..." class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded text-sm focus:border-primary-900 focus:bg-white outline-none text-slate-700 transition-colors">
@@ -222,8 +223,70 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-6 md:p-8" id="main-scroll">
-            
+        <div class="flex-1 overflow-y-auto p-4 md:p-8" id="main-scroll">
+
+            <!-- SEC: CLIENTE HOME (Solo visible en modo cliente) -->
+            <div id="sec-cliente-home" class="content-section animate-fade-in hidden w-full max-w-7xl mx-auto">
+                <!-- KPIs resumidos para el cliente -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full max-w-5xl mx-auto px-2">
+                    <div class="bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mr-4">
+                            <i class="fa-solid fa-truck-fast text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Servicios Activos</p>
+                            <h4 id="stat-client-active" class="text-2xl font-black text-slate-800 tracking-tight">0</h4>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center border-l-4 border-l-[#8a2be2]">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-50 text-[#8a2be2] flex items-center justify-center mr-4">
+                            <i class="fa-solid fa-coins text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Total Mes</p>
+                            <h4 id="stat-client-total" class="text-2xl font-black text-slate-800 tracking-tight">$0</h4>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center mr-4">
+                            <i class="fa-solid fa-map-location-dot text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5">Último Destino</p>
+                            <h4 id="stat-client-last" class="text-sm font-bold text-slate-800 truncate max-w-[150px]">---</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tareas / Servicios -->
+                <div class="w-full max-w-5xl mx-auto">
+                    <div class="flex justify-between items-center mb-4 px-2">
+                        <h2 class="text-xl font-bold text-slate-800 tracking-tight">Mis Servicios Programados</h2>
+                        <button onclick="showToast('Solicitud de nuevo servicio próximamente disponible', 'info')" class="border border-[#8a2be2]/30 text-[#8a2be2] hover:bg-[#8a2be2] hover:text-white px-5 py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm flex items-center bg-white"><i class="fa-solid fa-plus mr-2"></i> Nuevo</button>
+                    </div>
+                    
+                    <div class="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-gray-100 p-2 md:p-6 pb-2">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap min-w-[600px] border-collapse">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-50 text-slate-800 font-bold">
+                                        <th class="py-4 px-4 font-bold rounded-tl-xl text-xs">Fecha de inicio</th>
+                                        <th class="py-4 px-4 font-bold text-xs">Destino</th>
+                                        <th class="py-4 px-4 font-bold text-xs">Cliente</th>
+                                        <th class="py-4 px-4 font-bold text-xs">Costo</th>
+                                        <th class="py-4 px-4 font-bold text-xs">Progreso</th>
+                                        <th class="py-4 px-4 rounded-tr-xl w-10 text-center"><i class="fa-solid fa-list text-slate-400"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="client-table-body" class="text-slate-600 font-medium">
+                                   <tr><td colspan="6" class="py-10 text-center text-slate-400">Sin servicios registrados...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- SEC: CLIENTES -->
             <div id="sec-clientes" class="content-section animate-fade-in block">
                 
@@ -952,6 +1015,109 @@
                 </div>
             </div>
 
+            <!-- Modal Actualizar Contraseña -->
+            <div id="password-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl p-8 w-full max-w-sm animate-fade-in relative">
+                    <button type="button" onclick="closePasswordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100/50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                    
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-primary-900 mb-3 border border-primary-100 shadow-sm">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 tracking-tight">Actualizar Contraseña</h3>
+                        <p class="text-xs text-slate-500 mt-1 text-center">Protege tu cuenta actualizando tu clave de acceso regularmente.</p>
+                    </div>
+
+                    <form id="fm-password" onsubmit="handlePasswordSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-1">Contraseña Actual</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="password" id="fm-pass-old" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-gray-200 text-slate-800 rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-1">Nueva Contraseña</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="password" id="fm-pass-new" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-gray-200 text-slate-800 rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all" placeholder="Nueva clave">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 ml-1">Confirmar Nueva Contraseña</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-check-double absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="password" id="fm-pass-confirm" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-gray-200 text-slate-800 rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all" placeholder="Repite la nueva clave">
+                            </div>
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" id="pass-submit-btn" class="w-full bg-gradient-to-r from-primary-900 to-primary-700 hover:from-primary-800 hover:to-primary-600 shadow-lg shadow-primary-900/20 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up mr-1 text-sm"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal Detalles para Cliente (Solo lectura) -->
+            <div id="service-client-detail-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+                <div class="bg-white rounded-[32px] border border-gray-200 shadow-2xl p-8 w-full max-w-2xl animate-fade-in relative">
+                    <button type="button" onclick="closeServiceClientDetail()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full w-10 h-10 flex items-center justify-center transition-all"><i class="fa-solid fa-xmark"></i></button>
+                    
+                    <div class="mb-8 border-b border-gray-100 pb-6">
+                        <span id="dt-client-status" class="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">Sincronizando...</span>
+                        <h3 id="dt-client-id" class="text-2xl font-black text-slate-800 tracking-tight leading-none">ID Servicio</h3>
+                        <p class="text-slate-500 text-sm mt-2 flex items-center"><i class="fa-regular fa-clock mr-2"></i> Fecha del servicio: <span id="dt-client-fecha" class="font-bold text-slate-700 ml-1">---</span></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Información de Ruta</label>
+                                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                    <p class="text-xs text-slate-500 mb-1">Destino Final</p>
+                                    <p id="dt-client-destino" class="text-sm font-bold text-slate-800 leading-tight">---</p>
+                                    <hr class="my-3 border-slate-200/50">
+                                    <p class="text-xs text-slate-500 mb-1">Tipo de Servicio</p>
+                                    <p id="dt-client-tipo" class="text-sm font-bold text-slate-800">---</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Finanzas</label>
+                                <div class="bg-purple-50/50 rounded-2xl p-4 border border-purple-100">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xs text-purple-600 font-bold">Costo del Servicio</p>
+                                        <p id="dt-client-costo" class="text-lg font-black text-slate-800">---</p>
+                                    </div>
+                                    <hr class="my-3 border-purple-200/30">
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-slate-500">Estado de Facturación:</span>
+                                        <span id="dt-client-est-factura" class="font-bold text-slate-800">---</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Documentación y Notas</label>
+                             <div class="space-y-4">
+                                <div>
+                                    <p class="text-xs text-slate-500 mb-1">OC / HES</p>
+                                    <p id="dt-client-oc" class="text-sm font-bold text-slate-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">---</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 mb-1">Descripción de Facturación</p>
+                                    <div id="dt-client-desc" class="text-sm text-slate-600 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 min-h-[80px] leading-relaxed">---</div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end pt-4 border-t border-gray-100 italic text-[11px] text-slate-400">
+                        * Si detectas alguna inconsistencia en los datos de este servicio, por favor contacta a tu ejecutivo de cuentas.
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal Nuevo/Edicion Colaborador -->
             <div id="colab-modal" class="hidden fixed inset-0 bg-slate-900/20 z-[100] flex items-center justify-center p-4">
                 <div class="bg-white rounded border border-gray-200 shadow-lg p-6 w-full max-w-md animate-fade-in">
@@ -970,9 +1136,16 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nivel de Privilegios</label>
-                            <select id="fm-colab-rol" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
+                            <select id="fm-colab-rol" onchange="toggleColabCliente()" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
                                 <option value="Colaborador" selected>Colaborador (Visualización y Datos)</option>
                                 <option value="SuperAdmin">SuperAdmin (Gestión de Equipo)</option>
+                                <option value="CLIENTE">Cliente (Vista de su propia Empresa)</option>
+                            </select>
+                        </div>
+                        <div id="div-colab-cliente" class="hidden mt-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Empresa Vinculada <span class="text-red-500">*</span></label>
+                            <select id="fm-colab-cliente" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
+                                <option value="">— Seleccionar Empresa —</option>
                             </select>
                         </div>
                         
@@ -1311,7 +1484,11 @@
                 const result = await res.json();
                 
                 if (result.status === "success") {
-                    activeSession = { nombre: result.user.Nombre, rol: result.user.Rol };
+                    activeSession = { 
+                        nombre: result.user.Nombre, 
+                        rol: result.user.Rol,
+                        clienteAsociado: result.user["Cliente Asociado"] || ""
+                    };
                     
                     const sessionData = JSON.stringify({ nombre, pass });
                     if (remember) {
@@ -1329,6 +1506,35 @@
                         document.getElementById('nav-equipo').classList.add('hidden');
                     } else {
                         document.getElementById('nav-equipo').classList.remove('hidden');
+                    }
+                    
+                    if(activeSession.rol === 'CLIENTE') {
+                        // Modo Cliente ENCENDIDO
+                        ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                        document.getElementById('main-container').classList.add('bg-[#f8f9fa]'); 
+                        document.getElementById('sidebar-logo-container').innerHTML = `
+                            <div class="flex items-center justify-start w-full overflow-visible">
+                                <img src="logo-cliente.png" alt="Logi & Trade" class="h-16 w-auto object-cover scale-[3.5] origin-left -ml-2 pointer-events-none select-none">
+                            </div>
+                        `;
+                        
+                        switchSection('cliente-home');
+                        setTimeout(renderClientServicesTable, 300);
+                    } else {
+                        // Modo Administración ENCENDIDO
+                        document.getElementById('main-container').classList.remove('bg-[#f8f9fa]');
+
+                        ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+                        document.getElementById('sec-perfil').innerHTML = `<h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>`;
+                        document.getElementById('sidebar-logo-container').innerHTML = `
+                            <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
+                                <i class="fa-solid fa-earth-americas text-sm"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-primary-900 tracking-tight leading-none">Logi Pro</span>
+                                <span class="text-[8px] font-black text-primary-900/30 uppercase tracking-widest mt-0.5 ml-0.5">v1.1.1</span>
+                            </div>
+                        `;
                     }
 
                     document.getElementById('login-wrapper').classList.add('hidden');
@@ -1364,6 +1570,73 @@
                     btn.innerHTML = `<span>Ingresar</span>`;
                     btn.disabled = false;
                 }
+            }
+        }
+
+        function openPasswordModal() {
+            document.getElementById('fm-password').reset();
+            document.getElementById('password-modal').classList.remove('hidden');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+        }
+
+        async function handlePasswordSubmit(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('fm-pass-old').value;
+            const newPass = document.getElementById('fm-pass-new').value;
+            const confirmPass = document.getElementById('fm-pass-confirm').value;
+
+            if(newPass !== confirmPass) {
+                showToast("Las contraseñas no coinciden.");
+                return;
+            }
+            if(newPass.length < 4) {
+                showToast("La nueva clave es muy corta.");
+                return;
+            }
+
+            const btn = document.getElementById('pass-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Actualizando...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'changePassword',
+                        nombre: activeSession.nombre,
+                        oldPass: oldPass,
+                        newPass: newPass
+                    })
+                });
+
+                if (!res.ok) throw new Error("Error de red");
+                const result = await res.json();
+
+                if(result.status === "success") {
+                    showToast(result.message);
+                    // Actualizar localStorage si mantuvimos la sesión
+                    const stored = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
+                    if(stored) {
+                        const parsed = JSON.parse(stored);
+                        parsed.pass = newPass;
+                        if(localStorage.getItem('logi_session')) localStorage.setItem('logi_session', JSON.stringify(parsed));
+                        else sessionStorage.setItem('logi_session', JSON.stringify(parsed));
+                    }
+                    closePasswordModal();
+                } else {
+                    showToast(result.message || "Contraseña actual incorrecta.");
+                }
+            } catch(e) {
+                console.error("Change Pass Error:", e);
+                showToast("Falló la conexión al servidor.");
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
             }
         }
 
@@ -1406,7 +1679,7 @@
                 }));
                 
                 colaboradoresData = (result.colaboradores || []).map(u => ({
-                    nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email
+                    nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email, clienteAsociado: u["Cliente Asociado"] || ""
                 }));
                 
                 operadoresData = (result.base_operadores || []).map(mapFromSheetOperador);
@@ -1434,6 +1707,11 @@
                 // Actualizar vistas de servicios si existen
                 if(typeof renderServicesList === 'function') renderServicesList();
                 if(typeof renderSearchServicesList === 'function') renderSearchServicesList();
+
+                // REFRESCAR PORTAL DE CLIENTE
+                if(activeSession && activeSession.rol === 'CLIENTE') {
+                    renderClientServicesTable();
+                }
             }
         }
 
@@ -1502,13 +1780,14 @@
                         ${colab.clave}
                     </td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colab.rol === 'SuperAdmin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-green-100 text-green-800 border-green-200'} border">
-                            <span class="w-1.5 h-1.5 rounded-full ${colab.rol === 'SuperAdmin' ? 'bg-indigo-500' : 'bg-green-500'}"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colab.rol === 'SuperAdmin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : colab.rol === 'CLIENTE' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'} border">
+                            <span class="w-1.5 h-1.5 rounded-full ${colab.rol === 'SuperAdmin' ? 'bg-indigo-500' : colab.rol === 'CLIENTE' ? 'bg-blue-500' : 'bg-green-500'}"></span>
                             ${colab.rol}
                         </span>
                         <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${colab.estado === 'Activo' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'}">
                             ${colab.estado || 'Activo'}
                         </span>
+                        ${colab.clienteAsociado && colab.rol === 'CLIENTE' ? `<div class="text-xs text-slate-500 mt-2 font-medium"><i class="fa-regular fa-building mr-1"></i> ${colab.clienteAsociado}</div>` : ''}
                     </td>
                     <td class="px-6 py-4 text-right">
                         ${colab.nombre !== 'admi.sistem' ? `
@@ -1521,12 +1800,34 @@
             });
         }
 
+        function toggleColabCliente() {
+            const rol = document.getElementById('fm-colab-rol').value;
+            const div = document.getElementById('div-colab-cliente');
+            const sel = document.getElementById('fm-colab-cliente');
+            if(rol === 'CLIENTE') {
+                div.classList.remove('hidden');
+                sel.required = true;
+            } else {
+                div.classList.add('hidden');
+                sel.required = false;
+                sel.value = '';
+            }
+        }
+
         function openColaboradorModal() {
             document.getElementById('fm-colab').reset();
             document.getElementById('colab-modal-title').innerText = 'Nuevo Colaborador';
             // Disable editing nombre on edit, leave open for new
             document.getElementById('fm-colab-nombre').readOnly = false;
             document.getElementById('fm-colab-nombre').classList.remove('bg-gray-100');
+            
+            const selectCliente = document.getElementById('fm-colab-cliente');
+            selectCliente.innerHTML = '<option value="">— Seleccionar Empresa —</option>';
+            clientsData.forEach(c => {
+                selectCliente.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+            });
+            toggleColabCliente();
+
             document.getElementById('colab-modal').classList.remove('hidden');
         }
 
@@ -1540,6 +1841,17 @@
             document.getElementById('fm-colab-nombre').classList.add('bg-gray-100');
             document.getElementById('fm-colab-clave').value = colab.clave;
             document.getElementById('fm-colab-rol').value = colab.rol;
+            
+            const selectCliente = document.getElementById('fm-colab-cliente');
+            selectCliente.innerHTML = '<option value="">— Seleccionar Empresa —</option>';
+            clientsData.forEach(c => {
+                selectCliente.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+            });
+            toggleColabCliente();
+            if(colab.clienteAsociado) {
+                selectCliente.value = colab.clienteAsociado;
+            }
+
             document.getElementById('colab-modal-title').innerText = 'Editar Colaborador';
             document.getElementById('colab-modal').classList.remove('hidden');
         }
@@ -1555,7 +1867,8 @@
                 "Clave": document.getElementById('fm-colab-clave').value.trim(),
                 "Rol": document.getElementById('fm-colab-rol').value,
                 "Estado": "Activo",
-                "Email": "" // Se puede expandir luego si agregan el input
+                "Email": "", // Se puede expandir luego si agregan el input
+                "Cliente Asociado": document.getElementById('fm-colab-rol').value === 'CLIENTE' ? document.getElementById('fm-colab-cliente').value : ""
             };
 
             try {
@@ -1598,7 +1911,8 @@
                 "Clave": colab.clave,
                 "Rol": colab.rol,
                 "Estado": "Inactivo",
-                "Email": colab.email || ""
+                "Email": colab.email || "",
+                "Cliente Asociado": colab.clienteAsociado || ""
             };
             
             try {
@@ -3311,6 +3625,114 @@
             
             printWindow.document.write(html);
             printWindow.document.close();
+        }
+
+        // --- RENDERIZADO MODO CLIENTE (GCA STYLE) ---
+        function renderClientServicesTable() {
+            const tbody = document.getElementById('client-table-body');
+            if(!tbody) return;
+            
+            // Filtrar servicios donde Cliente coincida con el asociado al usuario
+            const myClientName = (activeSession && activeSession.clienteAsociado) ? activeSession.clienteAsociado : '';
+            const misServicios = (window.excelData || []).filter(s => s.cliente && s.cliente.toLowerCase() === myClientName.toLowerCase());
+            
+            // Renderizar KPIs primero
+            renderClientKPIs(misServicios);
+
+            if(misServicios.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400 font-normal">Aún no tienes servicios asignados.</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            // Renderizar los servicios del cliente ordenados por fecha desc
+            const sorted = [...misServicios].sort((a,b) => {
+                const da = a.fechaServicio ? new Date(a.fechaServicio) : new Date(0);
+                const db = b.fechaServicio ? new Date(b.fechaServicio) : new Date(0);
+                return db - da;
+            });
+
+            sorted.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-50/50 hover:bg-slate-50/40 transition-colors group cursor-pointer";
+                tr.onclick = () => openClientServiceDetail(s.id || s.ID);
+
+                // Color de progreso según Estado Pago + Estado Factura
+                let dotColor = 'bg-yellow-400';
+                let textColor = 'text-yellow-600';
+                let progressText = 'En revisión';
+                
+                if(s.estadoPago === 'Pagado') {
+                    dotColor = 'bg-green-500'; textColor = 'text-green-600'; progressText = 'Finalizado';
+                } else if(s.estadoPago === 'Anulado' || s.estadoFactura === 'Rechazada') {
+                    dotColor = 'bg-red-500'; textColor = 'text-red-600'; progressText = 'Cancelado';
+                } else if(s.estadoPago === 'Pendiente') {
+                    dotColor = 'bg-orange-400'; textColor = 'text-orange-600'; progressText = 'Pendiente';
+                }
+                
+                tr.innerHTML = `
+                    <td class="py-5 px-4 text-slate-500 font-medium whitespace-nowrap text-xs">${s.fechaServicio || '---'}</td>
+                    <td class="py-5 px-4 text-slate-800 font-bold max-w-[200px] truncate group-hover:text-primary-900 transition-colors" title="${s.destino || 'Sin Destino'}">${s.destino || '---'}</td>
+                    <td class="py-5 px-4 text-slate-500 truncate min-w-[120px] max-w-[150px]" title="${s.cliente}">${s.cliente || '---'}</td>
+                    <td class="py-5 px-4 text-slate-800 font-black">${formatMoney(s.costo)}</td>
+                    <td class="py-5 px-4">
+                        <span class="inline-flex items-center text-[10px] font-black uppercase tracking-widest ${textColor}">
+                            <span class="w-1.5 h-1.5 rounded-full ${dotColor} mr-2"></span>
+                            ${progressText}
+                        </span>
+                    </td>
+                    <td class="py-5 px-4 text-center">
+                        <button class="text-slate-300 group-hover:text-primary-900 h-8 w-8 rounded-full transition-all inline-flex items-center justify-center bg-transparent group-hover:bg-primary-50"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderClientKPIs(servicios) {
+            const activeCount = servicios.filter(s => s.estadoPago !== 'Pagado' && s.estadoPago !== 'Anulado').length;
+            const now = new Date();
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+
+            const totalMonth = servicios.reduce((acc, s) => {
+                const fs = s.fechaServicio ? new Date(s.fechaServicio) : null;
+                if(fs && fs.getMonth() === thisMonth && fs.getFullYear() === thisYear && s.estadoPago !== 'Anulado') {
+                    return acc + (parseFloat(s.costo) || 0);
+                }
+                return acc;
+            }, 0);
+
+            const lastDest = servicios.length > 0 ? servicios.sort((a,b) => new Date(b.fechaServicio) - new Date(a.fechaServicio))[0].destino : '---';
+
+            document.getElementById('stat-client-active').innerText = activeCount;
+            document.getElementById('stat-client-total').innerText = formatMoney(totalMonth);
+            document.getElementById('stat-client-last').innerText = lastDest || '---';
+        }
+
+        function openClientServiceDetail(id) {
+            const s = (window.excelData || []).find(x => (x.id || x.ID) == id);
+            if(!s) return;
+
+            document.getElementById('dt-client-id').innerText = s.id || s.ID || 'S/N';
+            document.getElementById('dt-client-fecha').innerText = s.fechaServicio || '---';
+            document.getElementById('dt-client-destino').innerText = s.destino || '---';
+            document.getElementById('dt-client-tipo').innerText = s.tipoServicio || '---';
+            document.getElementById('dt-client-costo').innerText = formatMoney(s.costo);
+            document.getElementById('dt-client-est-factura').innerText = s.estadoFactura || 'Pendiente';
+            document.getElementById('dt-client-oc').innerText = s.ocHes || 'Sin OC registrada';
+            document.getElementById('dt-client-desc').innerText = s.descripcionFacturacion || 'Sin descripción adicional.';
+
+            const statusBadge = document.getElementById('dt-client-status');
+            statusBadge.innerText = (s.estadoPago || 'Pendiente').toUpperCase();
+            statusBadge.className = "inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 " + 
+                (s.estadoPago === 'Pagado' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700");
+
+            document.getElementById('service-client-detail-modal').classList.remove('hidden');
+        }
+
+        function closeServiceClientDetail() {
+            document.getElementById('service-client-detail-modal').classList.add('hidden');
         }
 
         // --- SISTEMA DE AUTOCOMPLETADO (SII) ---
