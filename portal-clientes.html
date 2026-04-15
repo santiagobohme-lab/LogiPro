@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Clientes - Logi Trade</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        logiblue: '#244BFE'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Impact', 'Arial Black', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; margin: 0; padding: 0; }
+        .text-impact { font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 0.5px; }
+
+        /* Gradiente de desvanecimiento para la imagen */
+        .fade-mask {
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%);
+            mask-image: linear-gradient(to right, transparent 0%, black 20%);
+        }
+        
+        @media (max-width: 1024px) {
+            .fade-mask {
+                -webkit-mask-image: linear-gradient(to top, transparent 0%, black 50%);
+                mask-image: linear-gradient(to top, transparent 0%, black 50%);
+            }
+        }
+
+        /* Estilo input */
+        .glass-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            border-color: #244BFE;
+            box-shadow: 0 0 0 4px rgba(36, 75, 254, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row overflow-x-hidden relative">
+
+    <!-- Lado Izquierdo (Formulario y Textos) -->
+    <div class="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 py-12 lg:py-0 z-10 bg-white min-h-screen relative">
+        
+        <!-- Contenedor Principal (Max width para que no se estire demasiado) -->
+        <div class="max-w-md w-full mx-auto lg:mx-0 lg:ml-auto lg:mr-12 xl:mr-24 relative z-10 z-20">
+            
+            <!-- Logo -->
+            <div class="mb-12">
+                <img src="logo-cliente.png" alt="Logi Trade" class="h-16 w-auto object-contain">
+                <div class="mt-4 inline-block px-3 py-1 bg-logiblue/10 text-logiblue text-[10px] font-black uppercase tracking-widest rounded-full border border-logiblue/20">
+                    Área Exclusiva
+                </div>
+            </div>
+
+            <!-- Header Text -->
+            <div class="mb-10 text-left">
+                <h1 class="text-impact text-5xl sm:text-6xl text-logiblue leading-[0.9] tracking-tight uppercase mb-4">
+                    Portal<br>Clientes
+                </h1>
+                <h2 class="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-[0.2em] border-b-2 border-slate-400 pb-2 inline-block mb-4">
+                    Soluciones a tu medida
+                </h2>
+                <p class="text-slate-600 text-sm font-medium leading-relaxed max-w-sm">
+                    Acceso centralizado para la gestión de servicios, trazabilidad operativa y descarga de documentación fiscal en tiempo real.
+                </p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="portal-login-form" onsubmit="handlePortalLogin(event)" class="space-y-5">
+                
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Usuario / Nombre</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                        <input type="text" id="p-user" required class="glass-input w-full pl-11 pr-4 py-3.5 rounded-xl text-slate-800 font-semibold" placeholder="Ingresa tu nombre">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </div>
+                        <input type="password" id="p-pass" required class="glass-input w-full pl-11 pr-4 py-3.5 rounded-xl text-slate-800 font-semibold" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <!-- Error Box -->
+                <div id="p-error-box" class="hidden bg-red-50 border border-red-200 text-red-600 text-xs font-bold px-4 py-3 rounded-xl flex items-center">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> <span id="p-error-text">Credenciales incorrectas.</span>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="p-submit-btn" class="w-full bg-logiblue hover:bg-logiblue/90 text-white font-bold text-sm py-4 rounded-xl shadow-lg shadow-logiblue/30 transition-all uppercase tracking-widest flex items-center justify-center">
+                        <span>Ingresar a mi portal</span> <i class="fa-solid fa-arrow-right ml-2 opacity-80"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-8 text-left border-t border-slate-100 pt-6">
+                 <p class="text-[11px] text-slate-400 font-medium">¿Problemas para acceder? Contacta a tu ejecutivo de cuentas en <span class="text-logiblue font-bold">Logi Trade</span>.</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Lado Derecho (Imagen con Fade) -->
+    <!-- Reemplazar el src con una imagen real del camión si se desea, ahora usa un camión logístico genérico HQ -->
+    <div class="absolute inset-0 lg:static lg:w-1/2 min-h-screen opacity-10 lg:opacity-100 z-0">
+        <div class="h-full w-full bg-slate-100 fade-mask">
+            <img src="https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?q=80&w=2070&auto=format&fit=crop" alt="Logística y Transporte" class="w-full h-full object-cover object-center">
+        </div>
+        <!-- Overlays para darle el tono Logi Trade -->
+        <div class="absolute inset-0 bg-white/20 mix-blend-overlay pointer-events-none"></div>
+    </div>
+
+    <!-- Lógica de Conexión -->
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrMmFzWDWGTNBxriKIlltgKh1HKKgLJpsLso6fOgcHoUUeBfZLnQaN4EFAQSGrIxc_/exec";
+
+        // Prevenir acceso si ya está logueado
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentSession = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
+            if (currentSession) {
+                const parsed = JSON.parse(currentSession);
+                if (parsed && parsed.rol === 'CLIENTE') {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+
+        async function handlePortalLogin(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('p-submit-btn');
+            const errBox = document.getElementById('p-error-box');
+            const errText = document.getElementById('p-error-text');
+            
+            const user = document.getElementById('p-user').value.trim();
+            const pass = document.getElementById('p-pass').value.trim();
+
+            if (!user || !pass) return;
+
+            // UI Loading...
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xl"></i>`;
+            btn.disabled = true;
+            btn.className = "w-full bg-slate-400 text-white font-bold text-sm py-4 rounded-xl cursor-not-allowed flex items-center justify-center";
+            errBox.classList.add('hidden');
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: "follow",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: 'login',
+                        nombre: user,
+                        pass: pass
+                    })
+                });
+
+                if (!res.ok) throw new Error("Error de red");
+                const result = await res.json();
+
+                if (result.status === "success" && result.user) {
+                    
+                    // Verificar si es un CLIENTE (Solo clientes entran por este portal)
+                    if (result.user.Rol !== 'CLIENTE') {
+                        errText.innerText = "Acceso denegado. Este portal es exclusivo para Clientes.";
+                        errBox.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Guardar sesión (Persistente por defecto para clientes)
+                    const sessionData = {
+                        nombre: result.user.Nombre,
+                        rol: result.user.Rol,
+                        email: result.user.Email,
+                        clienteAsociado: result.user["Cliente Asociado"] || '',
+                        pass: result.user.Clave,
+                        loginRedirect: true
+                    };
+                    
+                    localStorage.setItem('logi_session', JSON.stringify(sessionData));
+                    
+                    // Mostrar éxito breve y redirigir
+                    btn.className = "w-full bg-green-500 text-white font-bold text-sm py-4 rounded-xl transition-all shadow-lg shadow-green-500/30 uppercase tracking-widest flex items-center justify-center";
+                    btn.innerHTML = `<span>Acceso Correcto</span> <i class="fa-solid fa-check ml-2"></i>`;
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 800);
+
+                } else {
+                    errText.innerText = result.message || "Usuario o Contraseña incorrectos.";
+                    errBox.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                errText.innerText = "Error de conexión. Intente nuevamente.";
+                errBox.classList.remove('hidden');
+            } finally {
+                // Reset UI si hubo error
+                if(!localStorage.getItem('logi_session')) {
+                    btn.className = "w-full bg-logiblue hover:bg-logiblue/90 text-white font-bold text-sm py-4 rounded-xl shadow-lg shadow-logiblue/30 transition-all uppercase tracking-widest flex items-center justify-center";
+                    btn.innerHTML = `<span>Ingresar a mi portal</span> <i class="fa-solid fa-arrow-right ml-2 opacity-80"></i>`;
+                    btn.disabled = false;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
