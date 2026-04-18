@@ -36,7 +36,10 @@ async function loadOperators() {
     }
 
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'syncOperatorData' })
+        });
         const data = await res.json();
         if (data.status === 'success') {
             localStorage.setItem('logipro-cache-operators', JSON.stringify(data.base_operadores));
@@ -70,7 +73,10 @@ async function fetchServices() {
     loader.classList.remove('hidden');
     
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'syncOperatorData' })
+        });
         const data = await res.json();
         if (data.status === 'success') {
             // FIX DUPLICATES & MISMATCHES: Trim and ignore case
@@ -249,7 +255,7 @@ async function updateStatus(newStatus) {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
-                action: 'upsertService',
+                action: 'operatorUpdateStatus',
                 data: {
                     "ID": s.ID,
                     "Estado Ruta": newStatus

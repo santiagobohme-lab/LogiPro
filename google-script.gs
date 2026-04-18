@@ -159,19 +159,26 @@ function getFullSystemData(ss) {
   sheetsConfig.forEach(cfg => {
     let sheet = ss.getSheetByName(cfg.name);
     if (!sheet) sheet = initSheet(ss, cfg.name, cfg.headers);
-    data[cfg.key] = getSheetData(sheet, cfg.headers);
+    let mappedData = getSheetData(sheet, cfg.headers);
+    
+    if (cfg.key === "colaboradores") {
+      mappedData = mappedData.map(row => {
+        let safeRow = {...row};
+        delete safeRow["Clave"];
+        return safeRow;
+      });
+    }
+    data[cfg.key] = mappedData;
   });
 
   return data;
 }
 
 function doGet(e) {
-  try {
-    const ss = getSS();
-    return ContentService.createTextOutput(JSON.stringify(getFullSystemData(ss))).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  }
+  return ContentService.createTextOutput(JSON.stringify({ 
+    status: "error", 
+    message: "Método GET no permitido. Acceso denegado." 
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -186,10 +193,45 @@ function doPost(e) {
       const user = users.find(u => u.Nombre.toString().toLowerCase() === payload.nombre.toString().toLowerCase() && u.Clave.toString() === payload.pass.toString());
       if (user) {
         if (user.Estado !== "Activo") throw new Error("Usuario inactivo");
-        return ContentService.createTextOutput(JSON.stringify({ status: "success", user: user, ...getFullSystemData(ss) })).setMimeType(ContentService.MimeType.JSON);
+        
+        const token = Utilities.getUuid();
+        CacheService.getScriptCache().put(token, JSON.stringify(user), 21600);
+        
+        const safeUser = {...user};
+        delete safeUser["Clave"];
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", user: safeUser, token: token, ...getFullSystemData(ss) })).setMimeType(ContentService.MimeType.JSON);
       } else {
         throw new Error("Nombre o Clave incorrectos");
       }
+    }
+
+    if (action === "syncOperatorData") {
+      const s_sheet = ss.getSheetByName("Servicios") || initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
+      const o_sheet = ss.getSheetByName("Base_Operadores") || initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
+      return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          servicios: getSheetData(s_sheet, SCRIPT_DB_HEADERS),
+          base_operadores: getSheetData(o_sheet, OPERATOR_HEADERS)
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "operatorUpdateStatus") {
+      upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, payload.data, "ID");
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const token = payload.token;
+    if (!token) throw new Error("Acceso denegado: Se requiere un Token de sesión.");
+    
+    const cachedSessionStr = CacheService.getScriptCache().get(token);
+    if (!cachedSessionStr) throw new Error("Sesión expirada o inválida. Inicia sesión nuevamente.");
+    
+    const sessionUser = JSON.parse(cachedSessionStr);
+
+    if (action === "validateSession" || action === "syncData") {
+      const safeUser = {...sessionUser};
+      delete safeUser["Clave"];
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", user: safeUser, token: token, ...getFullSystemData(ss) })).setMimeType(ContentService.MimeType.JSON);
     }
 
     if (action === "changePassword") {

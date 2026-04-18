@@ -179,6 +179,10 @@
                     <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
                     <span>Balance</span>
                 </a>
+                <a href="#trading" onclick="switchSection('trading')" id="nav-trading" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-solid fa-arrow-trend-up w-6 text-slate-400"></i>
+                    <span>Trading</span>
+                </a>
                 <a href="#operadores" onclick="switchSection('operadores')" id="nav-operadores" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-solid fa-truck w-6 text-slate-400"></i>
                     <span>Operadores</span>
@@ -862,6 +866,35 @@
                 <h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Balance Financiero</h1>
             </div>
 
+            <!-- SEC: TRADING -->
+            <div id="sec-trading" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-end mb-6 border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Trading</h1>
+                        <p class="text-slate-500 text-sm mt-1">Operaciones globales e internas.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+                    <button onclick="setTradingTab('GLOBAL')" id="btn-trading-global" class="px-6 py-2 rounded-lg text-sm font-bold transition-all border bg-white text-primary-900 shadow-sm border-slate-200">Global</button>
+                    <button onclick="setTradingTab('INTERNA')" id="btn-trading-interna" class="px-6 py-2 rounded-lg text-sm font-bold transition-all border text-slate-500 hover:bg-white/50 border-transparent">Interna</button>
+                </div>
+
+                <div id="trading-global" class="block animate-fade-in">
+                    <div class="border border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-globe text-3xl mb-3 opacity-50"></i>
+                        <p class="text-sm font-medium">Sección global vacía por ahora</p>
+                    </div>
+                </div>
+                
+                <div id="trading-interna" class="hidden animate-fade-in">
+                    <div class="border border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-building text-3xl mb-3 opacity-50"></i>
+                        <p class="text-sm font-medium">Sección interna vacía por ahora</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- SEC: OPERADORES -->
             <div id="sec-operadores" class="content-section animate-fade-in hidden">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
@@ -1284,6 +1317,17 @@
             if(sectionId === 'servicios') renderGlobalServicesTable();
         }
 
+        function setTradingTab(tab) {
+            document.getElementById('btn-trading-global').className = 'px-6 py-2 rounded-lg text-sm font-bold transition-all border ' + (tab === 'GLOBAL' ? 'bg-white text-primary-900 shadow-sm border-slate-200' : 'text-slate-500 hover:bg-white/50 border-transparent');
+            document.getElementById('btn-trading-interna').className = 'px-6 py-2 rounded-lg text-sm font-bold transition-all border ' + (tab === 'INTERNA' ? 'bg-white text-primary-900 shadow-sm border-slate-200' : 'text-slate-500 hover:bg-white/50 border-transparent');
+            
+            document.getElementById('trading-global').classList.toggle('hidden', tab !== 'GLOBAL');
+            document.getElementById('trading-global').classList.toggle('block', tab === 'GLOBAL');
+            
+            document.getElementById('trading-interna').classList.toggle('hidden', tab !== 'INTERNA');
+            document.getElementById('trading-interna').classList.toggle('block', tab === 'INTERNA');
+        }
+
         // --- GLOBAL VARIABLES & GOOGLE APPS SCRIPT URL ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrMmFzWDWGTNBxriKIlltgKh1HKKgLJpsLso6fOgcHoUUeBfZLnQaN4EFAQSGrIxc_/exec";
         
@@ -1409,7 +1453,8 @@
                 cotizacion: sheetObj["Cotización"] || "-",
                 nroFactura: sheetObj["Nº Factura"] || "",
                 driveUrl: sheetObj["Link Archivo"] || "",
-                factura: sheetObj["Link Archivo"] ? "Archivo_Google_Drive" : ""
+                factura: sheetObj["Link Archivo"] ? "Archivo_Google_Drive" : "",
+                descripcionFacturacion: sheetObj["DESCRIPCIÓN FACTURACIÓN"] || ""
             };
         };
 
@@ -1428,7 +1473,8 @@
             "OC / HES": row.ocHes,
             "Cotización": row.cotizacion,
             "Nº Factura": row.nroFactura,
-            "Link Archivo": row.driveUrl || ""
+            "Link Archivo": row.driveUrl || "",
+            "DESCRIPCIÓN FACTURACIÓN": row.descripcionFacturacion || ""
         });
 
         // AUTH & SESSION LOGIC
@@ -1436,7 +1482,6 @@
             const saved = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
             if(saved) {
                 const creds = JSON.parse(saved);
-                // Mostrar estado de carga inmediato para mejorar UX
                 const btn = document.getElementById('login-btn');
                 const checkbox = document.getElementById('login-remember');
                 const isPersistent = !!localStorage.getItem('logi_session');
@@ -1447,7 +1492,34 @@
                     btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Validando sesión...`;
                     btn.disabled = true;
                 }
-                performLogin(creds.nombre, creds.pass, isPersistent);
+                
+                if (creds.token) {
+                    validateTokenSession(creds.token, isPersistent);
+                } else {
+                    performLogin(creds.nombre, creds.pass, isPersistent);
+                }
+            }
+        }
+
+        async function validateTokenSession(token, remember) {
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'validateSession', token }),
+                    redirect: 'follow'
+                });
+                if (!res.ok) throw new Error("Error de red");
+                const result = await res.json();
+                
+                if (result.status === "success") {
+                    handleLoginSuccess(result, { token }, remember);
+                } else {
+                    handleLoginFail(result.message);
+                }
+            } catch(e) {
+                console.error(e);
+                handleLoginFail("Error al validar sesión de seguridad.");
             }
         }
 
@@ -1476,100 +1548,86 @@
                     redirect: 'follow'
                 });
 
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(`Servidor respondió con estado ${res.status}: ${text.substring(0, 100)}`);
-                }
-
+                if (!res.ok) throw new Error("Error de red");
                 const result = await res.json();
                 
                 if (result.status === "success") {
-                    activeSession = { 
-                        nombre: result.user.Nombre, 
-                        rol: result.user.Rol,
-                        clienteAsociado: result.user["Cliente Asociado"] || ""
-                    };
-                    
-                    const sessionData = JSON.stringify({ nombre, pass });
-                    if (remember) {
-                        localStorage.setItem('logi_session', sessionData);
-                        sessionStorage.removeItem('logi_session'); // Limpiar el temporal si pasamos a persistente
-                    } else {
-                        sessionStorage.setItem('logi_session', sessionData);
-                    }
-                    
-                    document.getElementById('sidebar-user-name').innerText = activeSession.nombre;
-                    document.getElementById('sidebar-user-initials').innerText = activeSession.nombre.substring(0, 2).toUpperCase();
-                    document.getElementById('sidebar-user-role').innerText = activeSession.rol;
-                    
-                    if(activeSession.rol !== 'SuperAdmin') {
-                        document.getElementById('nav-equipo').classList.add('hidden');
-                    } else {
-                        document.getElementById('nav-equipo').classList.remove('hidden');
-                    }
-                    
-                    if(activeSession.rol === 'CLIENTE') {
-                        // Modo Cliente ENCENDIDO
-                        ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                        document.getElementById('main-container').classList.add('bg-[#f8f9fa]'); 
-                        document.getElementById('sidebar-logo-container').innerHTML = `
-                            <div class="flex items-center justify-start w-full overflow-visible">
-                                <img src="logo-cliente.png" alt="Logi & Trade" class="h-16 w-auto object-cover scale-[3.5] origin-left -ml-2 pointer-events-none select-none">
-                            </div>
-                        `;
-                        
-                        switchSection('cliente-home');
-                        setTimeout(renderClientServicesTable, 300);
-                    } else {
-                        // Modo Administración ENCENDIDO
-                        document.getElementById('main-container').classList.remove('bg-[#f8f9fa]');
-
-                        ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.remove('hidden'));
-                        document.getElementById('sec-perfil').innerHTML = `<h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>`;
-                        document.getElementById('sidebar-logo-container').innerHTML = `
-                            <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
-                                <i class="fa-solid fa-earth-americas text-sm"></i>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-xl font-bold text-primary-900 tracking-tight leading-none">Logi Pro</span>
-                                <span class="text-[8px] font-black text-primary-900/30 uppercase tracking-widest mt-0.5 ml-0.5">v1.1.1</span>
-                            </div>
-                        `;
-                    }
-
-                    document.getElementById('login-wrapper').classList.add('hidden');
-                    document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
-                    
-                    showToast(`¡Bienvenido/a, ${activeSession.nombre}!`);
-                    
-                    // PROCESAR DATOS EMBEBIDOS (OPTIMIZACIÓN)
-                    processSystemData(result);
+                    handleLoginSuccess(result, { token: result.token }, remember);
                 } else {
-                    // Si las credenciales ya no son válidas, limpiar todo
-                    if(localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session')) {
-                        showToast("La sesión ha expirado o las credenciales cambiaron.");
-                    } else {
-                        showToast(result.message || "Credenciales inválidas.");
-                    }
-                    localStorage.removeItem('logi_session');
-                    sessionStorage.removeItem('logi_session');
-                    
-                    // Restaurar botón si estaba en auto-login
-                    const btn = document.getElementById('login-btn');
-                    if(btn) {
-                        btn.innerHTML = `<span>Ingresar</span>`;
-                        btn.disabled = false;
-                    }
+                    handleLoginFail(result.message);
                 }
             } catch(e) {
-                console.error("Login Error:", e);
-                showToast("Error de conexión al iniciar sesión.");
-                // Si hay error de red, no borramos la sesión para permitir reintento al recargar
-                const btn = document.getElementById('login-btn');
-                if(btn) {
-                    btn.innerHTML = `<span>Ingresar</span>`;
-                    btn.disabled = false;
-                }
+                console.error(e);
+                handleLoginFail("Error de conexión al iniciar sesión.");
+            }
+        }
+
+        function handleLoginSuccess(result, sessionPayload, remember) {
+            activeSession = { 
+                nombre: result.user.Nombre, 
+                rol: result.user.Rol,
+                clienteAsociado: result.user["Cliente Asociado"] || "",
+                token: sessionPayload.token
+            };
+            
+            const sessionData = JSON.stringify(sessionPayload);
+            if (remember) {
+                localStorage.setItem('logi_session', sessionData);
+                sessionStorage.removeItem('logi_session');
+            } else {
+                sessionStorage.setItem('logi_session', sessionData);
+            }
+            
+            document.getElementById('sidebar-user-name').innerText = activeSession.nombre;
+            document.getElementById('sidebar-user-initials').innerText = activeSession.nombre.substring(0, 2).toUpperCase();
+            document.getElementById('sidebar-user-role').innerText = activeSession.rol;
+            
+            if(activeSession.rol !== 'SuperAdmin') {
+                document.getElementById('nav-equipo').classList.add('hidden');
+            } else {
+                document.getElementById('nav-equipo').classList.remove('hidden');
+            }
+            
+            if(activeSession.rol === 'CLIENTE') {
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-trading'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                document.getElementById('main-container').classList.add('bg-[#f8f9fa]'); 
+                document.getElementById('sidebar-logo-container').innerHTML = `
+                    <div class="flex items-center justify-start w-full overflow-visible">
+                        <img src="logo-cliente.png" alt="Logi & Trade" class="h-16 w-auto object-cover scale-[3.5] origin-left -ml-2 pointer-events-none select-none">
+                    </div>
+                `;
+                switchSection('cliente-home');
+                setTimeout(renderClientServicesTable, 300);
+            } else {
+                document.getElementById('main-container').classList.remove('bg-[#f8f9fa]');
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-trading'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+                document.getElementById('sec-perfil').innerHTML = `<h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>`;
+                document.getElementById('sidebar-logo-container').innerHTML = `
+                    <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
+                        <i class="fa-solid fa-earth-americas text-sm"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold text-primary-900 tracking-tight leading-none">Logi Pro</span>
+                        <span class="text-[8px] font-black text-primary-900/30 uppercase tracking-widest mt-0.5 ml-0.5">v1.1.1</span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('login-wrapper').classList.add('hidden');
+            document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
+            
+            showToast(`¡Bienvenido/a, ${activeSession.nombre}!`);
+            processSystemData(result);
+        }
+
+        function handleLoginFail(message) {
+            showToast(message || "Credenciales inválidas o sesión expirada.");
+            localStorage.removeItem('logi_session');
+            sessionStorage.removeItem('logi_session');
+            const btn = document.getElementById('login-btn');
+            if(btn) {
+                btn.innerHTML = `<span>Ingresar</span>`;
+                btn.disabled = false;
             }
         }
 
@@ -1608,6 +1666,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'changePassword',
+                        token: activeSession.token,
                         nombre: activeSession.nombre,
                         oldPass: oldPass,
                         newPass: newPass
@@ -1651,14 +1710,23 @@
                 isGlobalLoading = true;
                 showToast("Sincronizando con base de datos...");
                 
-                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'syncData', token: activeSession.token }),
+                    redirect: 'follow'
+                });
                 if (!res.ok) throw new Error(`Estado ${res.status}`);
                 const result = await res.json();
                 
+                if(result.status === "error") throw new Error(result.message);
                 processSystemData(result);
             } catch(e) {
                 console.error("Init Data Error:", e);
                 showToast("Error al sincronizar datos del servidor.");
+                if (e.message && (e.message.includes("Token") || e.message.includes("denegado"))) {
+                    handleLogout();
+                }
             } finally {
                 isGlobalLoading = false;
             }
@@ -1724,6 +1792,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'upsertService',
+                        token: activeSession.token,
                         data: mapToSheetService(row)
                     })
                 });
@@ -1737,6 +1806,31 @@
             }
         }
 
+        /**
+         * Helper general para llamadas al backend. 
+         * Abstrae el fetch y manejo de errores básico.
+         */
+        async function callGoogleScript(action, payload = {}) {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: action,
+                        token: activeSession.token,
+                        ...payload
+                    })
+                });
+                if (!response.ok) throw new Error("Error de red");
+                const result = await response.json();
+                if (result.status === "error") throw new Error(result.message || "Error en el servidor");
+                return result;
+            } catch (error) {
+                console.error(`Error in callGoogleScript (${action}):`, error);
+                throw error;
+            }
+        }
+
         async function syncClientToDB(clientRow) {
             showToast("Guardando cliente en la nube...");
             try {
@@ -1745,6 +1839,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'upsertClient',
+                        token: activeSession.token,
                         data: mapToSheetClient(clientRow)
                     })
                 });
@@ -1877,6 +1972,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ 
                         action: 'upsertUser', 
+                        token: activeSession.token,
                         data: row,
                         requesterRole: activeSession.rol 
                     }),
@@ -1922,6 +2018,7 @@
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ 
                         action: 'upsertUser', 
+                        token: activeSession.token,
                         data: row,
                         requesterRole: activeSession.rol
                     })
@@ -2147,9 +2244,34 @@
                 document.getElementById('br-srv-cotizacion').value = srv.cotizacion === "-" ? "" : (srv.cotizacion || "");
 
                 // 3. Cargar Glosa
-                let glosa = srv["DESCRIPCIÓN FACTURACIÓN"] || "";
+                let glosa = srv.descripcionFacturacion || "";
                 if(!glosa || glosa === "-" || glosa === "") {
-                    glosa = `SERVICIO DE TRANSPORTE - ${(srv.tipoServicio || '').toUpperCase()} - DESTINO: ${(srv.destino || '').toUpperCase()}`;
+                    // --- PROFESSIONAL GLOSA GENERATOR (Nova Prod Template) ---
+                    let ocBase = (srv.ocHes || "").toString().trim().toUpperCase();
+                    let formattedOC = ocBase;
+                    if (ocBase && ocBase !== "-") {
+                        if (!ocBase.startsWith("OC")) {
+                            formattedOC = `OC ${ocBase}`;
+                        } else {
+                            // Clean multiple spaces and ensure "OC " prefix
+                            formattedOC = ocBase.replace(/^OC\s*/, "OC ");
+                        }
+                    } else {
+                        formattedOC = "OC [PENDIENTE]";
+                    }
+
+                    let formattedCOT = (srv.cotizacion || "").toString().trim().toUpperCase();
+                    if (!formattedCOT || formattedCOT === "-") formattedCOT = "[PENDIENTE]";
+
+                    glosa = [
+                        formattedOC,
+                        "CONTRATO - TRANSPORTE",
+                        "ASIGNACION DE COSTOS POR DESPACHO",
+                        "CLIENTE TRANSBANK",
+                        "EQUIPOS POS",
+                        "COSTO DESPACHO TRANSBANK EQUIPOS POS",
+                        `COT. ${formattedCOT}`
+                    ].join('\n');
                 }
                 document.getElementById('br-glosa').value = glosa;
 
