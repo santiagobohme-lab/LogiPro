@@ -72,15 +72,15 @@ async function init() {
 }
 
 async function loadOperators() {
-    const cachedOpsStr = storage.get('logipro-cache-operators');
+    const cachedOpsStr = storage.get('logipro-cache-choferes');
     if (cachedOpsStr) {
         try { renderOperatorSelect(JSON.parse(cachedOpsStr)); } catch(e) {}
     }
 
     try {
         const data = await callAPI('syncOperatorData');
-        storage.set('logipro-cache-operators', JSON.stringify(data.base_operadores));
-        renderOperatorSelect(data.base_operadores);
+        storage.set('logipro-cache-choferes', JSON.stringify(data.choferes));
+        renderOperatorSelect(data.choferes);
     } catch (err) {
         if (!cachedOpsStr) {
             operatorSelect.innerHTML = '<option value="">Error al cargar (Toca para reintentar)</option>';
@@ -92,7 +92,7 @@ async function loadOperators() {
 function renderOperatorSelect(ops) {
     if (!ops || !Array.isArray(ops)) return;
     operatorSelect.innerHTML = '<option value="">Selecciona tu nombre...</option>' + 
-        ops.map(op => `<option value="${op["Nombre / Empresa"]}">${op["Nombre / Empresa"]}</option>`).join('');
+        ops.map(op => `<option value="${op["Nombre"]}">${op["Nombre"]}</option>`).join('');
 }
 
 function showApp() {
@@ -117,7 +117,7 @@ async function fetchServices() {
         const operatorCurrent = (currentOperator || "").toString().trim().toLowerCase();
         
         allServices = data.servicios.filter(s => {
-            const opInSheet = (s.Operador || "").toString().trim().toLowerCase();
+            const opInSheet = (s["Chofer Asignado"] || "").toString().trim().toLowerCase();
             return opInSheet === operatorCurrent && s.ID && s.Cliente;
         });
         
@@ -196,12 +196,8 @@ function renderServices() {
                                 <span class="truncate max-w-[150px]">${s.Destino}</span>
                             </div>
                         </div>
-                        <div class="flex flex-col items-end gap-2 shrink-0">
-                            <div class="text-right">
-                                <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
-                                <span class="ganancia-large">${formatCLP(s.Costo)}</span>
-                            </div>
-                            <span class="status-pill ${statusClass}">${pillLabel}</span>
+                        <div class="flex flex-col items-end justify-center gap-1 shrink-0">
+                            <span class="text-[10px] font-bold uppercase bg-slate-100 text-slate-500 px-2 py-1 rounded">${s["Estado Ruta"] || 'Completado'}</span>
                         </div>
                     </div>
                 </div>
@@ -231,11 +227,7 @@ function renderServices() {
                 </div>
                 <div class="flex justify-between items-center pt-3 border-t border-slate-50">
                     <div class="flex items-center gap-3">
-                        <div class="cost-tag">
-                            <span class="text-[9px] uppercase opacity-50 block leading-none mb-1">Ganancia</span>
-                            ${formatCLP(s.Costo)}
-                        </div>
-                        <span class="status-pill ${statusClass}">${pillLabel}</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase bg-slate-100 px-2 py-1 rounded">${s["Estado Ruta"] || 'Asignado'}</span>
                     </div>
                     <i class="ph-bold ph-caret-right text-slate-300"></i>
                 </div>
@@ -259,17 +251,49 @@ function openDetail(id) {
     currentServiceId = id;
     document.getElementById('modal-service-id').innerText = `SERVICIO #${id}`;
     document.getElementById('modal-client-name').innerText = s.Cliente;
+    document.getElementById('modal-patente').innerText = s["Patente Asignada"] || "No asignada";
     document.getElementById('modal-destination').innerText = s.Destino;
     document.getElementById('modal-type').innerText = s["Tipo Servicio"] || "General";
+
+    // Set visibility of action buttons based on status
+    const status = (s["Estado Ruta"] || "Asignado").toLowerCase();
     
-    const receiptContainer = document.getElementById('modal-payment-receipt-container');
-    const downloadBtn = document.getElementById('modal-download-btn');
+    document.getElementById('btn-iniciar').classList.add('hidden');
+    document.getElementById('btn-llegada').classList.add('hidden');
+    document.getElementById('btn-completado').classList.add('hidden');
+    document.getElementById('upload-btn').classList.add('hidden');
     
-    if (s["Link Archivo"] && s["Link Archivo"].startsWith('http')) {
-        downloadBtn.href = s["Link Archivo"];
-        receiptContainer.classList.remove('hidden');
+    if (status.includes('completado') || status.includes('finalizado')) {
+        // Ningún botón de estado, tal vez solo ver comprobante.
+    } else if (status.includes('tránsito') || status.includes('ruta')) {
+        document.getElementById('btn-llegada').classList.remove('hidden');
+    } else if (status.includes('destino') || status.includes('carga') || status.includes('llegada')) {
+        document.getElementById('btn-completado').classList.remove('hidden');
+        document.getElementById('upload-btn').classList.remove('hidden');
     } else {
-        receiptContainer.classList.add('hidden');
+        // Asignado
+        document.getElementById('btn-iniciar').classList.remove('hidden');
+    }
+    
+    const uploadBtn = document.getElementById('upload-btn');
+    const btnCompletado = document.getElementById('btn-completado');
+
+    if (s["Link Archivo"] && s["Link Archivo"].startsWith('http')) {
+        uploadBtn.innerHTML = `<i class="ph-bold ph-check-circle text-xl"></i> Guía Subida Correctamente`;
+        uploadBtn.classList.replace('bg-slate-50', 'bg-emerald-50');
+        uploadBtn.classList.replace('text-slate-500', 'text-emerald-600');
+        uploadBtn.onclick = () => window.open(s["Link Archivo"], '_blank');
+        
+        btnCompletado.disabled = false;
+        btnCompletado.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        uploadBtn.innerHTML = `<i class="ph-bold ph-camera"></i> Subir Guía de Despacho`;
+        uploadBtn.classList.replace('bg-emerald-50', 'bg-slate-50');
+        uploadBtn.classList.replace('text-emerald-600', 'text-slate-500');
+        uploadBtn.onclick = () => document.getElementById('file-upload-input').click();
+        
+        btnCompletado.disabled = true;
+        btnCompletado.classList.add('opacity-50', 'cursor-not-allowed');
     }
     
     detailModal.classList.remove('hidden');
@@ -284,8 +308,19 @@ async function updateStatus(newStatus) {
     const s = allServices.find(srv => srv.ID == currentServiceId);
     if (!s) return;
 
-    const btnId = newStatus === 'En Ruta' ? 'btn-en-ruta' : 'btn-completado';
+    if (newStatus === 'Completado' && (!s["Link Archivo"] || !s["Link Archivo"].startsWith('http'))) {
+        showToast("Debes subir la Guía de Despacho antes de finalizar");
+        return;
+    }
+
+    let btnId = 'btn-iniciar';
+    if(newStatus === 'En Tránsito') btnId = 'btn-iniciar';
+    else if(newStatus === 'En Destino') btnId = 'btn-llegada';
+    else if(newStatus === 'Completado') btnId = 'btn-completado';
+
     const btn = document.getElementById(btnId);
+    if(!btn) return;
+    
     const originalText = btn.innerHTML;
     
     btn.disabled = true;
@@ -296,9 +331,29 @@ async function updateStatus(newStatus) {
     s["Estado Ruta"] = newStatus;
     storage.set('logipro-cache-services', JSON.stringify(allServices));
 
+    // Get GPS
+    let gpsCoords = "Ubicación no obtenida";
+    try {
+        if (navigator.geolocation) {
+            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout: 5000}));
+            gpsCoords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+        }
+    } catch(e) { console.log("GPS no disponible"); }
+
+    const timestamp = new Date().toISOString();
+    const logData = `[${timestamp}] Chofer: ${currentOperator} | Patente: ${s["Patente Asignada"]} | Estado: ${newStatus} | GPS: ${gpsCoords}`;
+    console.log(logData); // Aquí se podría guardar en una columna "Historial de Eventos" si existiera
+
     try {
         await callAPI('operatorUpdateStatus', {
-            data: { "ID": s.ID, "Estado Ruta": newStatus }
+            data: { 
+                "ID": s.ID, 
+                "Estado Ruta": newStatus,
+                "Último GPS": gpsCoords,
+                "Última Actualización": timestamp,
+                "Chofer Asignado": currentOperator,
+                "Patente Asignada": s["Patente Asignada"]
+            }
         });
         
         const isCompleted = isStatusCompleted(newStatus);
@@ -320,6 +375,56 @@ async function updateStatus(newStatus) {
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
+    }
+}
+
+async function handleGuiaUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const btn = document.getElementById('upload-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<i class="ph-bold ph-circle-notch animate-spin"></i> Subiendo...`;
+    btn.disabled = true;
+
+    try {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64Data = reader.result.split(',')[1];
+            const mimeType = file.type;
+            const timestamp = new Date().getTime();
+            const fileName = `Guia_${currentServiceId}_${timestamp}.jpg`;
+
+            try {
+                const response = await callAPI('uploadGuia', {
+                    fileName: fileName,
+                    mimeType: mimeType,
+                    fileData: base64Data,
+                    serviceId: currentServiceId
+                });
+
+                showToast("Guía subida correctamente");
+                
+                const s = allServices.find(srv => srv.ID == currentServiceId);
+                if (s) {
+                    s["Link Archivo"] = response.url;
+                    storage.set('logipro-cache-services', JSON.stringify(allServices));
+                    openDetail(currentServiceId); // Refresh modal UI
+                }
+            } catch(e) {
+                showToast("Error al subir al servidor");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                event.target.value = '';
+            }
+        };
+        reader.readAsDataURL(file);
+    } catch (err) {
+        showToast("Error leyendo archivo");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        event.target.value = '';
     }
 }
 

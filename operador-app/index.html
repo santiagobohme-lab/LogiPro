@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Logi Pro - Operadores</title>
+    <title>Logi Pro - Choferes</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,14 +19,14 @@
                 <img src="icon-512.png" alt="Logi Pro" class="w-16 h-16">
             </div>
             <h1 class="text-3xl font-black tracking-tight">Logi Pro</h1>
-            <p class="text-blue-200 text-sm">Operadores</p>
+            <p class="text-blue-200 text-sm">Choferes</p>
         </div>
         
         <div class="w-full max-w-sm space-y-4">
             <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
                 <label class="block text-xs font-bold uppercase tracking-wider text-blue-100 mb-2">Selecciona tu Nombre</label>
                 <select id="operator-select" class="w-full bg-white text-slate-900 px-4 py-3 rounded-xl appearance-none outline-none focus:ring-4 focus:ring-blue-400 transition-all font-medium">
-                    <option value="">Cargando operadores...</option>
+                    <option value="">Cargando choferes...</option>
                 </select>
                 <button id="login-btn" class="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 rounded-xl mt-6 shadow-lg shadow-blue-500/20 transition-all active:scale-95">
                     Entrar a mis servicios
@@ -91,6 +91,16 @@
 
             <div class="space-y-6">
                 <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                        <i class="ph-bold ph-truck text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tu camión asignado</p>
+                        <p id="modal-patente" class="text-slate-700 font-mono font-bold tracking-widest">...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
                     <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
                         <i class="ph-bold ph-map-pin text-xl"></i>
                     </div>
@@ -109,34 +119,25 @@
                         <p id="modal-type" class="text-slate-700 font-medium">...</p>
                     </div>
                 </div>
-                <div id="modal-payment-receipt-container" class="hidden">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                            <i class="ph-bold ph-receipt text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pago Realizado</p>
-                            <a id="modal-download-btn" href="#" target="_blank" class="mt-2 inline-flex items-center gap-2 bg-slate-900 text-white text-[10px] font-bold px-4 py-2 rounded-lg active:scale-95 transition-all">
-                                <i class="ph-bold ph-download-simple"></i>
-                                DESCARGAR COMPROBANTE
-                            </a>
-                        </div>
-                    </div>
-                </div>
+
 
                 <div class="pt-6 border-t border-gray-100">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Actualizar Estado</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-en-ruta" onclick="updateStatus('En Ruta')" class="bg-amber-100 text-amber-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <span>En Ruta</span>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button id="btn-iniciar" onclick="updateStatus('En Tránsito')" class="bg-amber-100 text-amber-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>Aceptar e Iniciar Ruta</span>
+                        </button>
+                        <button id="btn-llegada" onclick="updateStatus('En Destino')" class="bg-blue-100 text-blue-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>Registrar Llegada/Carga</span>
                         </button>
                         <button id="btn-completado" onclick="updateStatus('Completado')" class="bg-emerald-100 text-emerald-700 font-bold py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <span>Finalizado</span>
+                            <span>Finalizar Servicio</span>
                         </button>
                     </div>
-                    <button id="upload-btn" class="w-full mt-3 bg-slate-50 text-slate-500 font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
-                        <i class="ph-bold ph-camera"></i> Subir Foto Comprobante
+                    <button id="upload-btn" class="w-full mt-3 bg-slate-50 text-slate-500 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all">
+                        <i class="ph-bold ph-camera"></i> Subir Guía de Despacho
                     </button>
+                    <input type="file" id="file-upload-input" class="hidden" accept="image/*" capture="environment" onchange="handleGuiaUpload(event)">
                 </div>
             </div>
         </div>

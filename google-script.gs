@@ -11,13 +11,16 @@ const GEMINI_API_KEY = 'AIzaSyDQtA3SAJ6DxHuIAbtvNliP8tNUoNWWXyc';
 const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
-  "Estado Factura", "OC / HES", "Cotización", "DESCRIPCIÓN FACTURACIÓN", "Nº Factura", "Link Archivo", "Estado Ruta"
+  "Estado Factura", "OC / HES", "Cotización", "DESCRIPCIÓN FACTURACIÓN", "Nº Factura", "Link Archivo", "Estado Ruta",
+  "Patente Asignada", "Chofer Asignado", "Último GPS", "Última Actualización"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado"];
 const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
-const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Patente", "Chofer", "Teléfono", "Email", "Foto"];
+const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Teléfono", "Email", "Foto"];
 const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
+const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT"];
+const CAMION_HEADERS = ["ID_Camion", "ID_Operador", "Patente", "Modelo"];
 
 /**
  * Crea un menú en la hoja de cálculo al abrirse.
@@ -126,7 +129,9 @@ function setupHeaders() {
     {name: "Servicios", head: SCRIPT_DB_HEADERS},
     {name: "Colaboradores", head: USER_HEADERS},
     {name: "Base_Operadores", head: OPERATOR_HEADERS},
-    {name: "Potenciales", head: POTENTIAL_HEADERS}
+    {name: "Potenciales", head: POTENTIAL_HEADERS},
+    {name: "Choferes", head: CHOFER_HEADERS},
+    {name: "Camiones", head: CAMION_HEADERS}
   ];
 
   config.forEach(item => {
@@ -154,7 +159,9 @@ function getFullSystemData(ss) {
     { name: "Clientes", headers: CLIENT_HEADERS, key: "clientes" },
     { name: "Colaboradores", headers: USER_HEADERS, key: "colaboradores" },
     { name: "Potenciales", headers: POTENTIAL_HEADERS, key: "potenciales" },
-    { name: "Base_Operadores", headers: OPERATOR_HEADERS, key: "base_operadores" }
+    { name: "Base_Operadores", headers: OPERATOR_HEADERS, key: "base_operadores" },
+    { name: "Choferes", headers: CHOFER_HEADERS, key: "choferes" },
+    { name: "Camiones", headers: CAMION_HEADERS, key: "camiones" }
   ];
 
   sheetsConfig.forEach(cfg => {
@@ -209,16 +216,37 @@ function doPost(e) {
     if (action === "syncOperatorData") {
       const s_sheet = ss.getSheetByName("Servicios") || initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
       const o_sheet = ss.getSheetByName("Base_Operadores") || initSheet(ss, "Base_Operadores", OPERATOR_HEADERS);
+      const ch_sheet = ss.getSheetByName("Choferes") || initSheet(ss, "Choferes", CHOFER_HEADERS);
+      const ca_sheet = ss.getSheetByName("Camiones") || initSheet(ss, "Camiones", CAMION_HEADERS);
       return ContentService.createTextOutput(JSON.stringify({
           status: "success",
           servicios: getSheetData(s_sheet, SCRIPT_DB_HEADERS),
-          base_operadores: getSheetData(o_sheet, OPERATOR_HEADERS)
+          base_operadores: getSheetData(o_sheet, OPERATOR_HEADERS),
+          choferes: getSheetData(ch_sheet, CHOFER_HEADERS),
+          camiones: getSheetData(ca_sheet, CAMION_HEADERS)
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
     if (action === "operatorUpdateStatus") {
       upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, payload.data, "ID");
       return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "uploadGuia") {
+      try {
+        const folderId = "1JpAwL3DPi-psE94RyUpe5xm7Q8QvuRAy";
+        const folder = DriveApp.getFolderById(folderId);
+        const blob = Utilities.newBlob(Utilities.base64Decode(payload.fileData), payload.mimeType, payload.fileName);
+        const file = folder.createFile(blob);
+        const fileUrl = file.getUrl();
+
+        // Guardar el link en la base de datos de servicios
+        upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, { "ID": payload.serviceId, "Link Archivo": fileUrl }, "ID");
+        
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", url: fileUrl })).setMimeType(ContentService.MimeType.JSON);
+      } catch (error) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+      }
     }
 
     const token = payload.token;
@@ -288,6 +316,23 @@ function doPost(e) {
     else if (action === "upsertOperator") {
       upsertRow(initSheet(ss, "Base_Operadores", OPERATOR_HEADERS), OPERATOR_HEADERS, payload.data, "Nombre / Empresa");
     }
+    else if (action === "upsertChofer") {
+      if (payload.data["RUT"] && !validarRUT(payload.data["RUT"])) {
+        throw new Error("El RUT del chofer no es válido.");
+      }
+      if (!payload.data["ID_Chofer"]) payload.data["ID_Chofer"] = Date.now().toString() + Math.floor(Math.random() * 1000);
+      upsertRow(initSheet(ss, "Choferes", CHOFER_HEADERS), CHOFER_HEADERS, payload.data, "ID_Chofer");
+    }
+    else if (action === "deleteChofer") {
+      deleteRowById(ss.getSheetByName("Choferes") || initSheet(ss, "Choferes", CHOFER_HEADERS), CHOFER_HEADERS, "ID_Chofer", payload.id);
+    }
+    else if (action === "upsertCamion") {
+      if (!payload.data["ID_Camion"]) payload.data["ID_Camion"] = Date.now().toString() + Math.floor(Math.random() * 1000);
+      upsertRow(initSheet(ss, "Camiones", CAMION_HEADERS), CAMION_HEADERS, payload.data, "ID_Camion");
+    }
+    else if (action === "deleteCamion") {
+      deleteRowById(ss.getSheetByName("Camiones") || initSheet(ss, "Camiones", CAMION_HEADERS), CAMION_HEADERS, "ID_Camion", payload.id);
+    }
     else if (action === "upsertUser") {
       upsertRow(initSheet(ss, "Colaboradores", USER_HEADERS), USER_HEADERS, payload.data, "Nombre");
     }
@@ -301,6 +346,24 @@ function doPost(e) {
       deleteRowById(ss.getSheetByName("Potenciales"), POTENTIAL_HEADERS, "Nombre", payload.nombre);
     }
     else if (action === "deleteOperator") {
+      // Also cascade-delete associated choferes and camiones
+      const opName = payload.nombre;
+      const chSheet = ss.getSheetByName("Choferes");
+      if (chSheet) {
+        const chData = chSheet.getDataRange().getValues();
+        const opIdx = CHOFER_HEADERS.indexOf("ID_Operador");
+        for (let i = chData.length - 1; i >= 1; i--) {
+          if (chData[i][opIdx].toString() === opName) chSheet.deleteRow(i + 1);
+        }
+      }
+      const caSheet = ss.getSheetByName("Camiones");
+      if (caSheet) {
+        const caData = caSheet.getDataRange().getValues();
+        const opIdx = CAMION_HEADERS.indexOf("ID_Operador");
+        for (let i = caData.length - 1; i >= 1; i--) {
+          if (caData[i][opIdx].toString() === opName) caSheet.deleteRow(i + 1);
+        }
+      }
       deleteRowById(ss.getSheetByName("Base_Operadores"), OPERATOR_HEADERS, "Nombre / Empresa", payload.nombre);
     }
     else if (action === "uploadFile") {
@@ -319,6 +382,23 @@ function doPost(e) {
 
 function doOptions(e) {
   return ContentService.createTextOutput("").setMimeType(ContentService.MimeType.JSON);
+}
+
+/* === VALIDACIÓN RUT CHILENO (Módulo 11) === */
+function validarRUT(rut) {
+  if (!rut || rut.toString().trim() === "") return true; // Vacío es válido (campo opcional)
+  const clean = rut.toString().replace(/[^0-9kK]/g, '');
+  if (clean.length < 8 || clean.length > 9) return false;
+  const body = clean.slice(0, -1);
+  const dv = clean.slice(-1).toUpperCase();
+  let sum = 0, mul = 2;
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += parseInt(body[i]) * mul;
+    mul = mul === 7 ? 2 : mul + 1;
+  }
+  const expected = 11 - (sum % 11);
+  const dvExpected = expected === 11 ? '0' : expected === 10 ? 'K' : expected.toString();
+  return dv === dvExpected;
 }
 
 /* === LOGI PRO AI BRAIN (GEMINI) === */
