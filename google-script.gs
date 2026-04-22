@@ -236,9 +236,26 @@ function doPost(e) {
       try {
         const folderId = "1JpAwL3DPi-psE94RyUpe5xm7Q8QvuRAy";
         const folder = DriveApp.getFolderById(folderId);
-        const blob = Utilities.newBlob(Utilities.base64Decode(payload.fileData), payload.mimeType, payload.fileName);
-        const file = folder.createFile(blob);
-        const fileUrl = file.getUrl();
+        
+        // Extraer número de guía usando Gemini (opcional pero potente)
+        let nroGuia = "S_N";
+        try {
+           nroGuia = extractGuideNumberWithGemini(payload.originalData, payload.mimeType);
+        } catch(e) { 
+           console.error("Gemini OCR failed: " + e);
+        }
+
+        const baseName = `Guia_${payload.cliente}_${payload.fecha}_${payload.serviceId}`;
+        
+        // 1. Guardar Escaneada (B&W)
+        const blobScanned = Utilities.newBlob(Utilities.base64Decode(payload.scannedData), payload.mimeType, `${baseName}_ESCANEADA.jpg`);
+        const fileScanned = folder.createFile(blobScanned);
+        
+        // 2. Guardar Original (Color)
+        const blobOrig = Utilities.newBlob(Utilities.base64Decode(payload.originalData), payload.mimeType, `${baseName}_ORIGINAL.jpg`);
+        const fileOrig = folder.createFile(blobOrig);
+
+        const fileUrl = fileScanned.getUrl(); // Priorizamos el link del escaneo para la base de datos
 
         // Guardar el link en la base de datos de servicios
         upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, { "ID": payload.serviceId, "Link Archivo": fileUrl }, "ID");
