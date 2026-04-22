@@ -6,6 +6,7 @@ const FOLDER_ID = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0';
 const FOLDER_FOTOS_PERFIL = '1ExIVEFippvrARyDUw_lfPHbhC_LSPTK8'; 
 const FOLDER_COMPROBANTES_PAGO = '14qmuUkXL1C6wF600wIyKfurXPMLRnoIX';
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
+const GEMINI_API_KEY = 'AIzaSyDQtA3SAJ6DxHuIAbtvNliP8tNUoNWWXyc';
 
 const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
@@ -234,6 +235,11 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", user: safeUser, token: token, ...getFullSystemData(ss) })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === "getTradingDashboard") {
+      const insights = getGeminiTradingInsights();
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", data: insights })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "changePassword") {
       const sheet = ss.getSheetByName("Colaboradores");
       if (!sheet) throw new Error("No hay base de colaboradores");
@@ -313,4 +319,82 @@ function doPost(e) {
 
 function doOptions(e) {
   return ContentService.createTextOutput("").setMimeType(ContentService.MimeType.JSON);
+}
+
+/* === LOGI PRO AI BRAIN (GEMINI) === */
+function fetchMacroData() {
+  try {
+    const response = UrlFetchApp.fetch("https://mindicador.cl/api", { muteHttpExceptions: true });
+    if (response.getResponseCode() === 200) {
+      const data = JSON.parse(response.getContentText());
+      return {
+        usd: data.dolar ? data.dolar.valor : null,
+        uf: data.uf ? data.uf.valor : null
+      };
+    }
+  } catch(e) { }
+  return { usd: null, uf: null };
+}
+
+function getGeminiTradingInsights() {
+  const cache = CacheService.getScriptCache();
+  const cachedData = cache.get("tradingInsightsV2");
+  if (cachedData) {
+    return JSON.parse(cachedData);
+  }
+
+  const macro = fetchMacroData();
+  const usdVal = macro.usd || 980;
+  const ufVal = macro.uf || 37800;
+  
+  const prompt = `Eres el cerebro de IA de un "Trading Terminal de Logística" en Chile (Logi Pro).
+  Fecha actual: Abril de 2026.
+  Aquí tienes los indicadores reales de hoy: Dólar $${usdVal} CLP y UF $${ufVal} CLP. 
+  Crea 4 alertas de radar hiperrealistas para una empresa de camiones (Ruta 5, fronteras, peajes, ENAP, tarifas fletes). 
+  Calcula también valores ficticios pero muy realistas para el Combustible Diésel ENAP hoy (que ronde los $1546 CLP histórico) y el Petróleo WTI (que ronde los 84 USD/bbl), con tendencias.
+  Proporciona además un array "enap_chart" de 12 valores numéricos (ej. 1100, 1150... 1546) representando los últimos 12 meses, de Mayo 2025 a Abril 2026.
+  Formato de Salida Obligatorio (JSON puro):
+  {
+    "usd": { "val": ${usdVal}, "trend": "ALZA/BAJA según corresponda" },
+    "uf": { "val": ${ufVal}, "trend": "ALZA/BAJA" },
+    "wti": { "val": 84.15, "trend": "-1.12 USD", "sentiment": "Cauteloso/Alza/Baja" },
+    "enap": { "val": 1546, "trend": "+$30,0 por litro", "sentiment": "Alza Histórica" },
+    "enap_chart": [1200, 1210, 1230, 1220, 1250, 1280, 1310, 1350, 1400, 1450, 1500, 1546],
+    "ai_radar": [
+      { 
+        "type": "ALERTA/TENDENCIA/INFORME", 
+        "time": "Hace 2h", 
+        "color": "rose/amber/sky/emerald", 
+        "icon": "fa-bolt/fa-arrow-trend-up/fa-leaf/fa-truck", 
+        "desc": "Describe brevemente la noticia, usando <strong>texto clave</strong> en negritas tag." 
+      }
+    ]
+  }`;
+
+  try {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
+    const payload = {
+      "contents": [{ "parts": [{"text": prompt}] }],
+      "generationConfig": { "responseMimeType": "application/json" }
+    };
+    
+    const response = UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    
+    if (response.getResponseCode() === 200) {
+      const gData = JSON.parse(response.getContentText());
+      let textContent = gData.candidates[0].content.parts[0].text;
+      const finalJson = JSON.parse(textContent);
+      cache.put("tradingInsights", JSON.stringify(finalJson), 3600); // 1 hora
+      return finalJson;
+    } else {
+      return { _error: "Error Gemini API: " + response.getContentText() };
+    }
+  } catch(e) {
+    return { _error: "Exception: " + e.toString() };
+  }
 }

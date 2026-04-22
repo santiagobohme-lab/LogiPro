@@ -1,7 +1,25 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxrMmFzWDWGTNBxriKIlltgKh1HKKgLJpsLso6fOgcHoUUeBfZLnQaN4EFAQSGrIxc_/exec";
 
-let currentOperator = localStorage.getItem('logipro-operator') || null;
-let allServices = JSON.parse(localStorage.getItem('logipro-cache-services')) || [];
+// Safe LocalStorage Wrapper
+const storage = {
+    get: (key) => {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    },
+    set: (key, val) => {
+        try { localStorage.setItem(key, val); return true; } catch (e) { return false; }
+    },
+    remove: (key) => {
+        try { localStorage.removeItem(key); } catch (e) {}
+    }
+};
+
+let currentOperator = storage.get('logipro-operator') || null;
+let allServices = [];
+try {
+    const cached = storage.get('logipro-cache-services');
+    allServices = cached ? JSON.parse(cached) : [];
+} catch(e) { allServices = []; }
+
 let currentServiceId = null;
 let currentTab = 'ruta'; // 'ruta' or 'historial'
 
@@ -20,6 +38,30 @@ const toast = document.getElementById('toast');
 const navRuta = document.getElementById('nav-ruta');
 const navHistorial = document.getElementById('nav-historial');
 
+/**
+ * Universal Request Wrapper to handle CORS and Apps Script Redirects
+ */
+async function callAPI(action, data = {}) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain' }, // Avoid preflight OPTIONS
+            body: JSON.stringify({ action, ...data })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message || "Error del servidor");
+        
+        return result;
+    } catch (err) {
+        console.error(`API Error [${action}]:`, err);
+        throw err;
+    }
+}
+
 // Initialize
 async function init() {
     if (currentOperator) {
@@ -30,28 +72,25 @@ async function init() {
 }
 
 async function loadOperators() {
-    const cachedOps = localStorage.getItem('logipro-cache-operators');
-    if (cachedOps) {
-        renderOperatorSelect(JSON.parse(cachedOps));
+    const cachedOpsStr = storage.get('logipro-cache-operators');
+    if (cachedOpsStr) {
+        try { renderOperatorSelect(JSON.parse(cachedOpsStr)); } catch(e) {}
     }
 
     try {
-        const res = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'syncOperatorData' })
-        });
-        const data = await res.json();
-        if (data.status === 'success') {
-            localStorage.setItem('logipro-cache-operators', JSON.stringify(data.base_operadores));
-            renderOperatorSelect(data.base_operadores);
-        }
+        const data = await callAPI('syncOperatorData');
+        storage.set('logipro-cache-operators', JSON.stringify(data.base_operadores));
+        renderOperatorSelect(data.base_operadores);
     } catch (err) {
-        console.error("Error loading operators:", err);
-        if (!cachedOps) operatorSelect.innerHTML = '<option value="">Error al cargar</option>';
+        if (!cachedOpsStr) {
+            operatorSelect.innerHTML = '<option value="">Error al cargar (Toca para reintentar)</option>';
+            operatorSelect.onclick = () => { operatorSelect.onclick = null; loadOperators(); };
+        }
     }
 }
 
 function renderOperatorSelect(ops) {
+    if (!ops || !Array.isArray(ops)) return;
     operatorSelect.innerHTML = '<option value="">Selecciona tu nombre...</option>' + 
         ops.map(op => `<option value="${op["Nombre / Empresa"]}">${op["Nombre / Empresa"]}</option>`).join('');
 }
@@ -61,7 +100,6 @@ function showApp() {
     appScreen.classList.remove('hidden');
     operatorNameHeader.innerText = currentOperator;
     
-    // Initial render from cache if available
     if (allServices.length > 0) {
         renderServices();
     }
@@ -73,30 +111,44 @@ async function fetchServices() {
     loader.classList.remove('hidden');
     
     try {
-        const res = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'syncOperatorData' })
+        const data = await callAPI('syncOperatorData');
+        
+        // Robust filtering
+        const operatorCurrent = (currentOperator || "").toString().trim().toLowerCase();
+        
+        allServices = data.servicios.filter(s => {
+            const opInSheet = (s.Operador || "").toString().trim().toLowerCase();
+            return opInSheet === operatorCurrent && s.ID && s.Cliente;
         });
-        const data = await res.json();
-        if (data.status === 'success') {
-            // FIX DUPLICATES & MISMATCHES: Trim and ignore case
-            allServices = data.servicios.filter(s => {
-                const operatorInSheet = (s.Operador || "").toString().trim().toLowerCase();
-                const operatorCurrent = (currentOperator || "").toString().trim().toLowerCase();
-                return operatorInSheet === operatorCurrent && s.ID && s.Cliente;
-            });
-            
-            localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
-            renderServices();
-        }
+        
+        storage.set('logipro-cache-services', JSON.stringify(allServices));
+        renderServices();
     } catch (err) {
         console.error("Error fetching services:", err);
         if (allServices.length === 0) {
-            servicesList.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Error de conexión</p>';
+            showErrorState("Error de conexión al servidor");
+        } else {
+            showToast("Usando datos locales (Sin conexión)");
         }
     } finally {
         loader.classList.add('hidden');
     }
+}
+
+function showErrorState(msg) {
+    servicesList.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 text-center px-6">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <i class="ph-bold ph-wifi-slash text-3xl"></i>
+            </div>
+            <p class="font-bold text-slate-800 mb-2">${msg}</p>
+            <p class="text-xs text-slate-400 mb-6">Revisa tu internet o intenta nuevamente.</p>
+            <button onclick="fetchServices()" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-xl active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20">
+                <i class="ph-bold ph-arrows-clockwise"></i>
+                Reintentar
+            </button>
+        </div>
+    `;
 }
 
 function isStatusCompleted(status) {
@@ -110,7 +162,6 @@ function renderServices() {
         return currentTab === 'ruta' ? !isCompleted : isCompleted;
     });
 
-    // Update Header Title
     appViewTitle.innerText = currentTab === 'ruta' ? 'Próximos Servicios' : 'Historial de Viajes';
 
     if (filtered.length === 0) {
@@ -125,27 +176,24 @@ function renderServices() {
     }
 
     servicesList.innerHTML = filtered.map(s => {
-        const serviceStatus = s["Estado Ruta"] || "Pendiente";
         const paymentStatus = s["Estado Pago"] || "Pendiente";
-        
-        // Custom Label from user request: "Pago pendiente/Pagado"
         const isPaid = paymentStatus.toLowerCase().includes('pagado') || paymentStatus.toLowerCase().includes('ok');
         const pillLabel = isPaid ? "PAGADO" : "PAGO PENDIENTE";
-        const statusClass = isPaid ? 'pagado' : 'pendiente'; // Green if Pagado, Yellow if Pendiente
+        const statusClass = isPaid ? 'pagado' : 'pendiente';
         
         if (currentTab === 'historial') {
             return `
                 <div class="service-card" onclick="openDetail('${s.ID}')">
                     <div class="flex justify-between items-center">
                         <div class="flex-1">
-                            <h3 class="text-lg font-black text-slate-800">${s.Cliente}</h3>
+                            <h3 class="text-lg font-black text-slate-800 line-clamp-1">${s.Cliente}</h3>
                             <div class="flex items-center gap-2 text-slate-400 text-xs mt-1">
                                 <i class="ph-bold ph-calendar-blank"></i>
                                 <span>${s["Fecha de Servicio"]}</span>
                             </div>
                             <div class="flex items-center gap-2 text-slate-400 text-xs mt-1">
                                 <i class="ph-bold ph-map-pin"></i>
-                                <span>${s.Destino}</span>
+                                <span class="truncate max-w-[150px]">${s.Destino}</span>
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-2 shrink-0">
@@ -163,18 +211,18 @@ function renderServices() {
         return `
             <div class="service-card" onclick="openDetail('${s.ID}')">
                 <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">${s["Tipo Servicio"]}</span>
-                        <h3 class="text-lg font-black text-slate-800 mt-1">${s.Cliente}</h3>
+                    <div class="flex-1 mr-2">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[150px] block">${s["Tipo Servicio"] || "SERVICIO"}</span>
+                        <h3 class="text-lg font-black text-slate-800 mt-1 line-clamp-1">${s.Cliente}</h3>
                     </div>
-                    <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded shrink-0">
                         #${s.ID}
                     </div>
                 </div>
                 <div class="flex flex-col gap-2 mb-4">
                     <div class="flex items-center gap-2 text-slate-500 text-sm">
                         <i class="ph-bold ph-map-pin"></i>
-                        <span>${s.Destino}</span>
+                        <span class="truncate">${s.Destino}</span>
                     </div>
                     <div class="flex items-center gap-2 text-slate-500 text-sm">
                         <i class="ph-bold ph-calendar-blank"></i>
@@ -198,7 +246,8 @@ function renderServices() {
 
 function formatCLP(value) {
     if (!value || value === "-") return "$0";
-    const num = parseFloat(value.toString().replace(/[^0-9.-]+/g, ""));
+    const str = value.toString().replace(/[^0-9.-]+/g, "");
+    const num = parseFloat(str);
     if (isNaN(num)) return value;
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(num);
 }
@@ -211,13 +260,12 @@ function openDetail(id) {
     document.getElementById('modal-service-id').innerText = `SERVICIO #${id}`;
     document.getElementById('modal-client-name').innerText = s.Cliente;
     document.getElementById('modal-destination').innerText = s.Destino;
-    document.getElementById('modal-type').innerText = s["Tipo Servicio"];
+    document.getElementById('modal-type').innerText = s["Tipo Servicio"] || "General";
     
-    // Payment Receipt Logic
     const receiptContainer = document.getElementById('modal-payment-receipt-container');
     const downloadBtn = document.getElementById('modal-download-btn');
     
-    if (s["Link Archivo"]) {
+    if (s["Link Archivo"] && s["Link Archivo"].startsWith('http')) {
         downloadBtn.href = s["Link Archivo"];
         receiptContainer.classList.remove('hidden');
     } else {
@@ -236,36 +284,23 @@ async function updateStatus(newStatus) {
     const s = allServices.find(srv => srv.ID == currentServiceId);
     if (!s) return;
 
-    // UI Elements for feedback
     const btnId = newStatus === 'En Ruta' ? 'btn-en-ruta' : 'btn-completado';
     const btn = document.getElementById(btnId);
     const originalText = btn.innerHTML;
     
-    // Disable buttons and show loading
     btn.disabled = true;
-    btn.innerHTML = `<i class="ph-bold ph-circle-notch animate-spin"></i> <span>Actualizando...</span>`;
+    btn.innerHTML = `<i class="ph-bold ph-circle-notch animate-spin"></i> <span>...</span>`;
 
     // Optimistic UI
     const oldStatus = s["Estado Ruta"];
     s["Estado Ruta"] = newStatus;
-    localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
+    storage.set('logipro-cache-services', JSON.stringify(allServices));
 
     try {
-        const res = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-                action: 'operatorUpdateStatus',
-                data: {
-                    "ID": s.ID,
-                    "Estado Ruta": newStatus
-                }
-            })
+        await callAPI('operatorUpdateStatus', {
+            data: { "ID": s.ID, "Estado Ruta": newStatus }
         });
-        const result = await res.json();
-        if (result.status !== 'success') throw new Error(result.message || "Error en el servidor");
         
-        // Success: Auto-switch tab based on state change
         const isCompleted = isStatusCompleted(newStatus);
         if (isCompleted && currentTab !== 'historial') {
             switchTab('historial');
@@ -276,17 +311,13 @@ async function updateStatus(newStatus) {
         }
 
         closeModal();
-        showToast(`Estado cambiado a: ${newStatus}`);
+        showToast(`Estado: ${newStatus}`);
     } catch (err) {
-        console.error("Error updating status:", err);
-        showToast("Error al sincronizar: " + err.message);
-        
-        // Revert Optimistic UI
-        s["Estado Ruta"] = oldStatus;
-        localStorage.setItem('logipro-cache-services', JSON.stringify(allServices));
+        showToast("Error de conexión");
+        s["Estado Ruta"] = oldStatus; // Revert
+        storage.set('logipro-cache-services', JSON.stringify(allServices));
         renderServices();
     } finally {
-        // Restore button state
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
@@ -295,7 +326,6 @@ async function updateStatus(newStatus) {
 function switchTab(tab) {
     currentTab = tab;
     
-    // Update Nav UI
     navRuta.classList.remove('nav-active', 'text-blue-600');
     navRuta.classList.add('text-slate-300');
     navRuta.querySelector('i').classList.replace('ph-fill', 'ph-bold');
@@ -315,12 +345,8 @@ function switchTab(tab) {
 function showToast(msg) {
     const toastText = document.getElementById('toast-text');
     if (toastText) toastText.innerText = msg;
-    
     toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // Event Listeners
@@ -328,22 +354,21 @@ document.getElementById('login-btn').addEventListener('click', () => {
     const selected = operatorSelect.value;
     if (selected) {
         currentOperator = selected;
-        localStorage.setItem('logipro-operator', currentOperator);
+        storage.set('logipro-operator', currentOperator);
         showApp();
     } else {
-        alert("Por favor selecciona tu nombre");
+        alert("Selecciona tu nombre");
     }
 });
 
 document.getElementById('refresh-btn').addEventListener('click', fetchServices);
-
 navRuta.addEventListener('click', () => switchTab('ruta'));
 navHistorial.addEventListener('click', () => switchTab('historial'));
 
 document.getElementById('logout-btn').addEventListener('click', () => {
     if (confirm("¿Cerrar sesión?")) {
-        localStorage.removeItem('logipro-operator');
-        localStorage.removeItem('logipro-cache-services');
+        storage.remove('logipro-operator');
+        storage.remove('logipro-cache-services');
         location.reload();
     }
 });
