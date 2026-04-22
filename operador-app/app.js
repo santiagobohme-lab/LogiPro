@@ -460,39 +460,9 @@ function applyScannerFilter(imgElement) {
     
     canvas.width = width;
     canvas.height = height;
+    // Filtros nativos del navegador para una mejora limpia sin 'artifacts' o parches blancos
+    ctx.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
     ctx.drawImage(imgElement, 0, 0, width, height);
-    
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-        let r = data[i];
-        let g = data[i + 1];
-        let b = data[i + 2];
-        
-        // Incrementar contraste y brillo para simular 'Magic Color' de CamScanner
-        const factor = 1.3; // Contraste
-        const brightness = 30; // Brillo
-        
-        r = factor * (r - 128) + 128 + brightness;
-        g = factor * (g - 128) + 128 + brightness;
-        b = factor * (b - 128) + 128 + brightness;
-        
-        // Si el pixel es claro y grisáceo (típico del papel blanco con sombra), forzarlo a blanco puro
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        if (max > 170 && (max - min) < 40) {
-            r = 255;
-            g = 255;
-            b = 255;
-        }
-
-        data[i] = Math.min(255, Math.max(0, r));
-        data[i + 1] = Math.min(255, Math.max(0, g));
-        data[i + 2] = Math.min(255, Math.max(0, b));
-    }
-    
-    ctx.putImageData(imageData, 0, 0);
     return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 }
 
