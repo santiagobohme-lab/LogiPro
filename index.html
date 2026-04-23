@@ -41,8 +41,22 @@
         
         .table-container {
             width: 100%;
-            overflow-x: auto;
+            overflow: auto;
+            max-height: calc(100vh - 230px);
             -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-container thead th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f8fafc; /* match bg-slate-50 */
+            box-shadow: inset 0 -2px 0 #f1f5f9; /* bottom border equivalent */
+        }
+        
+        /* Ensures the header doesn't lose its border when scrolling */
+        .table-container thead tr {
+            border-bottom: none;
         }
 
         /* Select Reset */
@@ -1129,24 +1143,6 @@
                         <button type="button" onclick="closeOperadorModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <form id="operador-form" onsubmit="handleOperadorSubmit(event)" class="space-y-4">
-                        <!-- Perfil Photo Header -->
-                        <div class="flex flex-col items-center mb-6">
-                            <div class="relative group cursor-pointer" onclick="document.getElementById('fm-op-foto-input').click()">
-                                <div id="op-fm-photo-preview" class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center border-2 border-dashed border-slate-300 overflow-hidden transition-all group-hover:border-primary-500 group-hover:bg-slate-50">
-                                    <i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>
-                                </div>
-                                <div id="op-fm-loading-spinner" class="hidden absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
-                                    <i class="fa-solid fa-circle-notch fa-spin text-primary-600 text-xl"></i>
-                                </div>
-                                <div class="absolute bottom-0 right-0 bg-primary-900 text-white w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                                    <i class="fa-solid fa-plus text-[10px]"></i>
-                                </div>
-                            </div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-3">Foto de Perfil</p>
-                            <input type="file" id="fm-op-foto-input" class="hidden" accept="image/*" onchange="handleProfilePicSelect(event)">
-                            <input type="hidden" id="fm-op-foto-url" value="">
-                        </div>
-
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nombre / Empresa <span class="text-red-400">*</span></label>
                             <input type="text" id="fm-op-nombre" required class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="Ej. Transportes Araya">
@@ -1434,6 +1430,27 @@
                 </div>
             </div>
             
+            <!-- Modal para Presentación de Flota (Choferes y Camiones) -->
+            <div id="flota-presentacion-modal" class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-slate-50 rounded-2xl shadow-2xl p-0 w-full max-w-2xl overflow-hidden animate-fade-in border border-slate-200 flex flex-col max-h-[90vh]">
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-5 border-b border-slate-200 flex items-center justify-between shadow-sm z-10">
+                        <div>
+                            <h3 id="flota-modal-title" class="text-xl font-black text-slate-800 tracking-tight">Cargando...</h3>
+                            <p id="flota-modal-subtitle" class="text-xs font-bold uppercase tracking-widest text-primary-600 mt-1">...</p>
+                        </div>
+                        <button onclick="closePresentacionFlota()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div id="flota-modal-content" class="p-6 overflow-y-auto flex-1 bg-slate-50">
+                        <!-- Cards will be injected here -->
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </main>
     </div> <!-- END APP WRAPPER -->
@@ -1705,15 +1722,18 @@
             "Nombre / Empresa": row.nombre,
             "RUT": row.rut,
             "Teléfono": row.telefono,
-            "Email": row.email,
-            "Foto": row.foto || ""
+            "Email": row.email
         });
 
         const mapFromSheetChofer = (s) => ({
             id: (s["ID_Chofer"] || "").toString(),
             idOperador: (s["ID_Operador"] || "").toString().trim(),
             nombre: (s["Nombre"] || "").toString().trim(),
-            rut: (s["RUT"] || "").toString().trim()
+            rut: (s["RUT"] || "").toString().trim(),
+            foto: (s["Foto de Perfil"] || "").toString().trim(),
+            telefono: (s["Teléfono"] || "").toString().trim(),
+            correo: (s["Correo"] || "").toString().trim(),
+            carnet: (s["Carnet"] || "").toString().trim()
         });
 
         const mapFromSheetCamion = (s) => ({
@@ -2895,25 +2915,17 @@
             // Optimistic Update
             clientsData = clientsData.filter(c => c.nombre !== nombre);
             renderClientsList();
-            showToast("Cliente eliminado de la vista local.");
-
-            // Sync with DB
+            
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteClient', nombre: nombre }),
-                    redirect: 'follow'
-                });
-                const responseData = await res.json();
+                const responseData = await callGoogleScript('deleteClient', { nombre: nombre });
                 if(responseData.status === 'success'){
-                    showToast("Cliente eliminado permanentemente de la base de datos.");
+                   showToast(`Cliente "${nombre}" eliminado de la nube.`);
                 } else {
-                    showToast("Error al sincronizar eliminación con la nube.");
+                   showToast(responseData.message || "Error al eliminar de la nube");
                 }
             } catch(err) {
-                console.error("Error eliminando cliente:", err);
-                showToast("Fallo de conexión al eliminar cliente.");
+                console.error('Error eliminando cliente:', err);
+                showToast("Error al sincronizar eliminación del cliente.");
             }
         }
 
@@ -3027,15 +3039,9 @@
 
             // Sync to backend
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        action: 'upsertPotential',
-                        data: { "Nombre": prospecto.nombre, "Tel\u00e9fono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web }
-                    })
+                const result = await callGoogleScript('upsertPotential', { 
+                    data: { "Nombre": prospecto.nombre, "Tel\u00e9fono": prospecto.telefono, "Email": prospecto.email, "Sitio Web": prospecto.web }
                 });
-                const result = await res.json();
                 if(result.status === 'success') showToast('Prospecto guardado correctamente.');
                 else showToast(result.message || 'Error al guardar prospecto.');
             } catch(err) {
@@ -3065,11 +3071,7 @@
 
             // Delete from Potenciales sheet (keyed by Nombre)
             try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deletePotential', nombre: p.nombre })
-                });
+                await callGoogleScript('deletePotential', { nombre: p.nombre });
                 showToast(`¡${p.nombre} ahora es un cliente real!`);
             } catch(err) {
                 console.error(err);
@@ -3389,12 +3391,12 @@
             
             // Sync: send delete to backend
             try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteService', id: id.toString() })
-                });
-                showToast("Servicio eliminado de Google Sheets.");
+                const responseData = await callGoogleScript('deleteService', { id: id.toString() });
+                if(responseData.status === 'success') {
+                    showToast("Servicio eliminado de Google Sheets.");
+                } else {
+                    showToast(responseData.message || "Error al eliminar de la nube");
+                }
             } catch(err) {
                 console.error('Error eliminando servicio:', err);
                 showToast("Error al sincronizar eliminación.");
@@ -3586,12 +3588,12 @@
                     <td class="px-4 py-3 text-slate-500 font-mono">${op.rut || '<span class="text-slate-300">—</span>'}</td>
                     <td class="px-4 py-3">
                         ${numCamiones > 0 
-                            ? `<span class="font-mono font-bold text-primary-900 bg-primary-50 border border-primary-200 px-2 py-0.5 rounded text-xs tracking-widest" title="${camionesLabel}">${numCamiones} <i class="fa-solid fa-truck text-[9px]"></i></span>` 
+                            ? `<button type="button" onclick="event.stopPropagation(); openPresentacionFlota('camiones', ${i})" class="font-mono font-bold text-primary-900 bg-primary-50 border border-primary-200 hover:bg-primary-100 hover:border-primary-300 px-2.5 py-1 rounded text-xs tracking-widest transition-all shadow-sm">${numCamiones} <i class="fa-solid fa-truck text-[10px] ml-1"></i></button>` 
                             : '<span class="text-slate-300">—</span>'}
                     </td>
                     <td class="px-4 py-3">
                         ${numChoferes > 0 
-                            ? `<span class="font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-xs" title="${choferesLabel}">${numChoferes} <i class="fa-solid fa-id-card text-[9px]"></i></span>` 
+                            ? `<button type="button" onclick="event.stopPropagation(); openPresentacionFlota('choferes', ${i})" class="font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 px-2.5 py-1 rounded text-xs transition-all shadow-sm">${numChoferes} <i class="fa-solid fa-id-card text-[10px] ml-1"></i></button>` 
                             : '<span class="text-slate-300">—</span>'}
                     </td>
                     <td class="px-4 py-3 text-right">
@@ -3642,13 +3644,82 @@
                 return;
             }
             empty.classList.add('hidden');
-            list.innerHTML = modalChoferesTemp.map((c, i) => `
-                <div class="flex items-center gap-2 bg-slate-50 rounded-lg p-2 border border-slate-100">
-                    <input type="text" value="${c.nombre}" oninput="modalChoferesTemp[${i}].nombre = this.value" placeholder="Nombre completo" class="flex-1 bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
-                    <input type="text" value="${c.rut}" oninput="modalChoferesTemp[${i}].rut = this.value" placeholder="RUT" class="w-[120px] bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs font-mono focus:border-primary-500 outline-none">
-                    <button type="button" onclick="modalChoferesTemp.splice(${i}, 1); renderModalChoferes()" class="text-slate-400 hover:text-red-500 p-1 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            list.innerHTML = modalChoferesTemp.map((c, i) => {
+                const photoSrc = c.foto ? getDirectDriveLink(c.foto) : '';
+                const previewHtml = photoSrc 
+                    ? `<img src="${photoSrc}" class="w-full h-full object-cover">`
+                    : `<i class="fa-solid fa-camera text-slate-400 group-hover:text-primary-500"></i>`;
+                
+                return `
+                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 mb-2 relative">
+                    <button type="button" onclick="modalChoferesTemp.splice(${i}, 1); renderModalChoferes()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 mt-2">
+                        <div class="flex-shrink-0 flex flex-col items-center">
+                            <div class="relative group cursor-pointer" onclick="document.getElementById('fm-ch-foto-input-${i}').click()">
+                                <div id="ch-photo-preview-${i}" class="w-16 h-16 bg-white rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 overflow-hidden transition-all group-hover:border-primary-500 ${photoSrc ? 'border-solid border-primary-500' : ''}">
+                                    ${previewHtml}
+                                </div>
+                                <div id="ch-photo-spinner-${i}" class="hidden absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-primary-600"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="fm-ch-foto-input-${i}" class="hidden" accept="image/*" onchange="handleChoferProfilePicSelect(event, ${i})">
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Foto</p>
+                        </div>
+                        
+                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input type="text" value="${c.nombre || ''}" oninput="modalChoferesTemp[${i}].nombre = this.value" placeholder="Nombre completo" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                            <input type="text" value="${c.rut || ''}" oninput="modalChoferesTemp[${i}].rut = this.value" placeholder="RUT" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs font-mono focus:border-primary-500 outline-none">
+                            <input type="text" value="${c.telefono || ''}" oninput="modalChoferesTemp[${i}].telefono = this.value" placeholder="Teléfono" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                            <input type="email" value="${c.correo || ''}" oninput="modalChoferesTemp[${i}].correo = this.value" placeholder="Correo" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                            <input type="text" value="${c.carnet || ''}" oninput="modalChoferesTemp[${i}].carnet = this.value" placeholder="Nº Carnet" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                        </div>
+                    </div>
                 </div>
-            `).join('');
+            `;}).join('');
+        }
+
+        async function handleChoferProfilePicSelect(event, index) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const preview = document.getElementById(`ch-photo-preview-${index}`);
+            const spinner = document.getElementById(`ch-photo-spinner-${index}`);
+            const chofer = modalChoferesTemp[index];
+
+            try {
+                spinner.classList.remove('hidden');
+                const compressedBase64 = await compressImage(file, 200, 200, 0.8);
+                
+                const nombre = chofer.nombre.trim() || 'Desconocido';
+                const rut = chofer.rut.trim() || Date.now().toString();
+                const fileName = `Foto_Perfil_Chofer_${nombre}_${rut}.jpg`.replace(/\s+/g, '_');
+
+                const response = await callGoogleScript('uploadFile', {
+                    folderType: 'chofer',
+                    base64: compressedBase64,
+                    mimeType: 'image/jpeg',
+                    fileName: fileName
+                });
+
+                if (response && response.url) {
+                    modalChoferesTemp[index].foto = compressedBase64;
+                    preview.innerHTML = `<img src="${compressedBase64}" class="w-full h-full object-cover">`;
+                    preview.classList.replace('border-dashed', 'border-solid');
+                    preview.classList.add('border-primary-500');
+                    showToast("Foto subida a Google Drive.");
+                } else {
+                    throw new Error("No se recibió URL");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error al subir la foto del chofer.");
+                preview.innerHTML = '<i class="fa-solid fa-camera text-xl text-slate-400"></i>';
+            } finally {
+                spinner.classList.add('hidden');
+                event.target.value = '';
+            }
         }
 
         function addCamionRow() {
@@ -3657,7 +3728,7 @@
         }
 
         function addChoferRow() {
-            modalChoferesTemp.push({ id: '', idOperador: '', nombre: '', rut: '' });
+            modalChoferesTemp.push({ id: '', idOperador: '', nombre: '', rut: '', telefono: '', correo: '', carnet: '', foto: '' });
             renderModalChoferes();
         }
 
@@ -3665,12 +3736,6 @@
             currentEditOperadorNombre = null;
             document.getElementById('operador-modal-title').innerText = 'Nuevo Operador';
             document.getElementById('operador-form').reset();
-            
-            // Reset profile photo UI
-            document.getElementById('fm-op-foto-url').value = '';
-            document.getElementById('op-fm-photo-preview').innerHTML = '<i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>';
-            document.getElementById('op-fm-photo-preview').classList.remove('border-solid', 'border-primary-500');
-            document.getElementById('op-fm-photo-preview').classList.add('border-dashed');
 
             document.getElementById('fm-op-nombre').readOnly = false;
             document.getElementById('fm-op-nombre').classList.remove('bg-gray-100');
@@ -3702,20 +3767,6 @@
             modalChoferesTemp = choferesData.filter(c => c.idOperador === op.nombre).map(c => ({...c}));
             renderModalCamiones();
             renderModalChoferes();
-            
-            // Set profile photo URL and Preview
-            const photoUrl = getDirectDriveLink(op.foto || "");
-            document.getElementById('fm-op-foto-url').value = photoUrl;
-            const preview = document.getElementById('op-fm-photo-preview');
-            if(photoUrl) {
-                preview.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
-                preview.classList.replace('border-dashed', 'border-solid');
-                preview.classList.add('border-primary-500');
-            } else {
-                preview.innerHTML = '<i class="fa-solid fa-camera text-2xl text-slate-400 group-hover:text-primary-500"></i>';
-                preview.classList.replace('border-solid', 'border-dashed');
-                preview.classList.remove('border-primary-500');
-            }
 
             document.getElementById('op-submit-btn').innerText = 'Actualizar';
             document.getElementById('operador-modal').classList.remove('hidden');
@@ -3740,14 +3791,13 @@
                 nombre: document.getElementById('fm-op-nombre').value.trim(),
                 rut: document.getElementById('fm-op-rut').value.trim(),
                 telefono: document.getElementById('fm-op-tel').value.trim(),
-                email: document.getElementById('fm-op-mail').value.trim(),
-                foto: document.getElementById('fm-op-foto-url').value
+                email: document.getElementById('fm-op-mail').value.trim()
             };
 
             // Validate RUTs of choferes
             for (const ch of modalChoferesTemp) {
                 if (ch.rut && !validarRutFrontend(ch.rut)) {
-                    showToast(`RUT inválido para chofer "${ch.nombre || 'sin nombre'}": ${ch.rut}`);
+                    alert(`RUT inválido para chofer "${ch.nombre || 'sin nombre'}": ${ch.rut}\nPor favor, ingresa un RUT válido o déjalo en blanco.`);
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                     return;
@@ -3782,7 +3832,16 @@
                 for (const mc of modalChoferesTemp) {
                     if (!mc.nombre.trim()) continue;
                     await callGoogleScript('upsertChofer', {
-                        data: { "ID_Chofer": mc.id || "", "ID_Operador": op.nombre, "Nombre": mc.nombre.trim(), "RUT": mc.rut.trim() }
+                        data: { 
+                            "ID_Chofer": mc.id || "", 
+                            "ID_Operador": op.nombre, 
+                            "Nombre": mc.nombre.trim(), 
+                            "RUT": mc.rut.trim(),
+                            "Foto de Perfil": mc.foto || "",
+                            "Teléfono": mc.telefono || "",
+                            "Correo": mc.correo || "",
+                            "Carnet": mc.carnet || ""
+                        }
                     });
                 }
 
@@ -3811,13 +3870,7 @@
             showToast(`Operador eliminado de la vista.`);
 
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteOperador', nombre: nombre }),
-                    redirect: 'follow'
-                });
-                const result = await res.json();
+                const result = await callGoogleScript('deleteOperator', { nombre: nombre });
                 if(result.status === 'success') {
                     showToast(`Operador "${nombre}" eliminado de la nube.`);
                 } else {
@@ -3909,6 +3962,66 @@
 
         function closeContactModal() {
             document.getElementById('operador-contact-modal').classList.add('hidden');
+        }
+
+        function closePresentacionFlota() {
+            document.getElementById('flota-presentacion-modal').classList.add('hidden');
+        }
+
+        function openPresentacionFlota(tipo, operadorIndex) {
+            const op = operadoresData[operadorIndex];
+            if (!op) return;
+            
+            document.getElementById('flota-modal-title').innerText = op.nombre;
+            document.getElementById('flota-modal-subtitle').innerText = tipo === 'choferes' ? 'Listado de Choferes' : 'Listado de Vehículos';
+            
+            const content = document.getElementById('flota-modal-content');
+            
+            if (tipo === 'choferes') {
+                const choferes = choferesData.filter(c => c.idOperador === op.nombre);
+                if (choferes.length === 0) {
+                    content.innerHTML = '<p class="text-slate-500 text-center py-10">No hay choferes registrados.</p>';
+                } else {
+                    content.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' + choferes.map(c => {
+                        const photoUrl = c.foto ? (c.foto.startsWith('data:') ? c.foto : getDirectDriveLink(c.foto)) : null;
+                        const initial = c.nombre ? c.nombre.charAt(0).toUpperCase() : '?';
+                        const photoHtml = photoUrl 
+                            ? `<img src="${photoUrl}" class="w-16 h-16 rounded-full object-cover border-2 border-slate-200 shadow-sm flex-shrink-0">` 
+                            : `<div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-2xl border-2 border-emerald-200 shadow-sm flex-shrink-0">${initial}</div>`;
+                        
+                        return `
+                        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex gap-4 items-center hover:shadow-md transition-shadow">
+                            ${photoHtml}
+                            <div class="flex-1 overflow-hidden">
+                                <h4 class="font-bold text-slate-800 truncate" title="${c.nombre}">${c.nombre || 'Desconocido'}</h4>
+                                <div class="mt-1 space-y-1 text-xs text-slate-600">
+                                    <p class="flex items-center gap-1.5"><i class="fa-solid fa-id-card text-slate-400 w-3 text-center"></i> <span class="font-mono">${c.rut || 'Sin RUT'}</span></p>
+                                    ${c.telefono ? `<p class="flex items-center gap-1.5"><i class="fa-solid fa-phone text-slate-400 w-3 text-center"></i> ${c.telefono}</p>` : ''}
+                                    ${c.correo ? `<p class="flex items-center gap-1.5 truncate" title="${c.correo}"><i class="fa-solid fa-envelope text-slate-400 w-3 text-center"></i> ${c.correo}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('') + '</div>';
+                }
+            } else {
+                const camiones = camionesData.filter(c => c.idOperador === op.nombre);
+                if (camiones.length === 0) {
+                    content.innerHTML = '<p class="text-slate-500 text-center py-10">No hay camiones registrados.</p>';
+                } else {
+                    content.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">' + camiones.map(c => `
+                        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                            <div class="w-12 h-12 bg-blue-50 text-primary-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-truck text-xl"></i>
+                            </div>
+                            <div class="bg-white border-2 border-slate-300 rounded px-3 py-1 font-mono font-black text-slate-800 text-lg shadow-sm tracking-wider uppercase inline-block">${c.patente || 'S/P'}</div>
+                            ${c.modelo ? `<p class="mt-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">${c.modelo}</p>` : ''}
+                        </div>
+                    `).join('') + '</div>';
+                }
+            }
+            
+            document.getElementById('flota-presentacion-modal').classList.remove('hidden');
         }
 
         // --- PROFILE PHOTO UPLOAD LOGIC (Base64 Local Storage) ---
