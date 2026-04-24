@@ -483,11 +483,12 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">RUT Cliente</label>
                                 <div class="relative group">
-                                    <input type="text" id="fm-cli-rut" oninput="this.value = this.value.toUpperCase()" class="force-uppercase w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all pr-10" placeholder="12.345.678-9">
+                                    <input type="text" id="fm-cli-rut" oninput="onRutInput(this, 'fm-cli-rut-error')" class="force-uppercase w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 focus:outline-none transition-all pr-10" placeholder="12.345.678-9">
                                     <button type="button" id="btn-unlock-rut" onclick="toggleFieldLock('fm-cli-rut')" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all" title="Desbloquear para editar">
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </button>
                                 </div>
+                                <p id="fm-cli-rut-error" class="text-[10px] text-red-500 mt-1 font-semibold hidden">RUT inválido. El formato correcto es 12.345.678-9</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Giro</label>
@@ -964,7 +965,8 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">RUT</label>
-                            <input type="text" id="fm-op-rut" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="12.345.678-9">
+                            <input type="text" id="fm-op-rut" oninput="onRutInput(this, 'fm-op-rut-error')" class="force-uppercase w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 focus:outline-none" placeholder="12.345.678-9">
+                            <p id="fm-op-rut-error" class="text-[10px] text-red-500 mt-1 font-semibold hidden">RUT inválido</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -1286,6 +1288,47 @@
 
     <!-- JS Logic -->
     <script>
+        // RUT Helper Functions
+        function formatRUT(rut) {
+            if (!rut) return "";
+            let clean = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+            if (clean.length <= 1) return clean;
+            let result = clean.slice(-1);
+            let body = clean.slice(0, -1);
+            let formattedBody = "";
+            while (body.length > 3) {
+                formattedBody = "." + body.slice(-3) + formattedBody;
+                body = body.slice(0, -3);
+            }
+            formattedBody = body + formattedBody;
+            return formattedBody + "-" + result;
+        }
+
+        function validarRUT(rut) {
+            if (!rut || rut.toString().trim() === "") return true; // Vacío es válido
+            const clean = rut.toString().replace(/[^0-9kK]/g, '');
+            if (clean.length < 8 || clean.length > 9) return false;
+            const body = clean.slice(0, -1);
+            const dv = clean.slice(-1).toUpperCase();
+            let sum = 0, mul = 2;
+            for (let i = body.length - 1; i >= 0; i--) {
+                sum += parseInt(body[i]) * mul;
+                mul = mul === 7 ? 2 : mul + 1;
+            }
+            const expected = 11 - (sum % 11);
+            const dvExpected = expected === 11 ? '0' : expected === 10 ? 'K' : expected.toString();
+            return dv === dvExpected;
+        }
+
+        function onRutInput(el, errorId) {
+            el.value = formatRUT(el.value);
+            el.classList.remove('border-red-500', 'focus:border-red-500');
+            if(errorId) {
+                const errEl = document.getElementById(errorId);
+                if(errEl) errEl.classList.add('hidden');
+            }
+        }
+
         // UI TOAST FEEDBACK (UX Redesign)
         // UI TOAST FEEDBACK (UX Redesign: Compacto)
         function showToast(message) {
@@ -2561,11 +2604,24 @@
             btn.disabled = true;
 
             const nombre = document.getElementById('fm-cli-nombre').value.trim();
+            const rutValue = document.getElementById('fm-cli-rut').value.trim();
+            
+            if (rutValue && !validarRUT(rutValue)) {
+                const rutInput = document.getElementById('fm-cli-rut');
+                const rutError = document.getElementById('fm-cli-rut-error');
+                rutInput.classList.add('border-red-500', 'focus:border-red-500');
+                if (rutError) rutError.classList.remove('hidden');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showToast("Por favor, corrige el RUT antes de guardar.");
+                return;
+            }
+
             const newClient = {
                 nombre: nombre,
                 telefono: document.getElementById('fm-cli-telefono').value,
                 email: document.getElementById('fm-cli-email').value,
-                rut: document.getElementById('fm-cli-rut').value,
+                rut: rutValue,
                 giro: document.getElementById('fm-cli-giro').value,
                 direccion: document.getElementById('fm-cli-direccion').value,
                 comuna: document.getElementById('fm-cli-comuna').value,
@@ -3491,9 +3547,22 @@
             btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...`;
             btn.disabled = true;
 
+            const rutValue = document.getElementById('fm-op-rut').value.trim();
+            
+            if (rutValue && !validarRUT(rutValue)) {
+                const rutInput = document.getElementById('fm-op-rut');
+                const rutError = document.getElementById('fm-op-rut-error');
+                rutInput.classList.add('border-red-500', 'focus:border-red-500');
+                if (rutError) rutError.classList.remove('hidden');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showToast("Por favor, corrige el RUT antes de guardar.");
+                return;
+            }
+
             const op = {
                 nombre: document.getElementById('fm-op-nombre').value.trim(),
-                rut: document.getElementById('fm-op-rut').value.trim(),
+                rut: rutValue,
                 telefono: document.getElementById('fm-op-tel').value.trim(),
                 email: document.getElementById('fm-op-mail').value.trim()
             };
