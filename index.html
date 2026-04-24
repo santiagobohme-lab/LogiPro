@@ -1396,22 +1396,22 @@
         // DATA MAPPINGS FOR SPREADSHEET ROW
         const mapFromSheetClient = (sheetObj) => ({
             nombre: sheetObj["Nombre"] || "",
-            telefono: sheetObj["Teléfono"] || "",
+            telefono: sheetObj["Tel\u00e9fono"] || "",
             email: sheetObj["Email"] || "",
             rut: sheetObj["RUT Cliente"] || "",
             giro: sheetObj["Giro"] || "",
-            direccion: sheetObj["Dirección"] || "",
+            direccion: sheetObj["Direcci\u00f3n"] || "",
             comuna: sheetObj["Comuna"] || "",
             ciudad: sheetObj["Ciudad"] || ""
         });
 
         const mapToSheetClient = (row) => ({
             "Nombre": row.nombre,
-            "Teléfono": row.telefono,
+            "Tel\u00e9fono": row.telefono,
             "Email": row.email,
             "RUT Cliente": row.rut,
             "Giro": row.giro,
-            "Dirección": row.direccion,
+            "Direcci\u00f3n": row.direccion,
             "Comuna": row.comuna,
             "Ciudad": row.ciudad
         });
@@ -1548,27 +1548,30 @@
             };
         };
 
-        const mapToSheetService = (row) => ({
-            "ID": row.id,
-            "Cliente": row.cliente,
-            "Operador": row.operador,
-            "Fecha de Servicio": row.fechaServicio,
-            "Tipo Servicio": row.tipoServicio,
-            "Origen": row.origen || "-",
-            "Destino": row.destino,
-            "Costo": row.costo,
-            "Monto": row.monto,
-            "Fecha de Pago": row.fechaPago,
-            "Estado Pago": row.estado,
-            "Estado Factura": row.estadoFactura,
-            "OC / HES": row.ocHes,
-            "Cotización": row.cotizacion,
-            "Nº Factura": row.nroFactura,
-            "Link Archivo": row.driveUrl || "",
-            "DESCRIPCIÓN FACTURACIÓN": row.descripcionFacturacion || "",
-            "Patente Asignada": row.patenteAsignada || "",
-            "Chofer Asignado": row.choferAsignado || ""
-        });
+        const mapToSheetService = (row) => {
+            const data = {
+                "ID": row.id,
+                "Cliente": row.cliente,
+                "Operador": row.operador,
+                "Fecha de Servicio": row.fechaServicio,
+                "Tipo Servicio": row.tipoServicio,
+                "Destino": row.destino,
+                "Costo": row.costo,
+                "Monto": row.monto,
+                "Fecha de Pago": row.fechaPago,
+                "Estado Pago": row.estado,
+                "Estado Factura": row.estadoFactura,
+                "OC / HES": row.ocHes,
+                "Cotización": row.cotizacion,
+                "Nº Factura": row.nroFactura,
+                "Link Archivo": row.driveUrl || "",
+                "DESCRIPCIÓN FACTURACIÓN": row.descripcionFacturacion || "",
+                "Patente Asignada": row.patenteAsignada || "",
+                "Chofer Asignado": row.choferAsignado || "",
+                "Origen": row.origen || "-"
+            };
+            return data;
+        };
 
         // AUTH & SESSION LOGIC
         function checkSession() {
@@ -2646,27 +2649,17 @@
             
             // Push to DB
             try {
-                const oldName = currentEditClientNombre; // Guardar temporalmente antes de cerrar modal
-                const payload = { 
-                    action: 'upsertClient', 
+                const oldName = currentEditClientNombre;
+                await callGoogleScript('upsertClient', {
                     data: mapToSheetClient(newClient),
                     oldNombre: (oldName && oldName !== newClient.nombre) ? oldName : null
-                };
-                
-                // Cerrar modal y limpiar aquí
-                closeNewClientModal();
-                
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(payload)
                 });
                 
-                if(!res.ok) throw new Error("Error en servidor");
-                
+                closeNewClientModal();
                 showToast(oldName ? "Datos actualizados en la nube." : "Cliente registrado exitosamente.");
             } catch(err) {
-                console.error(err);
+                console.error("Error en handleClientSubmit:", err);
+                alert("Error al sincronizar con Google Sheets: " + err.message);
                 showToast("Error al sincronizar con Google Sheets.");
             } finally {
                 btn.innerHTML = originalText;

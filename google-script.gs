@@ -11,14 +11,14 @@ const GEMINI_API_KEY = 'AIzaSyDQtA3SAJ6DxHuIAbtvNliP8tNUoNWWXyc';
 const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
-  "Estado Factura", "OC / HES", "Cotización", "DESCRIPCIÓN FACTURACIÓN", "Nº Factura", "Link Archivo", "Estado Ruta",
-  "Patente Asignada", "Chofer Asignado", "Último GPS", "Última Actualización", "Origen"
+  "Estado Factura", "OC / HES", "Cotizaci\u00f3n", "DESCRIPCI\u00d3N FACTURACI\u00d3N", "N\u00ba Factura", "Link Archivo", "Estado Ruta",
+  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado"];
-const POTENTIAL_HEADERS = ["Nombre", "Teléfono", "Email", "Sitio Web"];
-const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Teléfono", "Email", "Foto"];
-const CLIENT_HEADERS = ["Nombre", "Teléfono", "Email", "RUT Cliente", "Giro", "Dirección", "Comuna", "Ciudad"];
+const POTENTIAL_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "Sitio Web"];
+const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Tel\u00e9fono", "Email", "Foto"];
+const CLIENT_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "RUT Cliente", "Giro", "Direcci\u00f3n", "Comuna", "Ciudad"];
 const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT"];
 const CAMION_HEADERS = ["ID_Camion", "ID_Operador", "Patente", "Modelo"];
 
@@ -54,6 +54,10 @@ function initSheet(ss, sheetName, headers) {
     sheet = ss.insertSheet(sheetName);
     sheet.appendRow(headers);
   } else {
+    const maxCols = sheet.getMaxColumns();
+    if (maxCols < headers.length) {
+      sheet.insertColumnsAfter(maxCols, headers.length - maxCols);
+    }
     const lastCol = sheet.getLastColumn() || 1;
     if (lastCol < headers.length) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
