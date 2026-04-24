@@ -15,7 +15,7 @@ const SCRIPT_DB_HEADERS = [
   "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen"
 ];
 
-const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado"];
+const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado", "Operador Asociado"];
 const POTENTIAL_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "Sitio Web"];
 const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Tel\u00e9fono", "Email", "Foto"];
 const CLIENT_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "RUT Cliente", "Giro", "Direcci\u00f3n", "Comuna", "Ciudad"];

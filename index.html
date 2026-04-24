@@ -177,14 +177,9 @@
         
         <div class="flex-1 overflow-y-auto py-6">
             <nav class="space-y-1">
-                <a href="#dashboard" onclick="switchSection('dashboard')" id="nav-dashboard" class="nav-item flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
-                    <i class="fa-solid fa-house w-6 text-primary-900"></i>
-                    <span>Dashboard</span>
-                </a>
-
                 <div class="nav-group">
-                    <button onclick="toggleNavGroup('servicios')" class="nav-item w-full flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
-                        <i class="fa-regular fa-rectangle-list w-6 text-slate-400"></i>
+                    <button onclick="toggleNavGroup('servicios')" class="nav-item w-full flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
+                        <i class="fa-regular fa-rectangle-list w-6 text-primary-900"></i>
                         <span>Servicios</span>
                         <i class="fa-solid fa-chevron-down ml-auto text-[10px] transition-transform" id="servicios-chevron"></i>
                     </button>
@@ -260,69 +255,104 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8" id="main-scroll">
 
-            <!-- SEC: DASHBOARD -->
-            <div id="sec-dashboard" class="content-section animate-fade-in block w-full max-w-7xl mx-auto">
-                <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
+            <!-- SEC: OPERADOR HOME (Portal Operadores) -->
+            <div id="sec-operador-home" class="content-section animate-fade-in hidden w-full max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-gray-100 pb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Dashboard General</h1>
-                        <p class="text-slate-500 text-sm mt-1">Resumen operativo y alertas del sistema.</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-primary-900 text-white text-[10px] font-black rounded uppercase tracking-widest">Panel de Dueño de Flota</span>
+                            <span id="operador-entity-name" class="text-xs font-bold text-slate-400">Nombre Operador</span>
+                        </div>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión Operativa</h1>
+                        <p class="text-slate-500 text-sm mt-1">Controla tus solicitudes, asignaciones y facturación.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="renderOperatorPortal()" class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-400 hover:text-primary-900 transition-all">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <!-- Alerta 1 -->
-                    <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-amber-900">Rutas sin asignar</h4>
-                            <p class="text-xs text-amber-700 mt-1">Hay servicios pendientes de asignación de chofer.</p>
-                        </div>
-                    </div>
-                    <!-- Alerta 2 -->
-                    <div class="bg-red-50 border border-red-200 p-5 rounded-2xl flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-red-900">Pagos Atrasados</h4>
-                            <p class="text-xs text-red-700 mt-1">Facturas han superado la fecha límite de pago.</p>
-                        </div>
-                    </div>
-                    <!-- Alerta 3 -->
-                    <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-truck-ramp-box"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-blue-900">Cargas en ruta</h4>
-                            <p class="text-xs text-blue-700 mt-1">Camiones se encuentran actualmente en trayecto.</p>
-                        </div>
-                    </div>
-                    <!-- Alerta 4 -->
-                    <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-emerald-900">Sistema OK</h4>
-                            <p class="text-xs text-emerald-700 mt-1">Módulos operando correctamente.</p>
-                        </div>
-                    </div>
+                <!-- Tabs -->
+                <div class="flex gap-4 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                    <button onclick="switchOperatorTab('solicitudes')" id="tab-op-solicitudes" class="op-tab-btn active px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all bg-primary-900 text-white shadow-lg shadow-primary-900/20">
+                        Solicitudes <span id="op-requests-count" class="ml-2 bg-red-500 text-white px-1.5 py-0.5 rounded-full text-[9px]">0</span>
+                    </button>
+                    <button onclick="switchOperatorTab('activos')" id="tab-op-activos" class="op-tab-btn px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all bg-white border border-gray-100 text-slate-500">
+                        En Ruta
+                    </button>
+                    <button onclick="switchOperatorTab('pagos')" id="tab-op-pagos" class="op-tab-btn px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all bg-white border border-gray-100 text-slate-500">
+                        Estados de Pago
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm h-64 flex flex-col items-center justify-center text-center">
-                         <i class="fa-solid fa-chart-line text-4xl text-slate-200 mb-4"></i>
-                         <p class="text-slate-400 font-medium">Gráficos de rendimiento próximamente</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Contenido de Tabs -->
+                    <div class="lg:col-span-2 space-y-6">
+                        
+                        <!-- TAB: SOLICITUDES -->
+                        <div id="op-view-solicitudes" class="op-view block animate-fade-in">
+                            <div id="op-requests-container" class="grid grid-cols-1 gap-4">
+                                <!-- Injected -->
+                            </div>
+                        </div>
+
+                        <!-- TAB: ACTIVOS -->
+                        <div id="op-view-activos" class="op-view hidden animate-fade-in">
+                             <div id="op-activos-container" class="grid grid-cols-1 gap-4">
+                                <!-- Injected -->
+                             </div>
+                        </div>
+
+                        <!-- TAB: PAGOS -->
+                        <div id="op-view-pagos" class="op-view hidden animate-fade-in">
+                             <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-gray-100">
+                                            <th class="py-4 px-6">Servicio</th>
+                                            <th class="py-4 px-6">Fecha</th>
+                                            <th class="py-4 px-6">Estado Pago</th>
+                                            <th class="py-4 px-6 text-right">Factura</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="op-pagos-table-body">
+                                        <!-- Injected -->
+                                    </tbody>
+                                </table>
+                             </div>
+                        </div>
+
                     </div>
-                    <div class="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm h-64 flex flex-col items-center justify-center text-center">
-                         <i class="fa-solid fa-bell text-4xl text-slate-200 mb-4"></i>
-                         <p class="text-slate-400 font-medium">Historial de actividad reciente</p>
+
+                    <!-- Sidebar Informativo -->
+                    <div class="space-y-6">
+                         <div class="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm overflow-hidden relative">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Resumen Mensual</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl">
+                                    <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Facturado</span>
+                                    <span id="op-stat-facturado" class="text-sm font-black text-emerald-600">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl">
+                                    <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Por Cobrar</span>
+                                    <span id="op-stat-pendiente" class="text-sm font-black text-orange-600">$0</span>
+                                </div>
+                            </div>
+                         </div>
+
+                         <div class="bg-primary-900 rounded-[2rem] p-6 text-white shadow-xl shadow-primary-900/20">
+                            <h3 class="text-sm font-black uppercase tracking-widest mb-2 opacity-70">Soporte Central</h3>
+                            <p class="text-[11px] leading-relaxed opacity-80 mb-4">Contacta a la central para emergencias en ruta o cambios en la programación.</p>
+                            <a href="https://wa.me/56912345678" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-xs transition-all border border-white/20">
+                                <i class="fa-brands fa-whatsapp text-lg"></i> Contactar Central
+                            </a>
+                         </div>
                     </div>
                 </div>
             </div>
+
+
 
             <!-- SEC: CLIENTE HOME (Solo visible en modo cliente) -->
             <div id="sec-cliente-home" class="content-section animate-fade-in hidden w-full max-w-7xl mx-auto">
@@ -1267,12 +1297,19 @@
                                 <option value="Colaborador" selected>Colaborador (Visualización y Datos)</option>
                                 <option value="SuperAdmin">SuperAdmin (Gestión de Equipo)</option>
                                 <option value="CLIENTE">Cliente (Vista de su propia Empresa)</option>
+                                <option value="OPERADOR">Operador (Portal de Servicios)</option>
                             </select>
                         </div>
                         <div id="div-colab-cliente" class="hidden mt-2">
                             <label class="block text-xs font-bold text-slate-700 mb-1">Empresa Vinculada <span class="text-red-500">*</span></label>
                             <select id="fm-colab-cliente" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
                                 <option value="">— Seleccionar Empresa —</option>
+                            </select>
+                        </div>
+                        <div id="div-colab-operador" class="hidden mt-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Operador Vinculado <span class="text-red-500">*</span></label>
+                            <select id="fm-colab-operador" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2 rounded text-sm focus:border-primary-900 outline-none">
+                                <option value="">— Seleccionar Operador —</option>
                             </select>
                         </div>
                         
@@ -1548,6 +1585,16 @@
         let currentEditProspectoNombre = null;
         let currentEditOperadorNombre = null;
         let currentOperatorForServices = null;
+        let opRequests = [
+            { id: 'REQ-001', tipo: 'Carga General', origen: 'Santiago', destino: 'Concepción', carga: 'Pallets Madera', fecha: '2026-05-10', cliente: 'Cliente Demo A', costo: 150000 },
+            { id: 'REQ-002', tipo: 'Frio / Congelados', origen: 'Puerto Montt', destino: 'Santiago', carga: 'Salmón fresco', fecha: '2026-05-12', cliente: 'Exportadora Sur', costo: 450000 }
+        ];
+        let opActivos = [];
+        let opPagos = [
+            { id: 'SERV-990', destino: 'Antofagasta', fecha: '2026-04-15', costo: 850000, estado: 'Pendiente Pago', factura: null },
+            { id: 'SERV-985', destino: 'Temuco', fecha: '2026-04-10', costo: 320000, estado: 'Pagado', factura: 'Factura_985.pdf' }
+        ];
+        let activeOperatorName = "";
         let currentEditClientNombre = null;
         let isGlobalLoading = false;
 
@@ -1843,7 +1890,7 @@
             }
             
             if(activeSession.rol === 'CLIENTE') {
-                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-dashboard'].forEach(id => document.getElementById(id).classList.add('hidden'));
                 document.getElementById('main-container').classList.add('bg-[#f8f9fa]'); 
                 document.getElementById('sidebar-logo-container').innerHTML = `
                     <div class="flex items-center justify-start w-full overflow-visible">
@@ -1852,9 +1899,24 @@
                 `;
                 switchSection('cliente-home');
                 setTimeout(renderClientServicesTable, 300);
+            } else if(activeSession.rol === 'OPERADOR') {
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-dashboard'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                document.getElementById('main-container').classList.add('bg-[#f4f7fa]');
+                document.getElementById('sidebar-logo-container').innerHTML = `
+                    <div class="flex items-center px-0">
+                         <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-truck-moving text-sm"></i>
+                        </div>
+                        <span class="text-xl font-black text-primary-900 tracking-tighter">OPERADOR</span>
+                    </div>
+                `;
+                activeOperatorName = result.user["Operador Asociado"] || result.user.Nombre;
+                document.getElementById('operador-entity-name').innerText = activeOperatorName;
+                switchSection('operador-home');
+                renderOperatorPortal();
             } else {
                 document.getElementById('main-container').classList.remove('bg-[#f8f9fa]');
-                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-dashboard'].forEach(id => document.getElementById(id).classList.remove('hidden'));
                 document.getElementById('sec-perfil').innerHTML = `<h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>`;
                 document.getElementById('sidebar-logo-container').innerHTML = `
                     <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
@@ -2004,7 +2066,9 @@
                 }));
                 
                 colaboradoresData = (result.colaboradores || []).map(u => ({
-                    nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email, clienteAsociado: u["Cliente Asociado"] || ""
+                    nombre: u.Nombre, clave: u.Clave, rol: u.Rol, estado: u.Estado, email: u.Email, 
+                    clienteAsociado: u["Cliente Asociado"] || "",
+                    operadorAsociado: u["Operador Asociado"] || ""
                 }));
                 
                 operadoresData = (result.base_operadores || []).map(mapFromSheetOperador);
@@ -2038,6 +2102,9 @@
                 // REFRESCAR PORTAL DE CLIENTE
                 if(activeSession && activeSession.rol === 'CLIENTE') {
                     renderClientServicesTable();
+                }
+                if(activeSession && activeSession.rol === 'OPERADOR') {
+                    renderOperatorPortal();
                 }
             }
         }
@@ -2156,22 +2223,28 @@
 
         function toggleColabCliente() {
             const rol = document.getElementById('fm-colab-rol').value;
-            const div = document.getElementById('div-colab-cliente');
-            const sel = document.getElementById('fm-colab-cliente');
+            const divCli = document.getElementById('div-colab-cliente');
+            const selCli = document.getElementById('fm-colab-cliente');
+            const divOp = document.getElementById('div-colab-operador');
+            const selOp = document.getElementById('fm-colab-operador');
+            
+            divCli.classList.add('hidden');
+            selCli.required = false;
+            divOp.classList.add('hidden');
+            selOp.required = false;
+
             if(rol === 'CLIENTE') {
-                div.classList.remove('hidden');
-                sel.required = true;
-            } else {
-                div.classList.add('hidden');
-                sel.required = false;
-                sel.value = '';
+                divCli.classList.remove('hidden');
+                selCli.required = true;
+            } else if(rol === 'OPERADOR') {
+                divOp.classList.remove('hidden');
+                selOp.required = true;
             }
         }
 
         function openColaboradorModal() {
             document.getElementById('fm-colab').reset();
             document.getElementById('colab-modal-title').innerText = 'Nuevo Colaborador';
-            // Disable editing nombre on edit, leave open for new
             document.getElementById('fm-colab-nombre').readOnly = false;
             document.getElementById('fm-colab-nombre').classList.remove('bg-gray-100');
             
@@ -2180,8 +2253,14 @@
             clientsData.forEach(c => {
                 selectCliente.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
             });
-            toggleColabCliente();
 
+            const selectOp = document.getElementById('fm-colab-operador');
+            selectOp.innerHTML = '<option value="">— Seleccionar Operador —</option>';
+            operadoresData.forEach(o => {
+                selectOp.innerHTML += `<option value="${o.nombre}">${o.nombre}</option>`;
+            });
+
+            toggleColabCliente();
             document.getElementById('colab-modal').classList.remove('hidden');
         }
 
@@ -2201,10 +2280,16 @@
             clientsData.forEach(c => {
                 selectCliente.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
             });
+
+            const selectOp = document.getElementById('fm-colab-operador');
+            selectOp.innerHTML = '<option value="">— Seleccionar Operador —</option>';
+            operadoresData.forEach(o => {
+                selectOp.innerHTML += `<option value="${o.nombre}">${o.nombre}</option>`;
+            });
+
             toggleColabCliente();
-            if(colab.clienteAsociado) {
-                selectCliente.value = colab.clienteAsociado;
-            }
+            if(colab.clienteAsociado) selectCliente.value = colab.clienteAsociado;
+            if(colab.operadorAsociado) selectOp.value = colab.operadorAsociado;
 
             document.getElementById('colab-modal-title').innerText = 'Editar Colaborador';
             document.getElementById('colab-modal').classList.remove('hidden');
@@ -2221,8 +2306,9 @@
                 "Clave": document.getElementById('fm-colab-clave').value.trim(),
                 "Rol": document.getElementById('fm-colab-rol').value,
                 "Estado": "Activo",
-                "Email": "", // Se puede expandir luego si agregan el input
-                "Cliente Asociado": document.getElementById('fm-colab-rol').value === 'CLIENTE' ? document.getElementById('fm-colab-cliente').value : ""
+                "Email": "",
+                "Cliente Asociado": document.getElementById('fm-colab-rol').value === 'CLIENTE' ? document.getElementById('fm-colab-cliente').value : "",
+                "Operador Asociado": document.getElementById('fm-colab-rol').value === 'OPERADOR' ? document.getElementById('fm-colab-operador').value : ""
             };
 
             try {
@@ -4359,6 +4445,186 @@
         // --- SISTEMA DE AUTOCOMPLETADO (SII) ---
         const CHILE_COMUNAS = ["AISEN","ALGARROBO","ALHUE","ALTO BIOBIO","ALTO DEL CARMEN","ALTO HOSPICIO","ANCUD","ANDACOLLO","ANGOL","ANTOFAGASTA","ANTUCO","ARAUCO","ARICA","BUIN","BULNES","CABILDO","CABO DE HORNOS","CABRERO","CALAMA","CALBUCO","CALDERA","CALERA","CALERA DE TANGO","CALLE LARGA","CAMARONES","CAMIÑA","CANELA","CAÑETE","CARAHUE","CARTAGENA","CASABLANCA","CASTRO","CATEMU","CAUQUENES","CERRILLOS","CERRO NAVIA","CHAÑARAL","CHEPICA","CHIGUAYANTE","CHILE CHICO","CHILLAN","CHILLAN VIEJO","CHIMBARONGO","CHOLCHOL","CHONCHI","CHEPICA","CHIGUAYANTE","CHILE CHICO","CHILLAN","CHILLAN VIEJO","CHIMBARONGO","CHOLCHOL","CHONCHI","CISNES","COBQUECURA","COCHAMO","COCHRANE","COELEMU","COIHUECO","COINCO","COLBUN","COLCHANE","COLINA","COLLIPULLI","COLTAUCO","COMBARBALA","CONCEPCION","CONCON","CONSTITUCION","COPIAPO","COQUIMBO","CORONEL","CORRAL","CUNCO","CURACAUTIN","CURACAVI","CURACO DE VELEZ","CURANILAHUE","CURARREHUE","CUREPTO","CURICO","DALCAHUE","DIEGO DE ALMAGRO","DOÑIHUE","EL BOSQUE","EL CARMEN","EL MONTE","EL QUISCO","EL TABO","EMPEDRADO","ERCILLA","ESTACION CENTRAL","FLORIDA","FREIRE","FREIRINA","FRESIA","FRUTILLAR","FUTALEUFU","FUTRONO","GALVARINO","GENERAL LAGOS","GORBEA","GRANEROS","HIJUELAS","HUALAIHUE","HUALAÑE","HUALPEN","HUALQUI","HUARA","HUASCO","HUECHURABA","ILLAPEL","INDEPENDENCIA","IQUIQUE","ISLA DE MAIPO","ISLA DE PASCUA","JUAN FERNANDEZ","LA CALERA","LA CISTERNA","LA CRUZ","LA ESTRELLA","LA FLORIDA","LA GRANJA","LA HIGUERA","LA LAGUNA","LA LIGUA","LA PINTANA","LA REINA","LA SERENA","LA UNION","LAGO RANCO","LAGO VERDE","LAGUNA BLANCA","LAMPA","LANCO","LAS CABRAS","LAS CONDES","LAUTARO","LEBU","LICANTEN","LIMACHE","LINARES","LITUECHE","LLANQUIHUE","LO BARNECHEA","LO ESPEJO","LO PRADO","LOLOL","LONCOCHE","LONGAVI","LONQUIMAY","LOS ALAMOS","LOS ANDES","LOS ANGELES","LOS LAGOS","LOS MUERMOS","LOS SAUCES","LOS VILOS","LOTA","LUMACO","MACHALI","MACUL","MAFIL","MAIPU","MALLOA","MARCHIHUE","MARIA ELENA","MARIA PINTO","MARIQUINA","MAULLIN","MEJILLONES","MELIPILLA","MOLINA","MONTE PATRIA","MOSTAZAL","MULCHEN","NACIMIENTO","NANCAGUA","NAVIDAD","NEGRETE","NINHUE","NOGALES","NUEVA IMPERIAL","ÑIQUEN","ÑUÑOA","OLIVAR","OLLAGUE","OLMUE","OSORNO","OVALLE","PADRE HURTADO","PADRE LAS CASAS","PAIGUANO","PAILLACO","PAINE","PALENA","PALMILLA","PANGUIPULLI","PANQUEHUE","PAPAUDO","PAREDONES","PARRAL","PEDRO AGUIRRE CERDA","PELARCO","PELLUHUE","PEMUCO","PENCAHUE","PENCO","PEÑAFLOR","PEÑALOLEN","PERALILLO","PERQUENCO","PETORCA","PEUMO","PICA","PICHIDEGUA","PICHILEMU","PINTO","PIRQUE","PLACILLA","PORTEZUELO","PORVENIR","POZO ALMONTE","PRIMAVERA","PROVIDENCIA","PUCHUNCAVI","PUCON","PUDAHUEL","PUENTE ALTO","PUERTO MONTT","PUERTO NATALES","PUERTO OCTAY","PUERTO VARAS","PUERTO WILLIAMS","PUMANQUE","PUNITAQUI","PUNTA ARENAS","PUQUELDON","PUREN","PURRANQUE","PUTAENDO","PUTRE","PUYEHUE","QUEILEN","QUELLON","QUEMCHI","QUILPUE","QUILICURA","QUILLECO","QUILLON","QUILLOTA","QUILPUE","QUINCHAO","QUINTA DE TILCOCO","QUINTA NORMAL","QUINTERO","QUIRIHUE","RANCAGUA","RAUCO","RECOLETA","RENAICO","RENCA","RENGO","REQUINOA","RETIRO","RINCONADA","RIO BUENO","RIO CLARO","RIO HURTADO","RIO IBAÑEZ","RIO NEGRO","RIO VERDE","ROMERAL","SAAVEDRA","SAGRADA FAMILIA","SALAMANCA","SAN ANTONIO","SAN BERNARDO","SAN CARLOS","SAN CLEMENTE","SAN ESTEBAN","SAN FABIAN","SAN FELIPE","SAN FERNANDO","SAN GREGORIO","SAN IGNACIO","SAN JAVIER","SAN JOAQUIN","SAN JOSE DE MAIPO","SAN JUAN DE LA COSTA","SAN MIGUEL","SAN NICOLAS","SAN PABLO","SAN PEDRO","SAN PEDRO DE ATACAMA","SAN PEDRO DE LA PAZ","SAN RAFAEL","SAN RAMON","SAN ROSENDO","SAN VICENTE DE TAGUA TAGUA","SANTA BARBARA","SANTA CRUZ","SANTA JUANA","SANTA MARIA","SANTIAGO","SANTO DOMINGO","SIERRA GORDA","TALAGANTE","TALCA","TALCAHUANO","TALTAL","TEMUCO","TENO","TEODORO SCHMIDT","TIERRA AMARILLA","TILTIL","TIMAUKEL","TOME","TORRES DEL PAINE","TORTEL","TRAIGUEN","TREHUACO","TUCAPEL","VALDIVIA","VALLENAR","VALPARAISO","VICHUQUEN","VICTORIA","VICUÑA","VILCUN","VILLA ALEGRE","VILLA ALEMANA","VILLARRICA","VIÑA DEL MAR","VITACURA", "YERBAS BUENAS","YUMBEL","YUNGAY","ZAPALLAR"];
         
+        function switchOperatorTab(tabId) {
+            document.querySelectorAll('.op-view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('op-view-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.op-tab-btn').forEach(b => {
+                b.classList.remove('bg-primary-900', 'text-white', 'shadow-lg', 'shadow-primary-900/20');
+                b.classList.add('bg-white', 'text-slate-500', 'border', 'border-gray-100');
+            });
+
+            const activeBtn = document.getElementById('tab-op-' + tabId);
+            activeBtn.classList.replace('bg-white', 'bg-primary-900');
+            activeBtn.classList.replace('text-slate-500', 'text-white');
+            activeBtn.classList.add('shadow-lg', 'shadow-primary-900/20');
+            activeBtn.classList.remove('border', 'border-gray-100');
+            
+            renderOperatorPortal();
+        }
+
+        function renderOperatorPortal() {
+            // Count Requests
+            document.getElementById('op-requests-count').innerText = opRequests.length;
+
+            // Render Requests
+            const reqContainer = document.getElementById('op-requests-container');
+            if(opRequests.length === 0) {
+                reqContainer.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic">No hay solicitudes nuevas.</div>`;
+            } else {
+                // Filter choferes and camiones for THIS operator
+                const operatorEntity = operadoresData.find(o => o.nombre === activeOperatorName);
+                const myChoferes = choferesData.filter(c => c.idOperador == (operatorEntity ? operatorEntity.id : -1) || c.idOperador == activeOperatorName);
+                const myCamiones = camionesData.filter(c => c.idOperador == (operatorEntity ? operatorEntity.id : -1) || c.idOperador == activeOperatorName);
+
+                reqContainer.innerHTML = opRequests.map(req => `
+                    <div class="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm animate-fade-in">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded uppercase tracking-widest">${req.tipo}</span>
+                                <h3 class="text-lg font-black text-slate-800 mt-1">${req.origen} ➔ ${req.destino}</h3>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">Costo</p>
+                                <p class="text-sm font-black text-primary-900">${formatMoney(req.costo)}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-50 p-4 rounded-2xl">
+                             <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Asignar Chofer</label>
+                                <select id="assign-chofer-${req.id}" class="w-full bg-white border border-gray-200 text-xs font-bold px-3 py-2 rounded-xl outline-none focus:border-primary-900 transition-colors">
+                                    <option value="">— Seleccionar —</option>
+                                    ${myChoferes.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('')}
+                                </select>
+                             </div>
+                             <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Asignar Camión</label>
+                                <select id="assign-camion-${req.id}" class="w-full bg-white border border-gray-200 text-xs font-bold px-3 py-2 rounded-xl outline-none focus:border-primary-900 transition-colors">
+                                    <option value="">— Seleccionar —</option>
+                                    ${myCamiones.map(c => `<option value="${c.patente}">${c.patente} (${c.modelo})</option>`).join('')}
+                                </select>
+                             </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="handleOpAssign('${req.id}')" class="flex-1 py-3 bg-primary-900 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-900/20 hover:scale-[1.02] transition-all">Aceptar y Asignar</button>
+                            <button onclick="handleOpReject('${req.id}')" class="px-4 py-3 bg-red-50 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all">Rechazar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Activos
+            const activeContainer = document.getElementById('op-activos-container');
+            if(opActivos.length === 0) {
+                activeContainer.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic">No hay servicios en ruta actualmente.</div>`;
+            } else {
+                activeContainer.innerHTML = opActivos.map(s => `
+                    <div class="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm border-l-4 border-l-emerald-500">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Ruta</p>
+                                <h3 class="text-base font-black text-slate-800">${s.origen} ➔ ${s.destino}</h3>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500">${s.fecha}</span>
+                        </div>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-user-tie text-slate-300"></i>
+                                <span class="text-xs font-bold text-slate-700">${s.chofer}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-truck-front text-slate-300"></i>
+                                <span class="text-xs font-bold text-slate-700">${s.camion}</span>
+                            </div>
+                        </div>
+                        <button onclick="handleOpFinish('${s.id}')" class="w-full py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all">Finalizar Entrega</button>
+                    </div>
+                `).join('');
+            }
+
+            // Render Pagos
+            const pagosTable = document.getElementById('op-pagos-table-body');
+            pagosTable.innerHTML = opPagos.map(p => `
+                <tr class="border-b border-gray-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-slate-800">${p.id}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">${p.destino}</p>
+                    </td>
+                    <td class="py-4 px-6 text-slate-500 font-medium">${p.fecha}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${p.estado === 'Pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">
+                            ${p.estado}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        ${p.factura ? 
+                            `<span class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-file-circle-check mr-1"></i> ${p.factura}</span>` : 
+                            `<button onclick="openUploadFacturaOp('${p.id}')" class="text-xs font-black text-primary-900 underline hover:text-primary-700 tracking-tighter uppercase">Subir Factura</button>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update Stats
+            const facturado = opPagos.filter(p => p.estado === 'Pagado').reduce((acc, p) => acc + p.costo, 0);
+            const pendiente = opPagos.filter(p => p.estado === 'Pendiente Pago').reduce((acc, p) => acc + p.costo, 0);
+            document.getElementById('op-stat-facturado').innerText = formatMoney(facturado);
+            document.getElementById('op-stat-pendiente').innerText = formatMoney(pendiente);
+        }
+
+        function handleOpAssign(id) {
+            const req = opRequests.find(r => r.id === id);
+            const chofer = document.getElementById('assign-chofer-' + id).value;
+            const camion = document.getElementById('assign-camion-' + id).value;
+
+            if(!chofer || !camion) {
+                showToast("Debes asignar chofer y camión antes de aceptar.", "error");
+                return;
+            }
+
+            showToast("Servicio asignado correctamente.", "success");
+            
+            // Move to active
+            opActivos.push({ ...req, chofer, camion });
+            opRequests = opRequests.filter(r => r.id !== id);
+            renderOperatorPortal();
+        }
+
+        function handleOpReject(id) {
+            showToast("Has rechazado la solicitud.", "info");
+            opRequests = opRequests.filter(r => r.id !== id);
+            renderOperatorPortal();
+        }
+
+        function handleOpFinish(id) {
+            const s = opActivos.find(x => x.id === id);
+            showToast("¡Entrega finalizada! Ya puedes subir la factura.", "success");
+            
+            // Move to payments
+            opPagos.unshift({ 
+                id: s.id, 
+                destino: s.destino, 
+                fecha: new Date().toISOString().split('T')[0], 
+                costo: s.costo, 
+                estado: 'Pendiente Pago', 
+                factura: null 
+            });
+            opActivos = opActivos.filter(x => x.id !== id);
+            renderOperatorPortal();
+        }
+
+        function openUploadFacturaOp(id) {
+            const file = prompt("Prototipo: Ingresa el nombre del archivo (ej: Factura_123.pdf)");
+            if(file) {
+                const p = opPagos.find(x => x.id === id);
+                if(p) p.factura = file;
+                showToast("Factura subida correctamente.", "success");
+                renderOperatorPortal();
+            }
+        }
+
         const CHILE_CIUDADES = ["ARICA", "IQUIQUE", "ANTOFAGASTA", "COPIAPO", "LA SERENA", "VALPARAISO", "SANTIAGO", "RANCAGUA", "TALCA", "CHILLAN", "CONCEPCION", "TEMUCO", "VALDIVIA", "PUERTO MONTT", "COYHAIQUE", "PUNTA ARENAS"];
 
         function initAutocomplete() {
