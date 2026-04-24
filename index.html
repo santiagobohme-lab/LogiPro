@@ -286,7 +286,7 @@
                                 <thead>
                                     <tr class="border-b-2 border-gray-50 text-slate-800 font-bold">
                                         <th class="py-4 px-4 font-bold rounded-tl-xl text-xs">Fecha de inicio</th>
-                                        <th class="py-4 px-4 font-bold text-xs">Destino</th>
+                                        <th class="py-4 px-4 font-bold text-xs">Origen / Destino</th>
                                         <th class="py-4 px-4 font-bold text-xs">Cliente</th>
                                         <th class="py-4 px-4 font-bold text-xs">Costo</th>
                                         <th class="py-4 px-4 font-bold text-xs">Progreso</th>
@@ -398,6 +398,7 @@
                                         <th class="px-3 py-2">Chofer</th>
                                         <th class="px-3 py-2">Fecha Srv.</th>
                                         <th class="px-3 py-2">Servicio</th>
+                                        <th class="px-3 py-2">Origen</th>
                                         <th class="px-3 py-2">Destino</th>
                                         <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
                                         <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
@@ -443,6 +444,7 @@
                                     <th class="px-3 py-2">Chofer</th>
                                     <th class="px-3 py-2">Fecha Srv.</th>
                                     <th class="px-3 py-2">Servicio</th>
+                                    <th class="px-3 py-2">Origen</th>
                                     <th class="px-3 py-2">Destino</th>
                                     <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
                                     <th class="px-3 py-2 text-right">Monto ($ CLP)</th>
@@ -648,7 +650,8 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
-                                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Origen</label><input type="text" id="fm-origen" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
                                 </div>
                                 
                                 <div class="pt-2 border-t border-dashed border-slate-100 grid grid-cols-2 gap-4">
@@ -935,6 +938,7 @@
                                 <tr class="text-xs text-primary-900 font-bold border-b border-gray-200 bg-gray-50">
                                     <th class="px-4 py-3">Fecha Servicio</th>
                                     <th class="px-4 py-3">Cliente</th>
+                                    <th class="px-4 py-3">Origen</th>
                                     <th class="px-4 py-3">Destino</th>
                                     <th class="px-4 py-3">Costo (CLP)</th>
                                     <th class="px-4 py-3">Estado de Pago</th>
@@ -1097,7 +1101,7 @@
                             <div>
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Información de Ruta</label>
                                 <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                                    <p class="text-xs text-slate-500 mb-1">Destino Final</p>
+                                    <p class="text-xs text-slate-500 mb-1">Origen / Destino</p>
                                     <p id="dt-client-destino" class="text-sm font-bold text-slate-800 leading-tight">---</p>
                                     <hr class="my-3 border-slate-200/50">
                                     <p class="text-xs text-slate-500 mb-1">Tipo de Servicio</p>
@@ -1539,7 +1543,8 @@
                 factura: sheetObj["Link Archivo"] ? "Archivo_Google_Drive" : "",
                 descripcionFacturacion: sheetObj["DESCRIPCIÓN FACTURACIÓN"] || "",
                 patenteAsignada: (sheetObj["Patente Asignada"] || "").toString().trim(),
-                choferAsignado: (sheetObj["Chofer Asignado"] || "").toString().trim()
+                choferAsignado: (sheetObj["Chofer Asignado"] || "").toString().trim(),
+                origen: sheetObj["Origen"] || "-"
             };
         };
 
@@ -1549,6 +1554,7 @@
             "Operador": row.operador,
             "Fecha de Servicio": row.fechaServicio,
             "Tipo Servicio": row.tipoServicio,
+            "Origen": row.origen || "-",
             "Destino": row.destino,
             "Costo": row.costo,
             "Monto": row.monto,
@@ -3032,6 +3038,7 @@
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600">${row.origen || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
                     <td class="px-3 py-2 text-right">
                         <div class="flex flex-col items-end gap-1">
@@ -3115,6 +3122,7 @@
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600">${row.origen || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
                     <td class="px-3 py-2 text-right">
                         <div class="flex flex-col items-end gap-1">
@@ -3193,6 +3201,7 @@
             
             document.getElementById('fm-fechaServicio').value = row.fechaServicio === "-" ? "" : row.fechaServicio.split('T')[0];
             document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
+            document.getElementById('fm-origen').value = row.origen === "-" ? "" : row.origen;
             document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
             document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
@@ -3227,6 +3236,7 @@
                     row.choferAsignado = document.getElementById('fm-chofer').value || "";
                     row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
                     row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
+                    row.origen = document.getElementById('fm-origen').value || "-";
                     row.destino = document.getElementById('fm-destino').value || "-";
                     row.costo = document.getElementById('fm-costo').value || "-";
                     row.monto = document.getElementById('fm-monto').value || "-";
@@ -3247,6 +3257,7 @@
                     choferAsignado: document.getElementById('fm-chofer').value || "",
                     fechaServicio: document.getElementById('fm-fechaServicio').value || "-",
                     tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
+                    origen: document.getElementById('fm-origen').value || "-",
                     destino: document.getElementById('fm-destino').value || "-",
                     costo: document.getElementById('fm-costo').value || "-", 
                     monto: document.getElementById('fm-monto').value || "-",
@@ -3870,6 +3881,7 @@
                 <tr class="hover:bg-gray-50 transition-colors border-b border-gray-50">
                     <td class="px-4 py-3 text-slate-700 font-medium">${s.fechaServicio}</td>
                     <td class="px-4 py-3 font-semibold text-primary-900">${s.cliente}</td>
+                    <td class="px-4 py-3 text-slate-600">${s.origen || "-"}</td>
                     <td class="px-4 py-3 text-slate-600">${s.destino}</td>
                     <td class="px-4 py-3 text-slate-700 font-mono text-xs tracking-tighter">$ ${Number(s.costo).toLocaleString('es-CL')}</td>
                     <td class="px-4 py-3">
@@ -4127,7 +4139,7 @@
                 
                 tr.innerHTML = `
                     <td class="py-5 px-4 text-slate-500 font-medium whitespace-nowrap text-xs">${s.fechaServicio || '---'}</td>
-                    <td class="py-5 px-4 text-slate-800 font-bold max-w-[200px] truncate group-hover:text-primary-900 transition-colors" title="${s.destino || 'Sin Destino'}">${s.destino || '---'}</td>
+                    <td class="py-5 px-4 text-slate-800 font-bold max-w-[200px] truncate group-hover:text-primary-900 transition-colors" title="${s.origen} ➔ ${s.destino}">${s.origen || '---'} ➔ ${s.destino || '---'}</td>
                     <td class="py-5 px-4 text-slate-500 truncate min-w-[120px] max-w-[150px]" title="${s.cliente}">${s.cliente || '---'}</td>
                     <td class="py-5 px-4 text-slate-800 font-black">${formatMoney(s.costo)}</td>
                     <td class="py-5 px-4">
@@ -4171,7 +4183,7 @@
 
             document.getElementById('dt-client-id').innerText = s.id || s.ID || 'S/N';
             document.getElementById('dt-client-fecha').innerText = s.fechaServicio || '---';
-            document.getElementById('dt-client-destino').innerText = s.destino || '---';
+            document.getElementById('dt-client-destino').innerText = (s.origen || '---') + ' ➔ ' + (s.destino || '---');
             document.getElementById('dt-client-tipo').innerText = s.tipoServicio || '---';
             document.getElementById('dt-client-costo').innerText = formatMoney(s.costo);
             document.getElementById('dt-client-est-factura').innerText = s.estadoFactura || 'Pendiente';
