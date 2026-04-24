@@ -177,27 +177,47 @@
         
         <div class="flex-1 overflow-y-auto py-6">
             <nav class="space-y-1">
-                <a href="#clientes" onclick="switchSection('clientes')" id="nav-clientes" class="nav-item flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
-                    <i class="fa-regular fa-users w-6 text-primary-900"></i>
+                <a href="#dashboard" onclick="switchSection('dashboard')" id="nav-dashboard" class="nav-item flex items-center px-6 py-3 text-sm font-semibold bg-primary-50 text-primary-900 border-r-4 border-primary-900 transition-colors">
+                    <i class="fa-solid fa-house w-6 text-primary-900"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="nav-group">
+                    <button onclick="toggleNavGroup('servicios')" class="nav-item w-full flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                        <i class="fa-regular fa-rectangle-list w-6 text-slate-400"></i>
+                        <span>Servicios</span>
+                        <i class="fa-solid fa-chevron-down ml-auto text-[10px] transition-transform" id="servicios-chevron"></i>
+                    </button>
+                    <div id="subnav-servicios" class="hidden pl-12 pr-6 space-y-1 py-1">
+                        <a href="#servicios-operativa" onclick="switchSection('servicios-operativa')" id="nav-servicios-operativa" class="nav-subitem block py-2 text-[13px] font-medium text-slate-500 hover:text-primary-900 transition-colors">
+                            <i class="fa-solid fa-circle text-[4px] mr-2 opacity-50"></i>Gestión operativa
+                        </a>
+                        <a href="#servicios" onclick="switchSection('servicios')" id="nav-servicios" class="nav-subitem block py-2 text-[13px] font-medium text-slate-500 hover:text-primary-900 transition-colors">
+                            <i class="fa-solid fa-circle text-[4px] mr-2 opacity-50"></i>Vista global
+                        </a>
+                    </div>
+                </div>
+
+                <a href="#clientes" onclick="switchSection('clientes')" id="nav-clientes" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-users w-6 text-slate-400"></i>
                     <span>Clientes</span>
-                </a>
-                <a href="#servicios" onclick="switchSection('servicios')" id="nav-servicios" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
-                    <i class="fa-regular fa-rectangle-list w-6 text-slate-400"></i>
-                    <span>Servicios</span>
-                </a>
-                <a href="#facturacion" onclick="switchSection('facturacion')" id="nav-facturacion" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
-                    <i class="fa-regular fa-file-lines w-6 text-slate-400"></i>
-                    <span>Facturas</span>
-                </a>
-                <a href="#balance" onclick="switchSection('balance')" id="nav-balance" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
-                    <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
-                    <span>Balance</span>
                 </a>
 
                 <a href="#operadores" onclick="switchSection('operadores')" id="nav-operadores" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-solid fa-truck w-6 text-slate-400"></i>
                     <span>Operadores</span>
                 </a>
+
+                <a href="#facturacion" onclick="switchSection('facturacion')" id="nav-facturacion" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-file-lines w-6 text-slate-400"></i>
+                    <span>Facturas</span>
+                </a>
+
+                <a href="#balance" onclick="switchSection('balance')" id="nav-balance" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
+                    <i class="fa-regular fa-chart-bar w-6 text-slate-400"></i>
+                    <span>Balance</span>
+                </a>
+
                 <a href="#equipo" onclick="switchSection('equipo')" id="nav-equipo" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-solid fa-users-gear w-6 text-slate-400"></i>
                     <span>Equipo</span>
@@ -239,6 +259,70 @@
         </header>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8" id="main-scroll">
+
+            <!-- SEC: DASHBOARD -->
+            <div id="sec-dashboard" class="content-section animate-fade-in block w-full max-w-7xl mx-auto">
+                <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Dashboard General</h1>
+                        <p class="text-slate-500 text-sm mt-1">Resumen operativo y alertas del sistema.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <!-- Alerta 1 -->
+                    <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-amber-900">Rutas sin asignar</h4>
+                            <p class="text-xs text-amber-700 mt-1">Hay servicios pendientes de asignación de chofer.</p>
+                        </div>
+                    </div>
+                    <!-- Alerta 2 -->
+                    <div class="bg-red-50 border border-red-200 p-5 rounded-2xl flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-red-900">Pagos Atrasados</h4>
+                            <p class="text-xs text-red-700 mt-1">Facturas han superado la fecha límite de pago.</p>
+                        </div>
+                    </div>
+                    <!-- Alerta 3 -->
+                    <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-blue-900">Cargas en ruta</h4>
+                            <p class="text-xs text-blue-700 mt-1">Camiones se encuentran actualmente en trayecto.</p>
+                        </div>
+                    </div>
+                    <!-- Alerta 4 -->
+                    <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-emerald-900">Sistema OK</h4>
+                            <p class="text-xs text-emerald-700 mt-1">Módulos operando correctamente.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm h-64 flex flex-col items-center justify-center text-center">
+                         <i class="fa-solid fa-chart-line text-4xl text-slate-200 mb-4"></i>
+                         <p class="text-slate-400 font-medium">Gráficos de rendimiento próximamente</p>
+                    </div>
+                    <div class="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm h-64 flex flex-col items-center justify-center text-center">
+                         <i class="fa-solid fa-bell text-4xl text-slate-200 mb-4"></i>
+                         <p class="text-slate-400 font-medium">Historial de actividad reciente</p>
+                    </div>
+                </div>
+            </div>
 
             <!-- SEC: CLIENTE HOME (Solo visible en modo cliente) -->
             <div id="sec-cliente-home" class="content-section animate-fade-in hidden w-full max-w-7xl mx-auto">
@@ -303,7 +387,7 @@
             </div>
 
             <!-- SEC: CLIENTES -->
-            <div id="sec-clientes" class="content-section animate-fade-in block">
+            <div id="sec-clientes" class="content-section animate-fade-in hidden">
                 
                 <!-- Sub-view 1: Clientes List -->
                 <div id="clientes-list" class="block animate-fade-in">
@@ -419,11 +503,28 @@
                 </div>
             </div>
 
-            <!-- SEC: SERVICIOS GLOBALES (Order by Creation) -->
+            <!-- SEC: GESTIÓN OPERATIVA (Empty for now) -->
+            <div id="sec-servicios-operativa" class="content-section animate-fade-in hidden">
+                <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Gestión Operativa</h1>
+                        <p class="text-slate-500 text-sm mt-1">Próximamente: Panel de control de operaciones en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl border border-gray-100 p-20 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div class="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 mb-6">
+                        <i class="fa-solid fa-microchip text-3xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Panel en Construcción</h2>
+                    <p class="text-slate-500 max-w-sm">Estamos preparando una vista avanzada para la gestión operativa de tus servicios.</p>
+                </div>
+            </div>
+
+            <!-- SEC: VISTA GLOBAL (Anteriormente Servicios) -->
             <div id="sec-servicios" class="content-section animate-fade-in hidden">
                 <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
                     <div>
-                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Gestión Global de Servicios</h1>
+                        <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Vista Global de Servicios</h1>
                         <p class="text-slate-500 text-sm mt-1">Listado maestro de todos los servicios registrados, ordenados por creación.</p>
                     </div>
                     <div class="flex gap-2">
@@ -1351,7 +1452,16 @@
         // SPA NAVIGATION 
         function switchSection(sectionId) {
             if(!document.getElementById('sec-' + sectionId)) return;
-            document.querySelectorAll('.content-section').forEach(sec => { sec.classList.replace('block', 'hidden'); });
+            
+            // Close other subnavs if not part of current section
+            if (!sectionId.startsWith('servicios')) {
+                document.getElementById('subnav-servicios').classList.add('hidden');
+                document.getElementById('servicios-chevron').classList.remove('rotate-180');
+            }
+
+            document.querySelectorAll('.content-section').forEach(sec => { 
+                sec.classList.replace('block', 'hidden'); 
+            });
 
             document.querySelectorAll('.nav-item').forEach(nav => {
                 nav.classList.remove('bg-primary-50', 'border-primary-900');
@@ -1360,17 +1470,65 @@
                 if(icon) { icon.classList.replace('text-primary-900', 'text-slate-400'); }
             });
 
+            // Handle sub-item active state
+            document.querySelectorAll('.nav-subitem').forEach(sub => {
+                sub.classList.remove('text-primary-900', 'font-bold');
+                sub.classList.add('text-slate-500');
+            });
+
             document.getElementById('sec-' + sectionId).classList.replace('hidden', 'block');
+            
             const activeNav = document.getElementById('nav-' + sectionId);
             if(activeNav) {
-                activeNav.classList.add('bg-primary-50', 'border-primary-900');
-                activeNav.classList.replace('text-slate-500', 'text-primary-900');
-                const activeIcon = activeNav.querySelector('i');
-                if(activeIcon) { activeIcon.classList.replace('text-slate-400', 'text-primary-900'); }
+                if (activeNav.classList.contains('nav-subitem')) {
+                    // Active state for sub-item
+                    activeNav.classList.replace('text-slate-500', 'text-primary-900');
+                    activeNav.classList.add('font-bold');
+                    // Also highlight parent if it's a sub-nav
+                    const parentGroup = activeNav.closest('.nav-group');
+                    if (parentGroup) {
+                        const parentBtn = parentGroup.querySelector('.nav-item');
+                        parentBtn.classList.add('bg-primary-50', 'border-primary-900');
+                        parentBtn.classList.replace('text-slate-500', 'text-primary-900');
+                        const parentIcon = parentBtn.querySelector('i');
+                        if(parentIcon) parentIcon.classList.replace('text-slate-400', 'text-primary-900');
+                    }
+                } else {
+                    activeNav.classList.add('bg-primary-50', 'border-primary-900');
+                    activeNav.classList.replace('text-slate-500', 'text-primary-900');
+                    const activeIcon = activeNav.querySelector('i');
+                    if(activeIcon) { activeIcon.classList.replace('text-slate-400', 'text-primary-900'); }
+                }
             }
+
             if(sectionId === 'clientes' && typeof backToClientes === 'function') backToClientes();
             if(sectionId === 'servicios') renderGlobalServicesTable();
 
+            // Auto-scroll to top
+            const container = document.getElementById('main-scroll');
+            if (container) container.scrollTop = 0;
+        }
+
+        function toggleNavGroup(groupId) {
+            const subnav = document.getElementById('subnav-' + groupId);
+            const chevron = document.getElementById(groupId + '-chevron');
+            const isHidden = subnav.classList.contains('hidden');
+            
+            // Close all other subnavs first (optional, but cleaner)
+            document.querySelectorAll('[id^="subnav-"]').forEach(s => {
+                if (s.id !== 'subnav-' + groupId) s.classList.add('hidden');
+            });
+            document.querySelectorAll('[id$="-chevron"]').forEach(c => {
+                if (c.id !== groupId + '-chevron') c.classList.remove('rotate-180');
+            });
+
+            if (isHidden) {
+                subnav.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                subnav.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
         }
 
 
@@ -1712,6 +1870,9 @@
             document.getElementById('login-wrapper').classList.add('hidden');
             document.getElementById('app-wrapper').classList.replace('hidden', 'flex');
             
+            if (activeSession.rol !== 'CLIENTE') {
+                switchSection('dashboard');
+            }
             showToast(`¡Bienvenido/a, ${activeSession.nombre}!`);
             processSystemData(result);
         }
