@@ -1633,7 +1633,7 @@
             }
             
             if(activeSession.rol === 'CLIENTE') {
-                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-trading'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.add('hidden'));
                 document.getElementById('main-container').classList.add('bg-[#f8f9fa]'); 
                 document.getElementById('sidebar-logo-container').innerHTML = `
                     <div class="flex items-center justify-start w-full overflow-visible">
@@ -1644,7 +1644,7 @@
                 setTimeout(renderClientServicesTable, 300);
             } else {
                 document.getElementById('main-container').classList.remove('bg-[#f8f9fa]');
-                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores', 'nav-trading'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+                ['nav-clientes', 'nav-servicios', 'nav-facturacion', 'nav-balance', 'nav-operadores'].forEach(id => document.getElementById(id).classList.remove('hidden'));
                 document.getElementById('sec-perfil').innerHTML = `<h1 class="text-2xl font-bold text-primary-900 tracking-tight mb-4 border-b border-gray-100 pb-4">Perfil y Ajustes</h1>`;
                 document.getElementById('sidebar-logo-container').innerHTML = `
                     <div class="w-8 h-8 rounded bg-primary-900 text-white flex items-center justify-center mr-3 shadow-md shadow-primary-900/20">
