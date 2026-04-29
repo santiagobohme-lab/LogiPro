@@ -245,6 +245,11 @@
                 <input type="text" placeholder="Buscar clientes, facturas o ajustes..." class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded text-sm focus:border-primary-900 focus:bg-white outline-none text-slate-700 transition-colors">
             </div>
             <div class="flex items-center space-x-4">
+                <button onclick="initDataFromCloud()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-primary-900 hover:bg-white border border-transparent hover:border-slate-200 transition-all group" title="Sincronizar Datos">
+                    <i id="sync-icon" class="fa-solid fa-arrows-rotate text-xs transition-transform duration-500"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider">Sincronizar</span>
+                </button>
+                <div class="h-4 w-px bg-gray-200"></div>
                 <button class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-calendar text-base"></i></button>
                 <div class="h-4 w-px bg-gray-200"></div>
                 <button class="text-slate-400 hover:text-primary-900 relative"><i class="fa-regular fa-bell text-base"></i>
@@ -825,84 +830,121 @@
                         </div>
                     </div>
 
-                    <form id="billing-review-form" class="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar pb-40">
-                        
-                        <!-- SECCIÓN A: DETALLES DEL CLIENTE (FISCAL / NO EDITABLE) -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2 mb-2">
-                                <div class="w-1.5 h-6 bg-primary-900 rounded-full"></div>
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">DATOS DEL CLIENTE</h4>
+                    <form id="billing-review-form" class="p-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar pb-10">
+
+                        <!-- SECCIÓN A: DATOS DEL CLIENTE (FISCAL) -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-1 h-4 bg-primary-900 rounded-full"></div>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">DATOS DEL CLIENTE (SII)</h4>
                             </div>
-                            <div class="grid grid-cols-2 gap-x-6 gap-y-4 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-3 bg-slate-50/50 p-5 rounded-[1.5rem] border border-slate-100">
                                 <div class="col-span-2">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Raz&oacute;n Social / Nombre</label>
-                                    <input type="text" id="br-cli-nombre" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Raz&oacute;n Social / Nombre</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-nombre" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-nombre')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">R.U.T. Cliente</label>
-                                    <input type="text" id="br-cli-rut" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">R.U.T. Cliente</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-rut" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-rut')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giro Comercial</label>
-                                    <input type="text" id="br-cli-giro" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Giro Comercial</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-giro" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-giro')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div class="col-span-2">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Direcci&oacute;n Fiscal</label>
-                                    <input type="text" id="br-cli-direccion" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Direcci&oacute;n Fiscal</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-direccion" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-direccion')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Comuna / Ciudad</label>
-                                    <input type="text" id="br-cli-comuna-ciudad" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Comuna / Ciudad</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-comuna-ciudad" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-comuna-ciudad')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contacto / Tel&eacute;fono</label>
-                                    <input type="text" id="br-cli-contacto" readonly class="w-full bg-slate-100/50 border border-slate-200 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-bold cursor-not-allowed">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Contacto / Tel&eacute;fono</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-cli-contacto" readonly class="w-full bg-white border border-slate-200 text-slate-700 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-cli-contacto')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- SECCI\u00d3N B: DETALLES DEL CLIENTE (OPERATIVO / EDITABLE) -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2 mb-2">
-                                <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">DETALLES DEL SERVICIO</h4>
+ 
+                        <!-- SECCIÓN B: DETALLES DEL SERVICIO -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-1 h-4 bg-blue-600 rounded-full"></div>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">DETALLES DEL SERVICIO</h4>
                             </div>
-                            <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-3">
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-2">
-                                        Fecha Servicio <i class="fa-solid fa-calendar-day text-[8px]"></i>
-                                    </label>
-                                    <input type="date" id="br-srv-fecha" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fecha Servicio</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-fecha" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-fecha')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Tipo de Servicio</label>
-                                    <input type="text" id="br-srv-tipo" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all" placeholder="Ej: Mudanza">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Tipo de Servicio</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-tipo" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-tipo')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Monto ($ CLP)</label>
-                                    <input type="number" id="br-srv-monto" oninput="updateBillingReviewTotals()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all font-bold">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Monto ($ CLP)</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-monto" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-monto')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Fecha Pago (Cli)</label>
-                                    <input type="date" id="br-srv-fecha-pago" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Fecha Pago</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-fecha-pago" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-fecha-pago')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">OC / HES</label>
-                                    <input type="text" id="br-srv-oc" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="Ej: AS-212121">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">OC / HES</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-oc" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-oc')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                                 <div id="br-srv-cotizacion-wrapper">
-                                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cotizaci&oacute;n (Opcional)</label>
-                                    <input type="text" id="br-srv-cotizacion" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all placeholder:text-slate-300" placeholder="N&ordm; Cotizaci&oacute;n">
+                                    <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Cotización</label>
+                                    <div class="relative group/copy">
+                                        <input type="text" id="br-srv-cotizacion" readonly class="w-full bg-slate-50 border border-slate-200 text-slate-600 pr-10 pl-3 py-1.5 rounded-lg text-xs font-bold cursor-default outline-none">
+                                        <button type="button" onclick="copyFieldValue('br-srv-cotizacion')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- SECCI\u00d3N 2: Glosa de Facturaci\u00f3n -->
-                        <div class="p-6 bg-primary-50/30 rounded-[2.5rem] border border-primary-100 shadow-sm">
-                            <label class="block text-[11px] font-black text-primary-900 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                                <i class="fa-solid fa-pen-nib"></i> Descripci&oacute;n Facturaci&oacute;n (Glosa)
+ 
+                        <!-- SECCIÓN C: Glosa de Facturación -->
+                        <div class="p-5 bg-primary-50/30 rounded-[1.5rem] border border-primary-100">
+                            <label class="block text-[10px] font-black text-primary-900 uppercase tracking-widest mb-2 ml-1">
+                                <i class="fa-solid fa-pen-nib mr-1"></i> DESCRIPCIÓN FACTURACIÓN (GLOSA)
                             </label>
-                            <textarea id="br-glosa" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl text-sm focus:border-primary-900 outline-none transition-all resize-none shadow-inner-sm" placeholder="Ej: Servicio de transporte de carga general..."></textarea>
+                            <div class="relative group/copy">
+                                <textarea id="br-glosa" rows="2" readonly class="w-full bg-white border border-slate-200 text-slate-800 p-3 pr-10 rounded-xl text-[11px] font-bold outline-none resize-none cursor-default"></textarea>
+                                <button type="button" onclick="copyFieldValue('br-glosa')" class="absolute right-3 top-3 p-1 text-slate-300 hover:text-primary-900 transition-colors" title="Copiar"><i class="fa-regular fa-copy text-xs"></i></button>
+                            </div>
                         </div>
 
                     </form>
@@ -1062,9 +1104,9 @@
                                         <i class="fa-solid fa-download text-slate-400"></i> Descargar PDF
                                     </button>
 
-                                    <!-- Estado de Pago -->
+                                    <!-- Estado de Facturaci\u00f3n -->
                                     <div>
-                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Estado de pago</label>
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Estado de facturaci&oacute;n</label>
                                         <div class="flex gap-2">
                                             <button onclick="setBillingEstado('Pendiente')" id="bt-estado-pendiente" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-orange-100 text-orange-600 border-2 border-orange-300">
                                                 <i class="fa-solid fa-circle text-[6px] mr-1 align-middle"></i> PENDIENTE
@@ -1540,10 +1582,8 @@
     </style>
 
     <!-- Global UI Overlays -->
-     <!-- Toast Container (UX Redesign: Ultra-Narrow) -->
-    <div id="toast" class="fixed bottom-28 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-semibold shadow-2xl opacity-0 translate-y-6 transition-all duration-500 z-[200] border border-white/10 flex items-center gap-1.5 whitespace-nowrap">
-        <i class="ph-bold ph-check-circle text-xs text-emerald-400"></i>
-        <span id="toast-text">Estado actualizado</span>
+    <!-- Toast Container (Bottom Right Stacked) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 items-end pointer-events-none">
     </div>
 
     <!-- JS Logic -->
@@ -1591,17 +1631,93 @@
 
         // UI TOAST FEEDBACK (UX Redesign)
         // UI TOAST FEEDBACK (UX Redesign: Compacto)
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const text = document.getElementById('toast-text');
-            if(!toast || !text) return;
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
             
-            text.innerText = message;
-            toast.classList.add('show');
+            const toast = document.createElement('div');
+            
+            // Base styles: white card, rounded, thick left border, transition
+            let baseClasses = 'bg-white rounded-md flex items-center gap-3 pl-4 pr-6 py-2.5 min-w-[260px] transform transition-all duration-500 translate-x-full opacity-0 pointer-events-auto border-l-[6px]';
+            
+            let iconHtml = '';
+            
+            if(type === 'error') {
+                toast.className = baseClasses + ' border-red-500 shadow-[4px_4px_0_0_#fca5a5]';
+                iconHtml = '<div class="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-xmark text-white text-[10px] font-black"></i></div>';
+            } else if(type === 'warning') {
+                toast.className = baseClasses + ' border-amber-500 shadow-[4px_4px_0_0_#fcd34d]';
+                iconHtml = '<i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg shrink-0"></i>';
+            } else if(type === 'info' || type === 'success') {
+                toast.className = baseClasses + ' border-blue-500 shadow-[4px_4px_0_0_#93c5fd]';
+                iconHtml = '<div class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-info text-white text-[10px] font-black"></i></div>';
+            } else if(type === 'loading') {
+                toast.className = baseClasses + ' border-slate-400 shadow-[4px_4px_0_0_#cbd5e1]';
+                iconHtml = '<i class="fa-solid fa-cloud-arrow-up text-slate-400 text-lg shrink-0"></i>';
+            }
+
+            toast.innerHTML = `
+                ${iconHtml}
+                <span class="text-xs font-semibold text-slate-700 tracking-wide">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-x-full', 'opacity-0');
+                    toast.classList.add('translate-x-0', 'opacity-100');
+                });
+            });
             
             setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500); // Wait for transition
+            }, 4000);
+        }
+
+        /**
+         * Utility to copy text to clipboard and show feedback
+         */
+        function copyFieldValue(fieldId) {
+            const el = document.getElementById(fieldId);
+            if(!el) return;
+            
+            const text = el.value || el.innerText;
+            if(!text || text === "-") {
+                showToast("Campo vacío");
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copiado al portapapeles");
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+            });
+        }
+
+        /**
+         * Utility to copy text to clipboard and show feedback
+         */
+        function copyFieldValue(fieldId) {
+            const el = document.getElementById(fieldId);
+            if(!el) return;
+            
+            const text = el.value || el.innerText;
+            if(!text || text === "-") {
+                showToast("Campo vacío");
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copiado al portapapeles");
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+            });
         }
 
         // SPA NAVIGATION 
@@ -2156,6 +2272,9 @@
         async function initDataFromCloud() {
             try {
                 isGlobalLoading = true;
+                const syncIcon = document.getElementById('sync-icon');
+                if(syncIcon) syncIcon.classList.add('fa-spin');
+                
                 showToast("Sincronizando con base de datos...");
                 
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
@@ -2171,12 +2290,14 @@
                 processSystemData(result);
             } catch(e) {
                 console.error("Init Data Error:", e);
-                showToast("Error al sincronizar datos del servidor.");
+                showToast("Error al sincronizar datos del servidor.", "error");
                 if (e.message && (e.message.includes("Token") || e.message.includes("denegado"))) {
                     handleLogout();
                 }
             } finally {
                 isGlobalLoading = false;
+                const syncIcon = document.getElementById('sync-icon');
+                if(syncIcon) syncIcon.classList.remove('fa-spin');
             }
         }
 
@@ -2235,6 +2356,14 @@
                 if(activeSession && activeSession.rol === 'OPERADOR') {
                     renderOperatorPortal();
                 }
+
+                // REFRESCAR TODO (Asegurar que las secciones se actualicen al instante)
+                if(typeof refreshAllViews === 'function') refreshAllViews();
+                
+                // Si la herramienta de facturación está abierta, refrescar su detalle
+                if(typeof currentDetailServiceId !== 'undefined' && currentDetailServiceId && typeof updateBillingToolState === 'function') {
+                    updateBillingToolState(currentDetailServiceId);
+                }
             }
         }
 
@@ -2257,7 +2386,7 @@
                 }
             } catch(err) {
                 console.error("Error sincronizando servicio", err);
-                showToast("Hubo un error de red intentando guardar.");
+                showToast("Hubo un error de red intentando guardar.", "error");
             }
         }
 
@@ -2694,7 +2823,19 @@
 
                 // Cargar datos existentes del servicio en el formulario manual
                 const nroInput = document.getElementById('bt-nro-factura');
-                if(nroInput) nroInput.value = srv.nroFactura || '';
+                if(nroInput) {
+                    nroInput.value = srv.nroFactura || '';
+                    // BLOQUEAR si ya est\u00e1 facturado
+                    const isFacturado = srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado';
+                    nroInput.readOnly = isFacturado;
+                    if(isFacturado) {
+                        nroInput.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed', 'border-dashed', 'border-slate-300', 'shadow-inner');
+                        nroInput.classList.remove('bg-white');
+                    } else {
+                        nroInput.classList.remove('bg-slate-200', 'text-slate-500', 'cursor-not-allowed', 'border-dashed', 'border-slate-300', 'shadow-inner');
+                        nroInput.classList.add('bg-white');
+                    }
+                }
 
                 // Actualizar indicador de archivo
                 const fileIndicator = document.getElementById('bt-file-indicator');
@@ -2802,6 +2943,29 @@
 
         function setBillingEstado(estado) {
             if(!currentDetailServiceId) return;
+            const srv = excelData.find(s => s.id == currentDetailServiceId);
+            if(!srv) return;
+
+            if(estado === 'OK') {
+                const nroInput = document.getElementById('bt-nro-factura');
+                const nroValue = nroInput ? nroInput.value.trim() : '';
+                
+                if(!nroValue) {
+                    showToast("Falta marcar n\u00famero de factura", "error");
+                    if(nroInput) nroInput.focus();
+                    return;
+                }
+
+                if(!srv.driveUrl) {
+                    showToast("Falta subir factura", "error");
+                    return;
+                }
+
+                if(!confirm(`\u00bfEst\u00e1s seguro que deseas cambiar el estado a facturado de la factura N\u00b0${nroValue}?`)) {
+                    return;
+                }
+            }
+
             updateEstadoFactura(currentDetailServiceId, estado);
             updateBillingEstadoUI(estado);
             showToast(estado === 'OK' ? 'Marcado como FACTURADO' : 'Marcado como PENDIENTE', 'success');
@@ -2810,9 +2974,21 @@
         function updateBillingEstadoUI(estado) {
             const btnPendiente = document.getElementById('bt-estado-pendiente');
             const btnOk = document.getElementById('bt-estado-ok');
+            const nroInput = document.getElementById('bt-nro-factura');
             if(!btnPendiente || !btnOk) return;
 
             const isOk = estado === 'OK' || estado === 'OK / Pagado';
+
+            if(nroInput) {
+                nroInput.readOnly = isOk;
+                if(isOk) {
+                    nroInput.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed', 'border-dashed', 'border-slate-300', 'shadow-inner');
+                    nroInput.classList.remove('bg-white');
+                } else {
+                    nroInput.classList.remove('bg-slate-200', 'text-slate-500', 'cursor-not-allowed', 'border-dashed', 'border-slate-300', 'shadow-inner');
+                    nroInput.classList.add('bg-white');
+                }
+            }
 
             if(isOk) {
                 btnPendiente.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-slate-400 border-2 border-slate-200 hover:border-orange-300 hover:text-orange-500';
