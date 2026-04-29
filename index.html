@@ -1000,14 +1000,132 @@
                         </div>
                     </div>
 
-                    <!-- Columna Derecha: FACTURACI\u00d3N -->
-                    <div class="bg-slate-50/50 p-6 rounded-3xl border border-dashed border-slate-200 min-h-[400px] flex flex-col items-center justify-center text-center">
-                        <div class="flex items-center gap-3 mb-4 opacity-40">
-                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center font-bold">2</div>
-                            <h2 class="text-lg font-bold text-slate-800">Herramienta de Facturaci&oacute;n</h2>
+                    <!-- Columna Derecha: HERRAMIENTA DE FACTURACIÓN (Sección 2) -->
+                    <div id="billing-tool-section" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm min-h-[400px]">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-3">
+                                <div id="billing-tool-badge" class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">2</div>
+                                <h2 id="billing-tool-title" class="text-lg font-bold text-slate-800">Herramienta de Facturaci&oacute;n</h2>
+                            </div>
+                            <i id="billing-tool-lock-icon" class="fa-solid fa-lock text-slate-300"></i>
                         </div>
-                        <i class="fa-solid fa-lock text-3xl text-slate-200 mb-4"></i>
-                        <p class="text-slate-400 text-sm max-w-xs">Esta secci&oacute;n se habilitar&aacute; una vez que la pre-factura est&eacute; lista.</p>
+
+                        <!-- ESTADO: BLOQUEADO -->
+                        <div id="billing-tool-locked" class="flex flex-col items-center justify-center py-12 text-center">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-4 shadow-inner">
+                                <i class="fa-solid fa-lock text-2xl text-slate-300"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm max-w-xs leading-relaxed">Esta secci&oacute;n se habilitar&aacute; una vez que la pre-factura est&eacute; lista.</p>
+                        </div>
+
+                        <!-- ESTADO: DESBLOQUEADO -->
+                        <div id="billing-tool-unlocked" class="hidden animate-fade-in">
+
+                            <!-- Switcher Tabs: Manual / Automático -->
+                            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                                <button onclick="setBillingToolMode('manual')" id="bt-tab-manual" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-primary-900 shadow-sm border border-slate-200">
+                                    [ Manual ]
+                                </button>
+                                <button onclick="setBillingToolMode('auto')" id="bt-tab-auto" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-500">
+                                    Autom&aacute;tico
+                                </button>
+                            </div>
+
+                            <!-- ========== VISTA: MANUAL ========== -->
+                            <div id="bt-view-manual" class="animate-fade-in">
+                                <div class="border border-slate-100 rounded-2xl p-5 space-y-4">
+                                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                                        <span class="text-amber-500 font-black">2</span> Gesti&oacute;n de Factura Manual
+                                        <i class="fa-solid fa-wrench text-[10px] text-slate-300 ml-auto"></i>
+                                    </h3>
+
+                                    <!-- N° de Factura -->
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">N&deg; de Factura</label>
+                                        <input type="text" id="bt-nro-factura" placeholder="Ej. 001-001-12345678" oninput="onBillingNroChange(this.value)" class="w-full bg-white border border-slate-300 text-slate-800 px-4 py-3 rounded-xl text-sm focus:border-primary-900 focus:ring-2 focus:ring-primary-100 outline-none transition-all font-mono tracking-wide">
+                                    </div>
+
+                                    <!-- Adjuntar Archivo -->
+                                    <button onclick="triggerBillingUpload()" id="bt-btn-adjuntar" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]">
+                                        <i class="fa-solid fa-paperclip"></i> Adjuntar Archivo Factura
+                                    </button>
+
+                                    <!-- Indicador de archivo subido -->
+                                    <div id="bt-file-indicator" class="hidden flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-semibold">
+                                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                        <span id="bt-file-indicator-text">Archivo adjuntado</span>
+                                    </div>
+
+                                    <!-- Descargar PDF -->
+                                    <button onclick="downloadBillingPdf()" id="bt-btn-descargar" class="w-full bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                                        <i class="fa-solid fa-download text-slate-400"></i> Descargar PDF
+                                    </button>
+
+                                    <!-- Estado de Pago -->
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Estado de pago</label>
+                                        <div class="flex gap-2">
+                                            <button onclick="setBillingEstado('Pendiente')" id="bt-estado-pendiente" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-orange-100 text-orange-600 border-2 border-orange-300">
+                                                <i class="fa-solid fa-circle text-[6px] mr-1 align-middle"></i> PENDIENTE
+                                            </button>
+                                            <button onclick="setBillingEstado('OK')" id="bt-estado-ok" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-slate-400 border-2 border-slate-200 hover:border-emerald-300 hover:text-emerald-500">
+                                                FACTURADO
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="text-[11px] text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-[9px] text-slate-300"></i>
+                                    Estado actual: Manual. Complete los campos para procesar la factura.
+                                </p>
+                            </div>
+
+                            <!-- ========== VISTA: AUTOMÁTICO (Prototipo) ========== -->
+                            <div id="bt-view-auto" class="hidden animate-fade-in">
+                                <div class="border border-slate-100 rounded-2xl p-5 space-y-5 text-center">
+                                    <!-- Icono decorativo -->
+                                    <div class="flex flex-col items-center gap-2 pb-2">
+                                        <div class="relative">
+                                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center mx-auto">
+                                                <i class="fa-solid fa-link text-xl text-blue-400"></i>
+                                            </div>
+                                            <div class="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[9px] font-black shadow-md shadow-blue-600/30">2</div>
+                                        </div>
+                                        <h3 class="font-bold text-slate-700 text-sm">Integraci&oacute;n SII Chile (Autom&aacute;tico)</h3>
+                                    </div>
+
+                                    <!-- Botón SII (Prototipo - deshabilitado) -->
+                                    <button disabled class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 rounded-xl font-bold text-sm opacity-60 cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-600/15">
+                                        <span class="bg-white/20 px-2 py-0.5 rounded font-black text-[11px] tracking-wider">Sii</span>
+                                        [ Generar Factura en SII ]
+                                    </button>
+
+                                    <!-- N° de Factura (auto, readonly) -->
+                                    <div class="text-left">
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">N&deg; de Factura (Autom&aacute;tico)</label>
+                                        <input type="text" readonly placeholder="Ej. 000-001-12345679" class="w-full bg-slate-50 border border-slate-200 text-slate-400 px-4 py-3 rounded-xl text-sm cursor-not-allowed font-mono tracking-wide">
+                                    </div>
+
+                                    <!-- Estados y Descargar -->
+                                    <div class="flex gap-2">
+                                        <button disabled class="flex-1 bg-emerald-50 text-emerald-500 py-2.5 rounded-xl text-xs font-bold opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5 border border-emerald-200">
+                                            <i class="fa-solid fa-circle text-[6px]"></i> Facturado
+                                        </button>
+                                        <button disabled class="flex-1 bg-white border border-slate-200 text-slate-400 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5">
+                                            <i class="fa-solid fa-download"></i> Descargar PDF
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p class="text-[11px] text-slate-400 text-center mt-4 flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-[9px] text-slate-300"></i>
+                                    Estado actual: Autom&aacute;tico. Los campos se autocompletar&aacute;n tras la generaci&oacute;n.
+                                </p>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1749,7 +1867,8 @@
                 descripcionFacturacion: sheetObj["DESCRIPCIÓN FACTURACIÓN"] || "",
                 patenteAsignada: (sheetObj["Patente Asignada"] || "").toString().trim(),
                 choferAsignado: (sheetObj["Chofer Asignado"] || "").toString().trim(),
-                origen: sheetObj["Origen"] || "-"
+                origen: sheetObj["Origen"] || "-",
+                guiaUrl: sheetObj["Link Guía de Despacho"] || ""
             };
         };
 
@@ -1773,7 +1892,8 @@
                 "DESCRIPCIÓN FACTURACIÓN": row.descripcionFacturacion || "",
                 "Patente Asignada": row.patenteAsignada || "",
                 "Chofer Asignado": row.choferAsignado || "",
-                "Origen": row.origen || "-"
+                "Origen": row.origen || "-",
+                "Link Guía de Despacho": row.guiaUrl || ""
             };
             return data;
         };
@@ -2540,7 +2660,167 @@
             document.getElementById('btn-revisar-datos').onclick = () => openBillingReview(id);
             // El de generar pre-factura queda como placeholder por ahora
             
+            // Evaluar si la Sección 2 (Herramienta de Facturación) debe desbloquearse
+            updateBillingToolState(id);
+            
             switchSection('factura-detalle');
+        }
+
+        // ====================================================
+        // HERRAMIENTA DE FACTURACIÓN (Sección 2) — FUNCIONES
+        // ====================================================
+        let billingToolMode = 'manual';
+
+        function updateBillingToolState(serviceId) {
+            const srv = excelData.find(s => s.id == serviceId);
+            if(!srv) return;
+
+            const lockedEl = document.getElementById('billing-tool-locked');
+            const unlockedEl = document.getElementById('billing-tool-unlocked');
+            const lockIcon = document.getElementById('billing-tool-lock-icon');
+            const badge = document.getElementById('billing-tool-badge');
+
+            // Criterio: desbloquear si el servicio tiene cliente y monto definidos
+            const hasCliente = srv.cliente && srv.cliente.trim() !== '' && srv.cliente !== '-';
+            const hasMonto = srv.monto && srv.monto !== '-' && !isNaN(Number(srv.monto)) && Number(srv.monto) > 0;
+
+            if(hasCliente && hasMonto) {
+                // DESBLOQUEADO
+                lockedEl.classList.add('hidden');
+                unlockedEl.classList.remove('hidden');
+                lockIcon.classList.add('hidden');
+                badge.classList.remove('bg-slate-200', 'text-slate-500');
+                badge.classList.add('bg-blue-50', 'text-blue-600');
+
+                // Cargar datos existentes del servicio en el formulario manual
+                const nroInput = document.getElementById('bt-nro-factura');
+                if(nroInput) nroInput.value = srv.nroFactura || '';
+
+                // Actualizar indicador de archivo
+                const fileIndicator = document.getElementById('bt-file-indicator');
+                const fileText = document.getElementById('bt-file-indicator-text');
+                if(srv.driveUrl) {
+                    fileIndicator.classList.remove('hidden');
+                    fileIndicator.classList.add('flex');
+                    fileText.textContent = 'Archivo adjuntado en Google Drive';
+                } else {
+                    fileIndicator.classList.add('hidden');
+                    fileIndicator.classList.remove('flex');
+                }
+
+                // Actualizar estado de pago visual
+                updateBillingEstadoUI(srv.estadoFactura);
+            } else {
+                // BLOQUEADO
+                lockedEl.classList.remove('hidden');
+                unlockedEl.classList.add('hidden');
+                lockIcon.classList.remove('hidden');
+                badge.classList.remove('bg-blue-50', 'text-blue-600');
+                badge.classList.add('bg-slate-200', 'text-slate-500');
+            }
+
+            // Resetear a modo manual
+            setBillingToolMode('manual');
+        }
+
+        function setBillingToolMode(mode) {
+            billingToolMode = mode;
+            const tabManual = document.getElementById('bt-tab-manual');
+            const tabAuto = document.getElementById('bt-tab-auto');
+            const viewManual = document.getElementById('bt-view-manual');
+            const viewAuto = document.getElementById('bt-view-auto');
+
+            if(!tabManual || !tabAuto || !viewManual || !viewAuto) return;
+
+            if(mode === 'manual') {
+                // Tab Manual activo
+                tabManual.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-primary-900 shadow-sm border border-slate-200';
+                tabAuto.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-500';
+                viewManual.classList.remove('hidden');
+                viewAuto.classList.add('hidden');
+            } else {
+                // Tab Automático activo
+                tabManual.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-500';
+                tabAuto.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 bg-blue-600 text-white shadow-sm border border-blue-600';
+                viewManual.classList.add('hidden');
+                viewAuto.classList.remove('hidden');
+            }
+        }
+
+        function onBillingNroChange(val) {
+            if(!currentDetailServiceId) return;
+            updateNroFactura(currentDetailServiceId, val);
+        }
+
+        function triggerBillingUpload() {
+            if(!currentDetailServiceId) {
+                showToast('No hay servicio activo', 'error');
+                return;
+            }
+            const row = excelData.find(x => x.id == currentDetailServiceId);
+            if(!row) return;
+
+            // Validar que tenga N° de factura
+            const nroInput = document.getElementById('bt-nro-factura');
+            if(!nroInput || !nroInput.value.trim()) {
+                showToast('Ingresa el N° de Factura antes de adjuntar', 'error');
+                nroInput && nroInput.focus();
+                return;
+            }
+
+            // Reutilizar el input de file existente
+            currentUploadRowId = currentDetailServiceId;
+            const fileInput = document.getElementById('factura-upload-input');
+            if(fileInput) {
+                fileInput.value = ''; // Reset forzar onchange
+                fileInput.click();
+            }
+
+            // Monitorear cuando el upload termine para actualizar UI
+            const checkInterval = setInterval(() => {
+                const updatedRow = excelData.find(x => x.id == currentDetailServiceId);
+                if(updatedRow && !updatedRow.isUploading) {
+                    clearInterval(checkInterval);
+                    updateBillingToolState(currentDetailServiceId);
+                }
+            }, 500);
+            // Timeout de seguridad
+            setTimeout(() => clearInterval(checkInterval), 30000);
+        }
+
+        function downloadBillingPdf() {
+            if(!currentDetailServiceId) return;
+            const row = excelData.find(x => x.id == currentDetailServiceId);
+            if(!row) return;
+
+            if(row.driveUrl) {
+                window.open(row.driveUrl, '_blank');
+            } else {
+                showToast('No hay archivo adjunto para descargar', 'error');
+            }
+        }
+
+        function setBillingEstado(estado) {
+            if(!currentDetailServiceId) return;
+            updateEstadoFactura(currentDetailServiceId, estado);
+            updateBillingEstadoUI(estado);
+            showToast(estado === 'OK' ? 'Marcado como FACTURADO' : 'Marcado como PENDIENTE', 'success');
+        }
+
+        function updateBillingEstadoUI(estado) {
+            const btnPendiente = document.getElementById('bt-estado-pendiente');
+            const btnOk = document.getElementById('bt-estado-ok');
+            if(!btnPendiente || !btnOk) return;
+
+            const isOk = estado === 'OK' || estado === 'OK / Pagado';
+
+            if(isOk) {
+                btnPendiente.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-slate-400 border-2 border-slate-200 hover:border-orange-300 hover:text-orange-500';
+                btnOk.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-emerald-100 text-emerald-600 border-2 border-emerald-300';
+            } else {
+                btnPendiente.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-orange-100 text-orange-600 border-2 border-orange-300';
+                btnOk.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-slate-400 border-2 border-slate-200 hover:border-emerald-300 hover:text-emerald-500';
+            }
         }
 
         // Helper UX: Formatear fecha para inputs de tipo Date
@@ -3150,12 +3430,21 @@
 
         async function processFacturaUpload(event) {
             const file = event.target.files[0];
-            if(file && currentUploadRowId) {
-                const row = excelData.find(x => x.id == currentUploadRowId);
-                if(row) {
-                    row.isUploading = true;
-                    refreshAllViews();
-                    showToast("Subiendo factura a Google Drive...");
+            if(!file) return;
+
+            // Fallback: Si currentUploadRowId se perdió, usamos el servicio que está abierto en el detalle
+            const activeId = currentUploadRowId || (typeof currentDetailServiceId !== 'undefined' ? currentDetailServiceId : null);
+
+            if(!activeId) {
+                alert("Error: No se pudo identificar el servicio para subir la factura. Por favor, cierra y vuelve a abrir el detalle.");
+                return;
+            }
+
+            const row = excelData.find(x => x.id == activeId);
+            if(row) {
+                row.isUploading = true;
+                refreshAllViews();
+                showToast("Subiendo factura a Google Drive...");
 
                     const reader = new FileReader();
                     reader.onload = async function(e) {
@@ -3172,6 +3461,8 @@
                                 headers: { 'Content-Type': 'text/plain' },
                                 body: JSON.stringify({
                                     action: 'uploadFile',
+                                    token: activeSession.token,
+                                    folderType: 'factura',
                                     fileName: generatedName,
                                     base64: pureBase64,
                                     mimeType: file.type || "application/pdf"
@@ -3187,11 +3478,12 @@
                                 // Sync the row again so the new Drive URL gets saved
                                 await syncServiceToDB(row);
                             } else {
-                                throw new Error("No url generated");
+                                // MOSTRAR EL ERROR REAL DEL BACKEND
+                                throw new Error(data.message || "Error desconocido en el servidor de Google");
                             }
                         } catch(err) {
                             console.error(err);
-                            showToast("No se pudo subir a Cloud. Revisar permisos API.");
+                            alert(`Error crítico al subir a Google Drive: ${err.message || err}.\n\nRevisa si actualizaste la URL del Script o si los permisos están como "Cualquier persona".`);
                         }
 
                         row.isUploading = false;
@@ -3199,7 +3491,6 @@
                     };
                     reader.readAsDataURL(file);
                 }
-            }
             currentUploadRowId = null;
             event.target.value = ''; // Reset input
         }
@@ -4158,7 +4449,11 @@
 
         function triggerPaymentUpload(id, operatorName) {
             pendingUploadData = { id, operatorName };
-            document.getElementById('fm-payment-receipt-input').click();
+            const fileInput = document.getElementById('fm-payment-receipt-input');
+            if(fileInput) {
+                fileInput.value = ''; // Reset forzar onchange
+                fileInput.click();
+            }
         }
 
         async function processPaymentReceiptUpload(event) {
@@ -4171,30 +4466,43 @@
             try {
                 // Convert to Base64
                 const base64 = await toBase64(file);
+                const pureBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
+                const ext = file.name.split('.').pop().toLowerCase();
+                const safeOperator = operatorName.replace(/\s+/g, '_');
                 
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
-                        action: 'uploadPaymentReceipt',
-                        serviceId: id,
-                        operatorName: operatorName,
-                        base64: base64,
+                        action: 'uploadFile',
+                        token: activeSession.token,
+                        folderType: 'pago',
+                        fileName: `Comprobante_Pago_${safeOperator}_${id}.${ext}`,
+                        base64: pureBase64,
                         mimeType: file.type
                     })
                 });
                 
                 const result = await res.json();
                 if(result.status === 'success') {
+                    showToast("Comprobante subido en Google Drive. Actualizando estado...");
+                    
+                    // Update state to Pagado in the backend
+                    const row = excelData.find(x => x.id == id);
+                    if(row) {
+                        row.estado = 'Pagado';
+                        await callGoogleScript('operatorUpdateStatus', { data: mapToSheetService(row) });
+                    }
+                    
                     showToast("Comprobante subido y estado actualizado a PAGADO.");
                     // Refrescar datos locales
                     await initDataFromCloud();
                 } else {
-                    showToast(result.message || "Error al subir comprobante.");
+                    throw new Error(result.message || "Error desconocido al subir el comprobante");
                 }
             } catch(err) {
                 console.error(err);
-                showToast("Error en la subida del archivo.");
+                alert(`Error crítico al subir a Google Drive: ${err.message || err}.\n\nRevisa si actualizaste la URL del Script o si los permisos están como "Cualquier persona".`);
             } finally {
                 event.target.value = '';
                 pendingUploadData = null;

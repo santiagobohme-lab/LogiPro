@@ -2,9 +2,10 @@
 // CONFIGURACIÓN LOGI PRO - ID ACTUALIZADO
 // ==========================================
 
-const FOLDER_ID = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0'; 
-const FOLDER_FOTOS_PERFIL = '1ExIVEFippvrARyDUw_lfPHbhC_LSPTK8'; 
+const FOLDER_FACTURAS = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0'; 
+const FOLDER_FOTOS_CHOFERES = '1_b0ljWJPJKqly-20wjlcNMZUDtcNgYdi'; 
 const FOLDER_COMPROBANTES_PAGO = '14qmuUkXL1C6wF600wIyKfurXPMLRnoIX';
+const FOLDER_GUIAS_DESPACHO = '1JpAwL3DPi-psE94RyUpe5xm7Q8QvuRAy';
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
 const GEMINI_API_KEY = 'AIzaSyDQtA3SAJ6DxHuIAbtvNliP8tNUoNWWXyc';
 
@@ -12,14 +13,14 @@ const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
   "Estado Factura", "OC / HES", "Cotizaci\u00f3n", "DESCRIPCI\u00d3N FACTURACI\u00d3N", "N\u00ba Factura", "Link Archivo", "Estado Ruta",
-  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen"
+  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen", "Link Gu\u00eda de Despacho"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado", "Operador Asociado"];
 const POTENTIAL_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "Sitio Web"];
 const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Tel\u00e9fono", "Email", "Foto"];
 const CLIENT_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "RUT Cliente", "Giro", "Direcci\u00f3n", "Comuna", "Ciudad"];
-const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT"];
+const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT", "Foto de Perfil", "Teléfono", "Correo", "Carnet"];
 const CAMION_HEADERS = ["ID_Camion", "ID_Operador", "Patente", "Modelo"];
 
 /**
@@ -238,7 +239,7 @@ function doPost(e) {
 
     if (action === "uploadGuia") {
       try {
-        const folderId = "1JpAwL3DPi-psE94RyUpe5xm7Q8QvuRAy";
+        const folderId = FOLDER_GUIAS_DESPACHO;
         const folder = DriveApp.getFolderById(folderId);
         
         // Extraer número de guía usando Gemini (opcional pero potente)
@@ -261,8 +262,8 @@ function doPost(e) {
 
         const fileUrl = fileScanned.getUrl(); // Priorizamos el link del escaneo para la base de datos
 
-        // Guardar el link en la base de datos de servicios
-        upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, { "ID": payload.serviceId, "Link Archivo": fileUrl }, "ID");
+        // Guardar el link en la base de datos de servicios (EN LA NUEVA COLUMNA)
+        upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, { "ID": payload.serviceId, "Link Guía de Despacho": fileUrl }, "ID");
         
         return ContentService.createTextOutput(JSON.stringify({ status: "success", url: fileUrl })).setMimeType(ContentService.MimeType.JSON);
       } catch (error) {
@@ -385,11 +386,25 @@ function doPost(e) {
       deleteRowById(ss.getSheetByName("Base_Operadores"), OPERATOR_HEADERS, "Nombre / Empresa", payload.nombre);
     }
     else if (action === "uploadFile") {
-      const folder = DriveApp.getFolderById(payload.folderType === 'perfil' ? FOLDER_FOTOS_PERFIL : FOLDER_ID);
-      const blob = Utilities.newBlob(Utilities.base64Decode(payload.base64.split(',')[1] || payload.base64), payload.mimeType || "image/jpeg", payload.fileName);
+      let targetFolderId;
+      if (payload.folderType === 'chofer') {
+        targetFolderId = FOLDER_FOTOS_CHOFERES;
+      } else if (payload.folderType === 'pago') {
+        targetFolderId = FOLDER_COMPROBANTES_PAGO;
+      } else {
+        targetFolderId = FOLDER_FACTURAS;
+      }
+      
+      const folder = DriveApp.getFolderById(targetFolderId);
+      const pureBase64 = payload.base64.includes(',') ? payload.base64.split(',')[1] : payload.base64;
+      const blob = Utilities.newBlob(Utilities.base64Decode(pureBase64), payload.mimeType || "application/octet-stream", payload.fileName);
       const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", url: file.getUrl(), id: file.getId() })).setMimeType(ContentService.MimeType.JSON);
+      
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        url: file.getUrl(), 
+        id: file.getId() 
+      })).setMimeType(ContentService.MimeType.JSON);
     }
 
     return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);

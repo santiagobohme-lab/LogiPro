@@ -1,4 +1,4 @@
-$port = 8080
+$port = 3000
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 $listener.Start()
