@@ -190,6 +190,26 @@
         <canvas id="camera-canvas" class="hidden"></canvas>
     </div>
 
+    <!-- Camera Preview Modal -->
+    <div id="camera-preview-modal" class="fixed inset-0 bg-black z-[160] hidden flex-col animate-fade-in">
+        <div class="absolute top-0 left-0 right-0 p-6 z-10 flex justify-center items-center bg-gradient-to-b from-black/80 to-transparent">
+            <p class="text-white font-bold text-sm tracking-widest uppercase">Confirmar Foto</p>
+        </div>
+
+        <div class="relative flex-1 w-full flex items-center justify-center overflow-hidden bg-black p-4">
+            <img id="preview-image" class="max-w-full max-h-full object-contain rounded-lg" src="" alt="Preview">
+        </div>
+
+        <div class="h-32 bg-black w-full flex items-center justify-center gap-12 pb-6 z-10">
+            <button id="preview-reject-btn" class="w-16 h-16 bg-slate-800 text-white rounded-full flex items-center justify-center active:scale-95 transition-transform border border-slate-600">
+                <i class="ph-bold ph-x text-3xl"></i>
+            </button>
+            <button id="preview-confirm-btn" class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center active:scale-95 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                <i class="ph-bold ph-check text-3xl"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- PWA Install Screen (Android) -->
     <div id="android-install-screen" class="fixed inset-0 bg-gradient-to-b from-blue-900 to-blue-950 z-[300] hidden flex-col items-center justify-center p-6 text-white">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(255,255,255,0.2)]">

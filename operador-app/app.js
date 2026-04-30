@@ -451,8 +451,28 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', () => {
     
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     
+    pendingGuiaDataUrl = dataUrl;
+    document.getElementById('preview-image').src = dataUrl;
+    document.getElementById('camera-preview-modal').classList.remove('hidden');
+    document.getElementById('camera-preview-modal').classList.add('flex');
+});
+
+let pendingGuiaDataUrl = null;
+
+document.getElementById('preview-reject-btn')?.addEventListener('click', () => {
+    document.getElementById('camera-preview-modal').classList.add('hidden');
+    document.getElementById('camera-preview-modal').classList.remove('flex');
+    pendingGuiaDataUrl = null;
+});
+
+document.getElementById('preview-confirm-btn')?.addEventListener('click', () => {
+    document.getElementById('camera-preview-modal').classList.add('hidden');
+    document.getElementById('camera-preview-modal').classList.remove('flex');
     closeCameraModal();
-    processGuiaDataUrl(dataUrl, 'image/jpeg');
+    if (pendingGuiaDataUrl) {
+        processGuiaDataUrl(pendingGuiaDataUrl, 'image/jpeg');
+        pendingGuiaDataUrl = null;
+    }
 });
 
 // --- UPLOAD LOGIC REFACTOR ---
@@ -530,7 +550,7 @@ function applyScannerFilter(imgElement) {
     // Redimensionar si es muy grande para no agotar memoria
     let width = imgElement.width;
     let height = imgElement.height;
-    const maxDim = 1600;
+    const maxDim = 1920;
     if (width > maxDim || height > maxDim) {
         if (width > height) {
             height *= maxDim / width;
@@ -544,12 +564,11 @@ function applyScannerFilter(imgElement) {
     canvas.width = width;
     canvas.height = height;
     
-    // Filtro "Color Mágico" (CamScanner style):
-    // Mantiene colores (timbres/logos), aumenta contraste para texto negro y aclara fondo para blanquear el papel
-    // saturate(130%): Realza rojos y azules (timbres)
-    // brightness(125%): Aclara el papel para acercarlo al blanco puro
-    // contrast(160%): Oscurece la tinta y quita sombras ligeras
-    ctx.filter = 'saturate(130%) brightness(125%) contrast(160%)';
+    // Filtro "Color Mágico" suave:
+    // saturate(110%): Realza rojos y azules suavemente
+    // brightness(110%): Aclara el papel sin sobreexponer
+    // contrast(120%): Mejora legibilidad sin reventar letras
+    ctx.filter = 'saturate(110%) brightness(110%) contrast(120%)';
     
     // Fondo blanco por si hay transparencias
     ctx.fillStyle = 'white';
