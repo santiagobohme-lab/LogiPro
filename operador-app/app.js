@@ -424,6 +424,27 @@ function closeCameraModal() {
 
 document.getElementById('camera-close-btn')?.addEventListener('click', closeCameraModal);
 
+function playShutterSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
+}
+
 document.getElementById('camera-capture-btn')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     if (btn.disabled) return;
@@ -431,6 +452,28 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
     const originalHtml = btn.innerHTML;
     btn.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center"><i class="ph-bold ph-circle-notch animate-spin text-white text-3xl"></i></div>`;
     btn.disabled = true;
+    
+    playShutterSound();
+    
+    const flash = document.getElementById('camera-flash');
+    if (flash) {
+        flash.classList.remove('opacity-0');
+        flash.classList.add('opacity-100');
+        setTimeout(() => {
+            flash.classList.remove('opacity-100');
+            flash.classList.add('opacity-0');
+        }, 50);
+    }
+    
+    const instruction = document.getElementById('camera-instruction');
+    const origText = instruction ? instruction.innerText : "";
+    const origClass = instruction ? instruction.className : "";
+    
+    if (instruction) {
+        instruction.innerText = "¡Mantén quieto el celular, capturando...!";
+        instruction.classList.replace('bg-black/40', 'bg-amber-600/90');
+        instruction.classList.replace('text-white/90', 'text-white');
+    }
 
     try {
         const video = document.getElementById('camera-feed');
@@ -490,6 +533,8 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
             dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         }
         
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        
         pendingGuiaDataUrl = dataUrl;
         document.getElementById('preview-image').src = dataUrl;
         document.getElementById('camera-preview-modal').classList.remove('hidden');
@@ -498,6 +543,10 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
         console.error(error);
         showToast("Error al capturar la imagen");
     } finally {
+        if (instruction) {
+            instruction.innerText = origText;
+            instruction.className = origClass;
+        }
         btn.innerHTML = originalHtml;
         btn.disabled = false;
     }
