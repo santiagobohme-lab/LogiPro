@@ -406,8 +406,13 @@ async function openCameraModal() {
             // Torch Logic
             const capabilities = track.getCapabilities ? track.getCapabilities() : {};
             const torchBtn = document.getElementById('camera-torch-btn');
+            const torchHint = document.getElementById('torch-hint');
             if (capabilities && capabilities.torch) {
-                torchBtn.classList.remove('hidden');
+                if(torchBtn) torchBtn.classList.remove('hidden');
+                if(torchHint) {
+                    torchHint.classList.remove('hidden');
+                    torchHint.classList.remove('opacity-0');
+                }
                 torchBtn.onclick = async () => {
                     try {
                         torchOn = !torchOn;
@@ -417,10 +422,12 @@ async function openCameraModal() {
                             torchBtn.classList.replace('bg-white/20', 'bg-yellow-400');
                             torchIcon.classList.replace('ph-lightning', 'ph-lightning-slash');
                             torchBtn.classList.replace('text-white', 'text-yellow-900');
+                            if(torchHint) torchHint.classList.add('opacity-0');
                         } else {
                             torchBtn.classList.replace('bg-yellow-400', 'bg-white/20');
                             torchIcon.classList.replace('ph-lightning-slash', 'ph-lightning');
                             torchBtn.classList.replace('text-yellow-900', 'text-white');
+                            if(torchHint) torchHint.classList.remove('opacity-0');
                         }
                     } catch (err) {
                         console.error("Torch error:", err);
@@ -429,6 +436,7 @@ async function openCameraModal() {
                 };
             } else {
                 if(torchBtn) torchBtn.classList.add('hidden');
+                if(torchHint) torchHint.classList.add('hidden');
             }
             
             // ImageCapture Logic
