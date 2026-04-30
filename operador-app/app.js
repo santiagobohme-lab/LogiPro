@@ -380,6 +380,7 @@ async function updateStatus(newStatus) {
 
 // --- CUSTOM CAMERA IMPLEMENTATION ---
 let cameraStream = null;
+let imageCaptureObj = null;
 
 async function openCameraModal() {
     const modal = document.getElementById('camera-modal');
@@ -389,10 +390,19 @@ async function openCameraModal() {
     
     try {
         cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+            video: { facingMode: 'environment', width: { ideal: 4000 }, height: { ideal: 3000 } },
             audio: false
         });
         video.srcObject = cameraStream;
+        
+        try {
+            const track = cameraStream.getVideoTracks()[0];
+            if (typeof ImageCapture !== 'undefined') {
+                imageCaptureObj = new ImageCapture(track);
+            }
+        } catch (e) {
+            imageCaptureObj = null;
+        }
     } catch (err) {
         console.error("Camera access failed", err);
         showToast("Cámara web no soportada (" + err.name + "). Abriendo nativa...");
@@ -409,52 +419,88 @@ function closeCameraModal() {
         cameraStream.getTracks().forEach(track => track.stop());
         cameraStream = null;
     }
+    imageCaptureObj = null;
 }
 
 document.getElementById('camera-close-btn')?.addEventListener('click', closeCameraModal);
 
-document.getElementById('camera-capture-btn')?.addEventListener('click', () => {
-    const video = document.getElementById('camera-feed');
-    const canvas = document.getElementById('camera-canvas');
-    const container = video.parentElement;
-    const guide = document.getElementById('camera-guide');
+document.getElementById('camera-capture-btn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (btn.disabled) return;
     
-    // Calculate the scale factor between the actual video and displayed video (object-cover)
-    const scale = Math.max(container.clientWidth / video.videoWidth, container.clientHeight / video.videoHeight);
-    
-    // Displayed size of the video
-    const displayedVideoWidth = video.videoWidth * scale;
-    const displayedVideoHeight = video.videoHeight * scale;
-    
-    // Offset of the video within the container
-    const offsetX = (container.clientWidth - displayedVideoWidth) / 2;
-    const offsetY = (container.clientHeight - displayedVideoHeight) / 2;
-    
-    // Position of the guide relative to the video element
-    const guideRect = guide.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const guideX = guideRect.left - containerRect.left - offsetX;
-    const guideY = guideRect.top - containerRect.top - offsetY;
-    
-    // Map guide coordinates to actual video resolution
-    const cropX = guideX / scale;
-    const cropY = guideY / scale;
-    const cropWidth = guideRect.width / scale;
-    const cropHeight = guideRect.height / scale;
-    
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-    const ctx = canvas.getContext('2d');
-    
-    // Draw only the cropped region from the video
-    ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-    
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    
-    pendingGuiaDataUrl = dataUrl;
-    document.getElementById('preview-image').src = dataUrl;
-    document.getElementById('camera-preview-modal').classList.remove('hidden');
-    document.getElementById('camera-preview-modal').classList.add('flex');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<div class="w-16 h-16 rounded-full flex items-center justify-center"><i class="ph-bold ph-circle-notch animate-spin text-white text-3xl"></i></div>`;
+    btn.disabled = true;
+
+    try {
+        const video = document.getElementById('camera-feed');
+        const canvas = document.getElementById('camera-canvas');
+        const container = video.parentElement;
+        const guide = document.getElementById('camera-guide');
+        
+        const scale = Math.max(container.clientWidth / video.videoWidth, container.clientHeight / video.videoHeight);
+        const displayedVideoWidth = video.videoWidth * scale;
+        const displayedVideoHeight = video.videoHeight * scale;
+        const offsetX = (container.clientWidth - displayedVideoWidth) / 2;
+        const offsetY = (container.clientHeight - displayedVideoHeight) / 2;
+        
+        const guideRect = guide.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const guideX = guideRect.left - containerRect.left - offsetX;
+        const guideY = guideRect.top - containerRect.top - offsetY;
+        
+        // Percentages relative to the video stream
+        const pctX = (guideX / scale) / video.videoWidth;
+        const pctY = (guideY / scale) / video.videoHeight;
+        const pctWidth = (guideRect.width / scale) / video.videoWidth;
+        const pctHeight = (guideRect.height / scale) / video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        let dataUrl = null;
+        
+        if (imageCaptureObj) {
+            try {
+                const blob = await imageCaptureObj.takePhoto();
+                const imgBitmap = await createImageBitmap(blob);
+                
+                const cropX = Math.max(0, pctX * imgBitmap.width);
+                const cropY = Math.max(0, pctY * imgBitmap.height);
+                const cropWidth = Math.min(imgBitmap.width - cropX, pctWidth * imgBitmap.width);
+                const cropHeight = Math.min(imgBitmap.height - cropY, pctHeight * imgBitmap.height);
+                
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                ctx.drawImage(imgBitmap, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            } catch(err) {
+                console.error("ImageCapture failed, falling back to video frame", err);
+            }
+        }
+        
+        if (!dataUrl) {
+            // Fallback
+            const cropX = guideX / scale;
+            const cropY = guideY / scale;
+            const cropWidth = guideRect.width / scale;
+            const cropHeight = guideRect.height / scale;
+            
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+            ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        }
+        
+        pendingGuiaDataUrl = dataUrl;
+        document.getElementById('preview-image').src = dataUrl;
+        document.getElementById('camera-preview-modal').classList.remove('hidden');
+        document.getElementById('camera-preview-modal').classList.add('flex');
+    } catch (error) {
+        console.error(error);
+        showToast("Error al capturar la imagen");
+    } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
 });
 
 let pendingGuiaDataUrl = null;
