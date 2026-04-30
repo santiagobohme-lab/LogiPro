@@ -109,6 +109,8 @@ function showApp() {
 
 async function fetchServices() {
     loader.classList.remove('hidden');
+    const refreshIcon = document.getElementById('refresh-icon');
+    if (refreshIcon) refreshIcon.classList.add('animate-spin');
     
     try {
         const data = await callAPI('syncOperatorData');
@@ -132,6 +134,8 @@ async function fetchServices() {
         }
     } finally {
         loader.classList.add('hidden');
+        const refreshIcon = document.getElementById('refresh-icon');
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
     }
 }
 

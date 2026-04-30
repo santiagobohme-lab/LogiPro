@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#1e3a8a">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body class="bg-gray-50 text-slate-900 font-sans">
     
@@ -47,8 +47,8 @@
                 <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hola, <span id="operator-name-header" class="text-blue-600">...</span></h2>
                 <p id="app-view-title" class="text-lg font-black text-slate-800">Próximos Servicios</p>
             </div>
-            <button id="refresh-btn" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+            <button id="refresh-btn" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+                <i id="refresh-icon" class="ph-bold ph-arrows-clockwise text-xl"></i>
             </button>
         </header>
 
@@ -244,6 +244,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
