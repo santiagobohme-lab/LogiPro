@@ -667,11 +667,11 @@ function applyScannerFilter(imgElement) {
     canvas.width = width;
     canvas.height = height;
     
-    // Filtro "Color Mágico" ajustado:
-    // saturate(110%): Realza un poco los colores
-    // brightness(105%): Aclara muy levemente para no borrar firmas
-    // contrast(115%): Aumenta legibilidad sin quemar
-    ctx.filter = 'saturate(110%) brightness(105%) contrast(115%)';
+    // Filtro "Color Mágico" final (muy sutil):
+    // saturate(105%): Realza levemente los colores
+    // brightness(102%): Casi natural para no perder detalle en luces fuertes
+    // contrast(108%): Mejora legibilidad sin efectos artificiales
+    ctx.filter = 'saturate(105%) brightness(102%) contrast(108%)';
     
     // Fondo blanco por si hay transparencias
     ctx.fillStyle = 'white';
