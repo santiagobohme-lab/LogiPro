@@ -395,7 +395,7 @@ async function openCameraModal() {
         video.srcObject = cameraStream;
     } catch (err) {
         console.error("Camera access failed", err);
-        showToast("Sin acceso a cámara. Usando método nativo.");
+        showToast("Cámara web no soportada (" + err.name + "). Abriendo nativa...");
         closeCameraModal();
         document.getElementById('file-upload-input').click();
     }
