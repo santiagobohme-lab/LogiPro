@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#1e3a8a">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body class="bg-gray-50 text-slate-900 font-sans">
     
@@ -160,7 +160,9 @@
                 <i class="ph-bold ph-x text-xl"></i>
             </button>
             <p class="text-white font-bold text-sm tracking-widest uppercase">Escanear Documento</p>
-            <div class="w-10 h-10"></div>
+            <button id="camera-torch-btn" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors active:bg-white/30 hidden">
+                <i id="torch-icon" class="ph-bold ph-lightning text-xl"></i>
+            </button>
         </div>
 
         <div class="relative flex-1 w-full flex items-center justify-center overflow-hidden bg-black">
@@ -250,6 +252,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>

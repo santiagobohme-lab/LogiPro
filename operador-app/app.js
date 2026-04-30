@@ -385,6 +385,7 @@ async function updateStatus(newStatus) {
 // --- CUSTOM CAMERA IMPLEMENTATION ---
 let cameraStream = null;
 let imageCaptureObj = null;
+let torchOn = false;
 
 async function openCameraModal() {
     const modal = document.getElementById('camera-modal');
@@ -401,6 +402,36 @@ async function openCameraModal() {
         
         try {
             const track = cameraStream.getVideoTracks()[0];
+            
+            // Torch Logic
+            const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+            const torchBtn = document.getElementById('camera-torch-btn');
+            if (capabilities && capabilities.torch) {
+                torchBtn.classList.remove('hidden');
+                torchBtn.onclick = async () => {
+                    try {
+                        torchOn = !torchOn;
+                        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+                        const torchIcon = document.getElementById('torch-icon');
+                        if (torchOn) {
+                            torchBtn.classList.replace('bg-white/20', 'bg-yellow-400');
+                            torchIcon.classList.replace('ph-lightning', 'ph-lightning-slash');
+                            torchBtn.classList.replace('text-white', 'text-yellow-900');
+                        } else {
+                            torchBtn.classList.replace('bg-yellow-400', 'bg-white/20');
+                            torchIcon.classList.replace('ph-lightning-slash', 'ph-lightning');
+                            torchBtn.classList.replace('text-yellow-900', 'text-white');
+                        }
+                    } catch (err) {
+                        console.error("Torch error:", err);
+                        torchOn = !torchOn;
+                    }
+                };
+            } else {
+                if(torchBtn) torchBtn.classList.add('hidden');
+            }
+            
+            // ImageCapture Logic
             if (typeof ImageCapture !== 'undefined') {
                 imageCaptureObj = new ImageCapture(track);
             }
@@ -420,10 +451,24 @@ function closeCameraModal() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach(track => {
+            if (torchOn && track.applyConstraints) {
+                try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
+            }
+            track.stop();
+        });
         cameraStream = null;
     }
     imageCaptureObj = null;
+    
+    torchOn = false;
+    const torchBtn = document.getElementById('camera-torch-btn');
+    const torchIcon = document.getElementById('torch-icon');
+    if (torchBtn && torchIcon) {
+        torchBtn.classList.replace('bg-yellow-400', 'bg-white/20');
+        torchIcon.classList.replace('ph-lightning-slash', 'ph-lightning');
+        torchBtn.classList.replace('text-yellow-900', 'text-white');
+    }
 }
 
 document.getElementById('camera-close-btn')?.addEventListener('click', closeCameraModal);
