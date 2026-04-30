@@ -113,15 +113,10 @@ async function fetchServices() {
     if (refreshIcon) refreshIcon.classList.add('animate-spin');
     
     try {
-        const data = await callAPI('syncOperatorData');
+        const data = await callAPI('syncDriverServices', { chofer: currentOperator });
         
-        // Robust filtering
-        const operatorCurrent = (currentOperator || "").toString().trim().toLowerCase();
-        
-        allServices = data.servicios.filter(s => {
-            const opInSheet = (s["Chofer Asignado"] || "").toString().trim().toLowerCase();
-            return opInSheet === operatorCurrent && s.ID && s.Cliente;
-        });
+        // El backend ya filtra por chofer, asignamos directamente
+        allServices = data.servicios || [];
         
         storage.set('logipro-cache-services', JSON.stringify(allServices));
         renderServices();

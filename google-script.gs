@@ -232,6 +232,25 @@ function doPost(e) {
           camiones: getSheetData(ca_sheet, CAMION_HEADERS)
       })).setMimeType(ContentService.MimeType.JSON);
     }
+    
+    // Optimizacion: Solo carga los servicios del chofer actual, omitiendo otras hojas
+    if (action === "syncDriverServices") {
+      const s_sheet = ss.getSheetByName("Servicios") || initSheet(ss, "Servicios", SCRIPT_DB_HEADERS);
+      let serviciosData = getSheetData(s_sheet, SCRIPT_DB_HEADERS);
+      
+      if (payload.chofer) {
+        const target = payload.chofer.toString().trim().toLowerCase();
+        serviciosData = serviciosData.filter(s => {
+          const op = (s["Chofer Asignado"] || "").toString().trim().toLowerCase();
+          return op === target && s.ID && s.Cliente;
+        });
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          servicios: serviciosData
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
 
     if (action === "operatorUpdateStatus") {
       upsertRow(initSheet(ss, "Servicios", SCRIPT_DB_HEADERS), SCRIPT_DB_HEADERS, payload.data, "ID");
