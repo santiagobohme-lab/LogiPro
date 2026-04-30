@@ -416,13 +416,40 @@ document.getElementById('camera-close-btn')?.addEventListener('click', closeCame
 document.getElementById('camera-capture-btn')?.addEventListener('click', () => {
     const video = document.getElementById('camera-feed');
     const canvas = document.getElementById('camera-canvas');
+    const container = video.parentElement;
+    const guide = document.getElementById('camera-guide');
     
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Calculate the scale factor between the actual video and displayed video (object-cover)
+    const scale = Math.max(container.clientWidth / video.videoWidth, container.clientHeight / video.videoHeight);
+    
+    // Displayed size of the video
+    const displayedVideoWidth = video.videoWidth * scale;
+    const displayedVideoHeight = video.videoHeight * scale;
+    
+    // Offset of the video within the container
+    const offsetX = (container.clientWidth - displayedVideoWidth) / 2;
+    const offsetY = (container.clientHeight - displayedVideoHeight) / 2;
+    
+    // Position of the guide relative to the video element
+    const guideRect = guide.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const guideX = guideRect.left - containerRect.left - offsetX;
+    const guideY = guideRect.top - containerRect.top - offsetY;
+    
+    // Map guide coordinates to actual video resolution
+    const cropX = guideX / scale;
+    const cropY = guideY / scale;
+    const cropWidth = guideRect.width / scale;
+    const cropHeight = guideRect.height / scale;
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
     const ctx = canvas.getContext('2d');
     
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    // Draw only the cropped region from the video
+    ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     
     closeCameraModal();
     processGuiaDataUrl(dataUrl, 'image/jpeg');
@@ -495,7 +522,7 @@ async function processGuiaDataUrl(dataUrl, mimeType = 'image/jpeg') {
     }
 }
 
-// Procesa la imagen para que parezca un escaneo (B&W alto contraste)
+// Procesa la imagen para que parezca un documento legal escaneado (B/N de alto contraste)
 function applyScannerFilter(imgElement) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -516,10 +543,19 @@ function applyScannerFilter(imgElement) {
     
     canvas.width = width;
     canvas.height = height;
-    // Filtros nativos del navegador para una mejora limpia sin 'artifacts' o parches blancos
-    ctx.filter = 'contrast(1.4) brightness(1.1) saturate(1.2)';
+    
+    // Filtro extremo de escáner de documentos:
+    // 1. grayscale(100%): Elimina cualquier color, sombras azules/amarillas
+    // 2. brightness(140%): Aclara el gris claro del papel para que sea blanco puro
+    // 3. contrast(200%): Oscurece el gris oscuro de la tinta para que sea negro puro
+    ctx.filter = 'grayscale(100%) brightness(140%) contrast(200%)';
+    
+    // Fondo blanco por si hay transparencias
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
+    
     ctx.drawImage(imgElement, 0, 0, width, height);
-    return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+    return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 }
 
 function switchTab(tab) {
