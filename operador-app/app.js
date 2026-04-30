@@ -498,9 +498,9 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
         const pctWidth = (guideRect.width / scale) / video.videoWidth;
         const pctHeight = (guideRect.height / scale) / video.videoHeight;
         
-        // Margen de error (2%) hacia adentro para evitar bordes de la mesa
-        const trimX = pctWidth * 0.02;
-        const trimY = pctHeight * 0.02;
+        // Margen de error (1%) hacia AFUERA para asegurar que capture todo el papel
+        const trimX = pctWidth * -0.01;
+        const trimY = pctHeight * -0.01;
         const safePctX = pctX + trimX;
         const safePctY = pctY + trimY;
         const safePctWidth = pctWidth - (trimX * 2);
