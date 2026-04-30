@@ -153,6 +153,43 @@
         <span id="toast-text">Estado actualizado</span>
     </div>
 
+    <!-- Custom Camera Modal -->
+    <div id="camera-modal" class="fixed inset-0 bg-black z-[150] hidden flex-col animate-slide-up">
+        <div class="absolute top-0 left-0 right-0 p-6 z-10 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+            <button id="camera-close-btn" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors active:bg-white/30">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+            <p class="text-white font-bold text-sm tracking-widest uppercase">Escanear Documento</p>
+            <div class="w-10 h-10"></div>
+        </div>
+
+        <div class="relative flex-1 w-full flex items-center justify-center overflow-hidden bg-black">
+            <video id="camera-feed" class="absolute w-full h-full object-cover" autoplay playsinline></video>
+            
+            <!-- 1:1.29 Aspect Ratio Guide with 5% margin -->
+            <!-- The box-shadow creates the darkened area outside the rectangle -->
+            <div class="relative w-[85%] max-w-sm aspect-[1/1.29] z-10 box-border pointer-events-none rounded-md" style="box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.7);">
+                <!-- Corner Indicators -->
+                <div class="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                <div class="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                <div class="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                <div class="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+            </div>
+            
+            <p class="absolute bottom-[15%] z-10 text-white/90 text-xs font-medium text-center px-8 bg-black/40 py-2 rounded-full backdrop-blur-sm">
+                Alinea la guía dentro del recuadro
+            </p>
+        </div>
+
+        <div class="h-32 bg-black w-full flex items-center justify-center pb-6 z-10">
+            <button id="camera-capture-btn" class="w-20 h-20 rounded-full border-4 border-white/50 flex items-center justify-center active:scale-95 transition-transform">
+                <div class="w-16 h-16 bg-white rounded-full"></div>
+            </button>
+        </div>
+        
+        <canvas id="camera-canvas" class="hidden"></canvas>
+    </div>
+
     <!-- PWA Install Screen (Android) -->
     <div id="android-install-screen" class="fixed inset-0 bg-gradient-to-b from-blue-900 to-blue-950 z-[300] hidden flex-col items-center justify-center p-6 text-white">
         <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(255,255,255,0.2)]">

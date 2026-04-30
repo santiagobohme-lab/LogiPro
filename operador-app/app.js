@@ -290,7 +290,7 @@ function openDetail(id) {
         uploadBtn.innerHTML = `<i class="ph-bold ph-camera"></i> Subir Guía de Despacho`;
         uploadBtn.classList.replace('bg-emerald-50', 'bg-slate-50');
         uploadBtn.classList.replace('text-emerald-600', 'text-slate-500');
-        uploadBtn.onclick = () => document.getElementById('file-upload-input').click();
+        uploadBtn.onclick = () => openCameraModal();
         
         btnCompletado.disabled = true;
         btnCompletado.classList.add('opacity-50', 'cursor-not-allowed');
@@ -378,64 +378,120 @@ async function updateStatus(newStatus) {
     }
 }
 
+// --- CUSTOM CAMERA IMPLEMENTATION ---
+let cameraStream = null;
+
+async function openCameraModal() {
+    const modal = document.getElementById('camera-modal');
+    const video = document.getElementById('camera-feed');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false
+        });
+        video.srcObject = cameraStream;
+    } catch (err) {
+        console.error("Camera access failed", err);
+        showToast("Sin acceso a cámara. Usando método nativo.");
+        closeCameraModal();
+        document.getElementById('file-upload-input').click();
+    }
+}
+
+function closeCameraModal() {
+    const modal = document.getElementById('camera-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+}
+
+document.getElementById('camera-close-btn')?.addEventListener('click', closeCameraModal);
+
+document.getElementById('camera-capture-btn')?.addEventListener('click', () => {
+    const video = document.getElementById('camera-feed');
+    const canvas = document.getElementById('camera-canvas');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    
+    closeCameraModal();
+    processGuiaDataUrl(dataUrl, 'image/jpeg');
+});
+
+// --- UPLOAD LOGIC REFACTOR ---
 async function handleGuiaUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            processGuiaDataUrl(reader.result, file.type);
+        };
+        reader.readAsDataURL(file);
+    } catch (err) {
+        showToast("Error leyendo archivo");
+        event.target.value = '';
+    }
+}
+
+async function processGuiaDataUrl(dataUrl, mimeType = 'image/jpeg') {
     const btn = document.getElementById('upload-btn');
     const originalText = btn.innerHTML;
     btn.innerHTML = `<i class="ph-bold ph-circle-notch animate-spin"></i> Subiendo...`;
     btn.disabled = true;
 
     try {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64Data = reader.result.split(',')[1];
-            const mimeType = file.type;
-            const timestamp = new Date().getTime();
-            const fileName = `Guia_${currentServiceId}_${timestamp}.jpg`;
+        const base64Data = dataUrl.split(',')[1];
+        
+        const img = new Image();
+        img.onload = async () => {
+            const scannedData = applyScannerFilter(img);
+            const s = allServices.find(srv => srv.ID == currentServiceId);
+            const cliente = s ? s.Cliente.replace(/[^a-z0-9]/gi, '_') : "Desconocido";
+            const fecha = new Date().toISOString().split('T')[0];
 
             try {
-                // Crear un elemento de imagen temporal para procesar el escaneado
-                const img = new Image();
-                img.onload = async () => {
-                    const scannedData = applyScannerFilter(img);
-                    const s = allServices.find(srv => srv.ID == currentServiceId);
-                    const cliente = s ? s.Cliente.replace(/[^a-z0-9]/gi, '_') : "Desconocido";
-                    const fecha = new Date().toISOString().split('T')[0];
+                const response = await callAPI('uploadGuia', {
+                    originalData: base64Data,
+                    scannedData: scannedData,
+                    mimeType: mimeType,
+                    cliente: cliente,
+                    fecha: fecha,
+                    serviceId: currentServiceId
+                });
 
-                    const response = await callAPI('uploadGuia', {
-                        originalData: base64Data,
-                        scannedData: scannedData,
-                        mimeType: mimeType,
-                        cliente: cliente,
-                        fecha: fecha,
-                        serviceId: currentServiceId
-                    });
-
-                    showToast("Guía y Escaneo guardados");
-                    
-                    if (s) {
-                        s["Link Archivo"] = response.url;
-                        storage.set('logipro-cache-services', JSON.stringify(allServices));
-                        openDetail(currentServiceId);
-                    }
-                };
-                img.src = reader.result;
+                showToast("Guía y Escaneo guardados");
+                
+                if (s) {
+                    s["Link Archivo"] = response.url;
+                    storage.set('logipro-cache-services', JSON.stringify(allServices));
+                    openDetail(currentServiceId);
+                }
             } catch(e) {
                 showToast("Error al procesar o subir");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                event.target.value = '';
+                document.getElementById('file-upload-input').value = '';
             }
         };
-        reader.readAsDataURL(file);
+        img.src = dataUrl;
     } catch (err) {
-        showToast("Error leyendo archivo");
+        showToast("Error procesando imagen");
         btn.innerHTML = originalText;
         btn.disabled = false;
-        event.target.value = '';
+        document.getElementById('file-upload-input').value = '';
     }
 }
 
