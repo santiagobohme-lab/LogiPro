@@ -4,6 +4,7 @@
 
 const FOLDER_FACTURAS = '1OsV_Q0PAYo0-LEkjdmVKfVImafT8FtB0'; 
 const FOLDER_FOTOS_CHOFERES = '1_b0ljWJPJKqly-20wjlcNMZUDtcNgYdi'; 
+const FOLDER_LICENCIAS_CHOFERES = '1bJ9hU61uN7btZ__KHNnWNn0gIxBYGFwG';
 const FOLDER_COMPROBANTES_PAGO = '14qmuUkXL1C6wF600wIyKfurXPMLRnoIX';
 const FOLDER_GUIAS_DESPACHO = '1JpAwL3DPi-psE94RyUpe5xm7Q8QvuRAy';
 const SPREADSHEET_ID = '1gmA0PVykHK_ZoEYfM-JPwKU4bTQ-LI4UgpciqGWGhOc';
@@ -20,7 +21,7 @@ const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asoc
 const POTENTIAL_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "Sitio Web"];
 const OPERATOR_HEADERS = ["Nombre / Empresa", "RUT", "Tel\u00e9fono", "Email", "Foto"];
 const CLIENT_HEADERS = ["Nombre", "Tel\u00e9fono", "Email", "RUT Cliente", "Giro", "Direcci\u00f3n", "Comuna", "Ciudad"];
-const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT", "Foto de Perfil", "Teléfono", "Correo", "Carnet"];
+const CHOFER_HEADERS = ["ID_Chofer", "ID_Operador", "Nombre", "RUT", "Foto de Perfil", "Teléfono", "Correo", "Licencia", "Vencimiento Licencia", "Estado Licencia", "Tipo Licencia"];
 const CAMION_HEADERS = ["ID_Camion", "ID_Operador", "Patente", "Modelo"];
 
 /**
@@ -389,6 +390,8 @@ function doPost(e) {
       let targetFolderId;
       if (payload.folderType === 'chofer') {
         targetFolderId = FOLDER_FOTOS_CHOFERES;
+      } else if (payload.folderType === 'licencia') {
+        targetFolderId = FOLDER_LICENCIAS_CHOFERES;
       } else if (payload.folderType === 'pago') {
         targetFolderId = FOLDER_COMPROBANTES_PAGO;
       } else {

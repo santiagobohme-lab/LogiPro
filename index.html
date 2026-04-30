@@ -206,6 +206,7 @@
                 <a href="#facturacion" onclick="switchSection('facturacion')" id="nav-facturacion" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
                     <i class="fa-regular fa-file-lines w-6 text-slate-400"></i>
                     <span>Facturas</span>
+                    <span id="facturas-badge" class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center shadow-sm hidden">0</span>
                 </a>
 
                 <a href="#balance" onclick="switchSection('balance')" id="nav-balance" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-50 text-slate-500 hover:text-primary-900 border-r-4 border-transparent transition-colors">
@@ -1923,7 +1924,10 @@
             foto: (s["Foto de Perfil"] || "").toString().trim(),
             telefono: (s["Teléfono"] || "").toString().trim(),
             correo: (s["Correo"] || "").toString().trim(),
-            carnet: (s["Carnet"] || "").toString().trim()
+            licencia: (s["Licencia"] || "").toString().trim(),
+            vencimientoLicencia: (s["Vencimiento Licencia"] || "").toString().trim(),
+            estadoLicencia: (s["Estado Licencia"] || "Pendiente").toString().trim(),
+            tipoLicencia: (s["Tipo Licencia"] || "").toString().trim()
         });
 
         const mapFromSheetCamion = (s) => ({
@@ -3695,6 +3699,24 @@
         function refreshAllViews() {
             renderClientTable();
             renderGlobalServicesTable();
+            updateFacturasBadge();
+        }
+
+        function updateFacturasBadge() {
+            const badge = document.getElementById('facturas-badge');
+            if(!badge) return;
+            
+            const pendingCount = excelData.filter(row => {
+                const eFact = (row.estadoFactura || "").toLowerCase();
+                return eFact !== 'ok' && eFact !== 'ok / pagado';
+            }).length;
+
+            if(pendingCount > 0) {
+                badge.innerText = pendingCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         function renderClientTable() {
@@ -3716,34 +3738,30 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <select onchange="updateEstado('${row.id}', this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
-                    </select>
+                    <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        ${isOk ? 'PAGADO' : 'PENDIENTE'}
+                    </span>
                 `;
 
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura('${row.id}', this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
-                    </select>
+                    <span class="text-xs px-2 py-1 font-bold rounded outline-none appearance-none inline-block text-center ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        ${isFactOk ? 'OK' : 'PENDIENTE'}
+                    </span>
                 `;
 
-                let facturaIcon = '';
-                if(row.isUploading) {
-                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                } else if(row.driveUrl) {
-                    facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
+                let facturaButton = '';
+                if(row.driveUrl) {
+                    facturaButton = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="px-2 py-1 rounded bg-blue-50 text-blue-800 border border-blue-200 text-xs font-medium hover:bg-blue-100 transition-colors flex items-center gap-1"><i class="fa-solid fa-download"></i> Descargar</button>`;
                 } else {
-                    facturaIcon = `<button onclick="clickFactura('${row.id}')" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                    facturaButton = `<button disabled class="px-2 py-1 rounded bg-gray-100 text-gray-400 border border-gray-200 text-xs font-medium cursor-not-allowed flex items-center gap-1"><i class="fa-solid fa-download"></i> Descargar</button>`;
                 }
 
-                const pNroFact = row.nroFactura || '';
+                const pNroFact = row.nroFactura || '-';
                 const factColumn = `
-                    <div class="flex items-center justify-center gap-1">
-                        <input type="text" value="${pNroFact}" onchange="updateNroFactura('${row.id}', this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
-                        ${facturaIcon}
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-xs font-mono text-slate-600 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 min-w-[3rem] text-center">${pNroFact}</span>
+                        ${facturaButton}
                     </div>
                 `;
 
@@ -3799,34 +3817,30 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <select onchange="updateEstado('${row.id}', this.value)" class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer outline-none appearance-none ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="PAGADO" ${isOk ? 'selected' : ''}>PAGADO</option>
-                    </select>
+                    <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        ${isOk ? 'PAGADO' : 'PENDIENTE'}
+                    </span>
                 `;
 
                 const isFactOk = row.estadoFactura && (row.estadoFactura.toLowerCase() === 'ok' || row.estadoFactura.toLowerCase() === 'ok / pagado');
                 const estadoFacturaSelect = `
-                    <select onchange="updateEstadoFactura('${row.id}', this.value)" class="text-xs px-2 py-1 font-bold rounded cursor-pointer outline-none appearance-none ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
-                        <option value="Pendiente" ${!isFactOk ? 'selected' : ''}>PENDIENTE</option>
-                        <option value="OK" ${isFactOk ? 'selected' : ''}>OK</option>
-                    </select>
+                    <span class="text-xs px-2 py-1 font-bold rounded outline-none appearance-none inline-block text-center ${isFactOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                        ${isFactOk ? 'OK' : 'PENDIENTE'}
+                    </span>
                 `;
 
-                let facturaIcon = '';
-                if(row.isUploading) {
-                    facturaIcon = `<div class="w-7 h-7 flex items-center justify-center text-slate-400" title="Subiendo..."><i class="fa-solid fa-spinner fa-spin"></i></div>`;
-                } else if(row.driveUrl) {
-                    facturaIcon = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="w-7 h-7 rounded bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-regular fa-file-pdf"></i></button>`;
+                let facturaButton = '';
+                if(row.driveUrl) {
+                    facturaButton = `<button onclick="window.open('${row.driveUrl}', '_blank')" class="px-2 py-1 rounded bg-blue-50 text-blue-800 border border-blue-200 text-xs font-medium hover:bg-blue-100 transition-colors flex items-center gap-1"><i class="fa-solid fa-download"></i> Descargar</button>`;
                 } else {
-                    facturaIcon = `<button onclick="clickFactura('${row.id}')" class="w-7 h-7 rounded bg-white text-primary-900 border border-gray-200"><i class="fa-solid fa-paperclip"></i></button>`;
+                    facturaButton = `<button disabled class="px-2 py-1 rounded bg-gray-100 text-gray-400 border border-gray-200 text-xs font-medium cursor-not-allowed flex items-center gap-1"><i class="fa-solid fa-download"></i> Descargar</button>`;
                 }
 
-                const pNroFact = row.nroFactura || '';
+                const pNroFact = row.nroFactura || '-';
                 const factColumn = `
-                    <div class="flex items-center justify-center gap-1">
-                        <input type="text" value="${pNroFact}" onchange="updateNroFactura('${row.id}', this.value)" class="w-12 px-1 text-[10px] border border-gray-200 rounded">
-                        ${facturaIcon}
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-xs font-mono text-slate-600 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 min-w-[3rem] text-center">${pNroFact}</span>
+                        ${facturaButton}
                     </div>
                 `;
 
@@ -4137,6 +4151,30 @@
                     ? `<img src="${photoSrc}" class="w-full h-full object-cover">`
                     : `<i class="fa-solid fa-camera text-slate-400 group-hover:text-primary-500"></i>`;
                 
+                const licSrc = c.licencia ? getDirectDriveLink(c.licencia) : '';
+                const previewLicHtml = licSrc 
+                    ? `<img src="${licSrc}" class="w-full h-full object-cover">`
+                    : `<i class="fa-solid fa-id-card text-slate-400 group-hover:text-primary-500"></i>`;
+                
+                let calculatedState = 'Pendiente';
+                let stateColor = 'bg-slate-100 text-slate-600';
+                if (c.licencia && c.vencimientoLicencia) {
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const vDate = new Date(c.vencimientoLicencia + "T00:00:00");
+                    if (vDate >= today) {
+                        calculatedState = 'Aprobada';
+                        stateColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    } else {
+                        calculatedState = 'Vencida';
+                        stateColor = 'bg-red-100 text-red-700 border-red-200';
+                    }
+                } else if (c.licencia) {
+                    calculatedState = 'Sin fecha';
+                    stateColor = 'bg-amber-100 text-amber-700 border-amber-200';
+                }
+                c.estadoLicencia = calculatedState;
+
                 return `
                 <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 mb-2 relative">
                     <button type="button" onclick="modalChoferesTemp.splice(${i}, 1); renderModalChoferes()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
@@ -4160,7 +4198,39 @@
                             <input type="text" value="${c.rut || ''}" oninput="modalChoferesTemp[${i}].rut = this.value" placeholder="RUT" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs font-mono focus:border-primary-500 outline-none">
                             <input type="text" value="${c.telefono || ''}" oninput="modalChoferesTemp[${i}].telefono = this.value" placeholder="Teléfono" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
                             <input type="email" value="${c.correo || ''}" oninput="modalChoferesTemp[${i}].correo = this.value" placeholder="Correo" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
-                            <input type="text" value="${c.carnet || ''}" oninput="modalChoferesTemp[${i}].carnet = this.value" placeholder="Nº Carnet" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                            
+                            <div class="sm:col-span-2 mt-1 border-t border-slate-200 pt-3 flex gap-3 items-center">
+                                <div class="flex-shrink-0 flex flex-col items-center">
+                                    <div class="relative group cursor-pointer" onclick="document.getElementById('fm-ch-lic-input-${i}').click()">
+                                        <div id="ch-lic-preview-${i}" class="w-16 h-10 bg-white rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 overflow-hidden transition-all group-hover:border-primary-500 ${licSrc ? 'border-solid border-primary-500' : ''}">
+                                            ${previewLicHtml}
+                                        </div>
+                                        <div id="ch-lic-spinner-${i}" class="hidden absolute inset-0 bg-white/80 rounded-lg flex items-center justify-center">
+                                            <i class="fa-solid fa-circle-notch fa-spin text-primary-600"></i>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="fm-ch-lic-input-${i}" class="hidden" accept="image/*" onchange="handleChoferLicensePicSelect(event, ${i})">
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Licencia</p>
+                                </div>
+                                
+                                <div class="w-16 flex-shrink-0 flex flex-col gap-1">
+                                    <label class="text-[10px] text-slate-500 font-semibold uppercase">Tipo</label>
+                                    <select onchange="modalChoferesTemp[${i}].tipoLicencia = this.value; renderModalChoferes()" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                                        <option value="" ${!c.tipoLicencia ? 'selected' : ''}>---</option>
+                                        <option value="A2" ${c.tipoLicencia === 'A2' ? 'selected' : ''}>A2</option>
+                                        <option value="A3" ${c.tipoLicencia === 'A3' ? 'selected' : ''}>A3</option>
+                                        <option value="A4" ${c.tipoLicencia === 'A4' ? 'selected' : ''}>A4</option>
+                                        <option value="A5" ${c.tipoLicencia === 'A5' ? 'selected' : ''}>A5</option>
+                                    </select>
+                                </div>
+                                <div class="flex-1 flex flex-col gap-1">
+                                    <label class="text-[10px] text-slate-500 font-semibold uppercase">Vencimiento</label>
+                                    <input type="date" value="${c.vencimientoLicencia || ''}" onchange="modalChoferesTemp[${i}].vencimientoLicencia = this.value; renderModalChoferes()" class="w-full bg-white border border-gray-200 text-slate-800 px-2 py-1.5 rounded text-xs focus:border-primary-500 outline-none">
+                                </div>
+                                <div class="flex-shrink-0 flex flex-col items-center justify-center">
+                                    <span class="px-2 py-1 text-[10px] font-bold rounded border ${stateColor}">${calculatedState.toUpperCase()}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4209,13 +4279,73 @@
             }
         }
 
+        async function handleChoferLicensePicSelect(event, index) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const preview = document.getElementById(`ch-lic-preview-${index}`);
+            const spinner = document.getElementById(`ch-lic-spinner-${index}`);
+            const chofer = modalChoferesTemp[index];
+
+            if (!chofer.vencimientoLicencia) {
+                alert("Por favor, ingresa la fecha de vencimiento antes de subir la foto de la licencia.");
+                event.target.value = '';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const vDate = new Date(chofer.vencimientoLicencia + "T00:00:00");
+            
+            if (vDate < today) {
+                alert("La fecha actual de vencimiento ya pasó. Por favor, actualiza la fecha con la vigencia de la nueva licencia antes de subirla.");
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                spinner.classList.remove('hidden');
+                const compressedBase64 = await compressImage(file, 800, 600, 0.8);
+                
+                const nombre = chofer.nombre.trim().replace(/\s+/g, '') || 'Desconocido';
+                const dateParts = chofer.vencimientoLicencia.split('-');
+                const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                const fileName = `Licencia_${nombre}_${formattedDate}.jpg`;
+
+                const response = await callGoogleScript('uploadFile', {
+                    folderType: 'licencia',
+                    base64: compressedBase64,
+                    mimeType: 'image/jpeg',
+                    fileName: fileName
+                });
+
+                if (response && response.url) {
+                    modalChoferesTemp[index].licencia = compressedBase64;
+                    preview.innerHTML = `<img src="${compressedBase64}" class="w-full h-full object-cover">`;
+                    preview.classList.replace('border-dashed', 'border-solid');
+                    preview.classList.add('border-primary-500');
+                    renderModalChoferes(); // Re-render to update the calculated state
+                    showToast("Licencia subida a Google Drive.");
+                } else {
+                    throw new Error("No se recibió URL");
+                }
+            } catch(err) {
+                console.error(err);
+                showToast("Error al subir la licencia del chofer.");
+                preview.innerHTML = '<i class="fa-solid fa-id-card text-xl text-slate-400"></i>';
+            } finally {
+                spinner.classList.add('hidden');
+                event.target.value = '';
+            }
+        }
+
         function addCamionRow() {
             modalCamionesTemp.push({ id: '', idOperador: '', patente: '', modelo: '' });
             renderModalCamiones();
         }
 
         function addChoferRow() {
-            modalChoferesTemp.push({ id: '', idOperador: '', nombre: '', rut: '', telefono: '', correo: '', carnet: '', foto: '' });
+            modalChoferesTemp.push({ id: '', idOperador: '', nombre: '', rut: '', telefono: '', correo: '', licencia: '', vencimientoLicencia: '', estadoLicencia: 'Pendiente', tipoLicencia: '', foto: '' });
             renderModalChoferes();
         }
 
@@ -4340,7 +4470,10 @@
                             "Foto de Perfil": mc.foto || "",
                             "Teléfono": mc.telefono || "",
                             "Correo": mc.correo || "",
-                            "Carnet": mc.carnet || ""
+                            "Licencia": mc.licencia || "",
+                            "Vencimiento Licencia": mc.vencimientoLicencia || "",
+                            "Estado Licencia": mc.estadoLicencia || "Pendiente",
+                            "Tipo Licencia": mc.tipoLicencia || ""
                         }
                     });
                 }
@@ -4489,15 +4622,45 @@
                             ? `<img src="${photoUrl}" class="w-16 h-16 rounded-full object-cover border-2 border-slate-200 shadow-sm flex-shrink-0">` 
                             : `<div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-2xl border-2 border-emerald-200 shadow-sm flex-shrink-0">${initial}</div>`;
                         
+                        let estadoStr = 'pendiente';
+                        let iconHtml = '<i class="fa-solid fa-clock text-slate-400"></i>';
+                        
+                        if (c.licencia && c.vencimientoLicencia) {
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            const vDate = new Date(c.vencimientoLicencia + "T00:00:00");
+                            if (vDate >= today) {
+                                estadoStr = 'al día';
+                                iconHtml = '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
+                            } else {
+                                estadoStr = 'vencida';
+                                iconHtml = '<i class="fa-solid fa-circle-exclamation text-red-500"></i>';
+                            }
+                        } else if (c.licencia) {
+                            estadoStr = 'sin fecha';
+                            iconHtml = '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>';
+                        }
+
+                        const tipoStr = c.tipoLicencia ? ` ${c.tipoLicencia}` : '';
+                        const licenciaText = `Licencia${tipoStr} ${estadoStr}`;
+
                         return `
-                        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex gap-4 items-center hover:shadow-md transition-shadow">
+                        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center sm:items-start hover:shadow-md transition-shadow relative">
                             ${photoHtml}
-                            <div class="flex-1 overflow-hidden">
+                            <div class="flex-1 w-full overflow-hidden text-center sm:text-left mt-2 sm:mt-0">
                                 <h4 class="font-bold text-slate-800 truncate" title="${c.nombre}">${c.nombre || 'Desconocido'}</h4>
-                                <div class="mt-1 space-y-1 text-xs text-slate-600">
-                                    <p class="flex items-center gap-1.5"><i class="fa-solid fa-id-card text-slate-400 w-3 text-center"></i> <span class="font-mono">${c.rut || 'Sin RUT'}</span></p>
-                                    ${c.telefono ? `<p class="flex items-center gap-1.5"><i class="fa-solid fa-phone text-slate-400 w-3 text-center"></i> ${c.telefono}</p>` : ''}
-                                    ${c.correo ? `<p class="flex items-center gap-1.5 truncate" title="${c.correo}"><i class="fa-solid fa-envelope text-slate-400 w-3 text-center"></i> ${c.correo}</p>` : ''}
+                                <div class="mt-2 space-y-1.5 text-xs text-slate-600 inline-block text-left">
+                                    <p class="flex items-center gap-2">
+                                        <i class="fa-solid fa-id-card text-slate-400 w-4 text-center"></i> 
+                                        <span class="font-mono text-[11px]">${c.rut || 'Sin RUT'}</span>
+                                    </p>
+                                    ${c.telefono ? `<p class="flex items-center gap-2"><i class="fa-solid fa-phone text-slate-400 w-4 text-center"></i> <span class="text-[11px]">${c.telefono}</span></p>` : ''}
+                                    ${c.correo ? `<p class="flex items-center gap-2 truncate" title="${c.correo}"><i class="fa-solid fa-envelope text-slate-400 w-4 text-center"></i> <span class="text-[11px]">${c.correo}</span></p>` : ''}
+                                    <p class="flex items-center gap-2">
+                                        <i class="fa-solid fa-id-badge text-slate-400 w-4 text-center"></i>
+                                        <span class="text-[11px]">${licenciaText}</span>
+                                        ${iconHtml}
+                                    </p>
                                 </div>
                             </div>
                         </div>`;
