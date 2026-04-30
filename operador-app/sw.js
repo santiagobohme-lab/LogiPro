@@ -1,8 +1,8 @@
-const CACHE_NAME = 'logipro-operador-v5';
+const CACHE_NAME = 'logipro-operador-v6';
 const ASSETS = [
   'index.html',
-  'style.css?v=5',
-  'app.js?v=5',
+  'style.css?v=6',
+  'app.js?v=6',
   'manifest.json',
   'icon-512.png'
 ];
