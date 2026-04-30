@@ -1,7 +1,7 @@
 {
-  "name": "Logi Pro Operador",
-  "short_name": "LogiOperador",
-  "description": "App exclusiva para operadores de Logi Pro",
+  "name": "Logi Chofer",
+  "short_name": "Logi Chofer",
+  "description": "App exclusiva para choferes de Logi Pro",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1e3a8a",

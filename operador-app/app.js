@@ -518,3 +518,70 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 
 // Start
 init();
+
+// --- PWA LOGIC ---
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+const isAndroid = /android/i.test(userAgent);
+const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+let deferredPrompt;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW reg fail:', err));
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
+
+document.getElementById('btn-install-pwa')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            deferredPrompt = null;
+        }
+    } else {
+        alert("Para instalar, toca los 3 puntos de tu navegador y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+    }
+});
+
+document.getElementById('close-ios-banner')?.addEventListener('click', () => {
+    const iosBanner = document.getElementById('ios-install-banner');
+    if (iosBanner) {
+        iosBanner.classList.add('translate-y-full');
+        setTimeout(() => iosBanner.classList.add('hidden'), 500);
+    }
+    storage.set('logipro-ios-banner-dismissed', 'true');
+});
+
+// Enforce PWA rules on load
+document.addEventListener('DOMContentLoaded', () => {
+    if (!isStandalone) {
+        if (isAndroid) {
+            // Block Android users
+            const installScreen = document.getElementById('android-install-screen');
+            if (installScreen) {
+                installScreen.classList.remove('hidden');
+                installScreen.classList.add('flex');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+            }
+        } else if (isIOS) {
+            // Show iOS banner
+            const hasDismissed = storage.get('logipro-ios-banner-dismissed');
+            if (!hasDismissed) {
+                const iosBanner = document.getElementById('ios-install-banner');
+                if (iosBanner) {
+                    iosBanner.classList.remove('hidden');
+                    // Slight delay to allow display:block to apply before animating transform
+                    setTimeout(() => iosBanner.classList.remove('translate-y-full'), 100);
+                }
+            }
+        }
+    }
+});
