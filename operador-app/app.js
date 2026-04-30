@@ -544,11 +544,12 @@ function applyScannerFilter(imgElement) {
     canvas.width = width;
     canvas.height = height;
     
-    // Filtro extremo de escáner de documentos:
-    // 1. grayscale(100%): Elimina cualquier color, sombras azules/amarillas
-    // 2. brightness(140%): Aclara el gris claro del papel para que sea blanco puro
-    // 3. contrast(200%): Oscurece el gris oscuro de la tinta para que sea negro puro
-    ctx.filter = 'grayscale(100%) brightness(140%) contrast(200%)';
+    // Filtro "Color Mágico" (CamScanner style):
+    // Mantiene colores (timbres/logos), aumenta contraste para texto negro y aclara fondo para blanquear el papel
+    // saturate(130%): Realza rojos y azules (timbres)
+    // brightness(125%): Aclara el papel para acercarlo al blanco puro
+    // contrast(160%): Oscurece la tinta y quita sombras ligeras
+    ctx.filter = 'saturate(130%) brightness(125%) contrast(160%)';
     
     // Fondo blanco por si hay transparencias
     ctx.fillStyle = 'white';

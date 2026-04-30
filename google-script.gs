@@ -243,21 +243,17 @@ function doPost(e) {
         const folderId = FOLDER_GUIAS_DESPACHO;
         const folder = DriveApp.getFolderById(folderId);
         
-        // Extraer número de guía usando Gemini (opcional pero potente)
+        // Lectura OCR mediante IA (Gemini) desactivada por el momento.
+        // Se prioriza el guardado de la imagen pre-procesada visualmente.
         let nroGuia = "S_N";
-        try {
-           nroGuia = extractGuideNumberWithGemini(payload.originalData, payload.mimeType);
-        } catch(e) { 
-           console.error("Gemini OCR failed: " + e);
-        }
 
         const baseName = `Guia_${payload.cliente}_${payload.fecha}_${payload.serviceId}`;
         
-        // 1. Guardar Escaneada (B&W)
+        // 1. Guardar Escaneada (Procesada: Recorte + Color Mágico)
         const blobScanned = Utilities.newBlob(Utilities.base64Decode(payload.scannedData), payload.mimeType, `${baseName}_ESCANEADA.jpg`);
         const fileScanned = folder.createFile(blobScanned);
         
-        // 2. Guardar Original (Color)
+        // 2. Guardar Original (Sin procesar, por si acaso)
         const blobOrig = Utilities.newBlob(Utilities.base64Decode(payload.originalData), payload.mimeType, `${baseName}_ORIGINAL.jpg`);
         const fileOrig = folder.createFile(blobOrig);
 
