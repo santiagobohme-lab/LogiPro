@@ -498,6 +498,14 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
         const pctWidth = (guideRect.width / scale) / video.videoWidth;
         const pctHeight = (guideRect.height / scale) / video.videoHeight;
         
+        // Margen de error (2%) hacia adentro para evitar bordes de la mesa
+        const trimX = pctWidth * 0.02;
+        const trimY = pctHeight * 0.02;
+        const safePctX = pctX + trimX;
+        const safePctY = pctY + trimY;
+        const safePctWidth = pctWidth - (trimX * 2);
+        const safePctHeight = pctHeight - (trimY * 2);
+        
         const ctx = canvas.getContext('2d');
         let dataUrl = null;
         
@@ -506,10 +514,10 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
                 const blob = await imageCaptureObj.takePhoto();
                 const imgBitmap = await createImageBitmap(blob);
                 
-                const cropX = Math.max(0, pctX * imgBitmap.width);
-                const cropY = Math.max(0, pctY * imgBitmap.height);
-                const cropWidth = Math.min(imgBitmap.width - cropX, pctWidth * imgBitmap.width);
-                const cropHeight = Math.min(imgBitmap.height - cropY, pctHeight * imgBitmap.height);
+                const cropX = Math.max(0, safePctX * imgBitmap.width);
+                const cropY = Math.max(0, safePctY * imgBitmap.height);
+                const cropWidth = Math.min(imgBitmap.width - cropX, safePctWidth * imgBitmap.width);
+                const cropHeight = Math.min(imgBitmap.height - cropY, safePctHeight * imgBitmap.height);
                 
                 canvas.width = cropWidth;
                 canvas.height = cropHeight;
@@ -522,10 +530,10 @@ document.getElementById('camera-capture-btn')?.addEventListener('click', async (
         
         if (!dataUrl) {
             // Fallback
-            const cropX = guideX / scale;
-            const cropY = guideY / scale;
-            const cropWidth = guideRect.width / scale;
-            const cropHeight = guideRect.height / scale;
+            const cropX = safePctX * video.videoWidth;
+            const cropY = safePctY * video.videoHeight;
+            const cropWidth = safePctWidth * video.videoWidth;
+            const cropHeight = safePctHeight * video.videoHeight;
             
             canvas.width = cropWidth;
             canvas.height = cropHeight;
@@ -659,11 +667,11 @@ function applyScannerFilter(imgElement) {
     canvas.width = width;
     canvas.height = height;
     
-    // Filtro "Color Mágico" balanceado:
-    // saturate(120%): Realza colores de los timbres
-    // brightness(118%): Aclara el fondo sin quemar detalles
-    // contrast(140%): Aumenta legibilidad y da aspecto de escáner
-    ctx.filter = 'saturate(120%) brightness(118%) contrast(140%)';
+    // Filtro "Color Mágico" ajustado:
+    // saturate(115%): Realza un poco los colores
+    // brightness(112%): Aclara muy levemente para no borrar firmas
+    // contrast(130%): Aumenta legibilidad sin quemar
+    ctx.filter = 'saturate(115%) brightness(112%) contrast(130%)';
     
     // Fondo blanco por si hay transparencias
     ctx.fillStyle = 'white';
