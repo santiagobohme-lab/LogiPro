@@ -518,6 +518,7 @@
                                         <th class="px-3 py-2">Chofer</th>
                                         <th class="px-3 py-2">Fecha Srv.</th>
                                         <th class="px-3 py-2">Servicio</th>
+                                        <th class="px-3 py-2">Desc. Carga</th>
                                         <th class="px-3 py-2">Origen</th>
                                         <th class="px-3 py-2">Destino</th>
                                         <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
@@ -581,6 +582,7 @@
                                     <th class="px-3 py-2">Chofer</th>
                                     <th class="px-3 py-2">Fecha Srv.</th>
                                     <th class="px-3 py-2">Servicio</th>
+                                    <th class="px-3 py-2">Desc. Carga</th>
                                     <th class="px-3 py-2">Origen</th>
                                     <th class="px-3 py-2">Destino</th>
                                     <th class="px-3 py-2 text-right">Costo ($ CLP)</th>
@@ -787,8 +789,9 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
-                                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Origen</label><input type="text" id="fm-origen" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
-                                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Descripción Carga</label><input type="text" id="fm-descripcionCarga" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. 15 Toneladas / 20 Pallets"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Origen</label><input type="text" id="fm-origen" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
                                 </div>
                                 
                                 <div class="pt-2 border-t border-dashed border-slate-100 grid grid-cols-2 gap-4">
@@ -1423,6 +1426,10 @@
                                     <p id="dt-client-oc" class="text-sm font-bold text-slate-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">---</p>
                                 </div>
                                 <div>
+                                    <p class="text-xs text-slate-500 mb-1">Descripción de Carga</p>
+                                    <p id="dt-client-desc-carga" class="text-sm font-bold text-slate-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">---</p>
+                                </div>
+                                <div>
                                     <p class="text-xs text-slate-500 mb-1">Descripción de Facturación</p>
                                     <div id="dt-client-desc" class="text-sm text-slate-600 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 min-h-[80px] leading-relaxed">---</div>
                                 </div>
@@ -2013,7 +2020,8 @@
                 "Patente Asignada": row.patenteAsignada || "",
                 "Chofer Asignado": row.choferAsignado || "",
                 "Origen": row.origen || "-",
-                "Link Guía de Despacho": row.guiaUrl || ""
+                "Link Guía de Despacho": row.guiaUrl || "",
+                "Descripción Carga": row.descripcionCarga || ""
             };
             return data;
         };
@@ -3772,6 +3780,7 @@
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600 max-w-[150px] truncate" title="${row.descripcionCarga || "-"}">${row.descripcionCarga || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.origen || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
                     <td class="px-3 py-2 text-right">
@@ -3852,6 +3861,7 @@
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
                     <td class="px-3 py-2 text-slate-700 font-semibold">${row.tipoServicio}</td>
+                    <td class="px-3 py-2 text-slate-600 max-w-[150px] truncate" title="${row.descripcionCarga || "-"}">${row.descripcionCarga || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.origen || "-"}</td>
                     <td class="px-3 py-2 text-slate-600">${row.destino}</td>
                     <td class="px-3 py-2 text-right">
@@ -3933,6 +3943,7 @@
             document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
             document.getElementById('fm-origen').value = row.origen === "-" ? "" : row.origen;
             document.getElementById('fm-destino').value = row.destino === "-" ? "" : row.destino;
+            document.getElementById('fm-descripcionCarga').value = row.descripcionCarga === "-" ? "" : (row.descripcionCarga || "");
             document.getElementById('fm-costo').value = row.costo === "-" ? "" : row.costo;
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
             document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
@@ -3968,6 +3979,7 @@
                     row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
                     row.origen = document.getElementById('fm-origen').value || "-";
                     row.destino = document.getElementById('fm-destino').value || "-";
+                    row.descripcionCarga = document.getElementById('fm-descripcionCarga').value || "-";
                     row.costo = document.getElementById('fm-costo').value || "-";
                     row.monto = document.getElementById('fm-monto').value || "-";
                     row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
@@ -3989,6 +4001,7 @@
                     tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
                     origen: document.getElementById('fm-origen').value || "-",
                     destino: document.getElementById('fm-destino').value || "-",
+                    descripcionCarga: document.getElementById('fm-descripcionCarga').value || "-",
                     costo: document.getElementById('fm-costo').value || "-", 
                     monto: document.getElementById('fm-monto').value || "-",
                     fechaPago: document.getElementById('fm-fechaPago').value || "-",
@@ -5084,6 +5097,7 @@
             document.getElementById('dt-client-costo').innerText = formatMoney(s.costo);
             document.getElementById('dt-client-est-factura').innerText = s.estadoFactura || 'Pendiente';
             document.getElementById('dt-client-oc').innerText = s.ocHes || 'Sin OC registrada';
+            document.getElementById('dt-client-desc-carga').innerText = s.descripcionCarga || '---';
             document.getElementById('dt-client-desc').innerText = s.descripcionFacturacion || 'Sin descripción adicional.';
 
             const statusBadge = document.getElementById('dt-client-status');

@@ -14,7 +14,7 @@ const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
   "Estado Factura", "OC / HES", "Cotizaci\u00f3n", "DESCRIPCI\u00d3N FACTURACI\u00d3N", "N\u00ba Factura", "Link Archivo", "Estado Ruta",
-  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen", "Link Gu\u00eda de Despacho"
+  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen", "Link Gu\u00eda de Despacho", "Descripción Carga"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado", "Operador Asociado"];
@@ -143,6 +143,10 @@ function setupHeaders() {
   config.forEach(item => {
     let sheet = ss.getSheetByName(item.name);
     if (sheet) {
+      const maxCols = sheet.getMaxColumns();
+      if (maxCols < item.head.length) {
+        sheet.insertColumnsAfter(maxCols, item.head.length - maxCols);
+      }
       sheet.getRange(1, 1, 1, item.head.length).setValues([item.head]);
       sheet.getRange(1, 1, 1, item.head.length).setFontWeight("bold").setBackground("#f3f4f6");
     } else {
