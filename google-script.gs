@@ -14,7 +14,8 @@ const SCRIPT_DB_HEADERS = [
   "ID", "Cliente", "Operador", "Estado Pago", "Fecha de Servicio", "Tipo Servicio", 
   "Destino", "Costo", "Monto", "Fecha de Pago", 
   "Estado Factura", "OC / HES", "Cotizaci\u00f3n", "DESCRIPCI\u00d3N FACTURACI\u00d3N", "N\u00ba Factura", "Link Archivo", "Estado Ruta",
-  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen", "Link Gu\u00eda de Despacho", "Descripción Carga"
+  "Patente Asignada", "Chofer Asignado", "\u00daltimo GPS", "\u00daltima Actualizaci\u00f3n", "Origen", "Link Gu\u00eda de Despacho", "Descripción Carga",
+  "ID Maestro", "Etapa"
 ];
 
 const USER_HEADERS = ["Nombre", "Clave", "Rol", "Estado", "Email", "Cliente Asociado", "Operador Asociado"];

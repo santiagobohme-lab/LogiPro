@@ -2005,8 +2005,6 @@
                 costo: sheetObj["Costo"] || "-",
                 monto: sheetObj["Monto"] || "-",
                 fechaPago: rawDatePago ? rawDatePago.split('T')[0] : "-",
-                idMaestro: sheetObj["ID Maestro"] || "",
-                etapa: sheetObj["Etapa"] || "",
                 estado: sheetObj["Estado Pago"] || "Pendiente",
                 estadoFactura: sheetObj["Estado Factura"] || "Pendiente",
                 ocHes: sheetObj["OC / HES"] || "-",
@@ -2045,9 +2043,7 @@
                 "Chofer Asignado": row.choferAsignado || "",
                 "Origen": row.origen || "-",
                 "Link Guía de Despacho": row.guiaUrl || "",
-                "Descripción Carga": row.descripcionCarga || "",
-                "ID Maestro": row.idMaestro || "",
-                "Etapa": row.etapa || ""
+                "Descripción Carga": row.descripcionCarga || ""
             };
             return data;
         };
@@ -3807,8 +3803,8 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}">
-                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${pFechaServicio}</td>
@@ -3831,13 +3827,11 @@
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="cloneServiceForNewStage('${row.id}')" title="Añadir Etapa" class="text-blue-400 hover:text-blue-600"><i class="fa-solid fa-code-branch"></i></button>
                             <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
             `}).join('');
-            applyGrouping(tbody);
         }
 
         function renderGlobalServicesTable() {
@@ -3896,8 +3890,8 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}">
-                    <td class="px-3 py-2 font-bold text-slate-900 text-xs">${row.cliente} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-3 py-2 font-bold text-slate-900 text-xs">${row.cliente}</td>
                     <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
@@ -3921,73 +3915,11 @@
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="cloneServiceForNewStage('${row.id}')" title="Añadir Etapa" class="text-blue-400 hover:text-blue-600"><i class="fa-solid fa-code-branch"></i></button>
                             <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
                 </tr>
             `}).join('');
-            applyGrouping(tbody);
-        }
-
-        function applyGrouping(tbody) {
-            const rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
-            const groups = {};
-            
-            rows.forEach(r => {
-                const masterId = r.getAttribute('data-master');
-                const id = masterId ? masterId : r.getAttribute('data-id');
-                if(!groups[id]) groups[id] = [];
-                groups[id].push(r);
-            });
-
-            // Clear and rebuild
-            tbody.innerHTML = '';
-            
-            Object.keys(groups).forEach(id => {
-                const groupRows = groups[id];
-                if(groupRows.length === 1) {
-                    tbody.appendChild(groupRows[0]);
-                } else {
-                    // Create master header row
-                    let totalMonto = 0;
-                    groupRows.forEach(r => totalMonto += Number(r.getAttribute('data-monto') || 0));
-                    
-                    const firstRow = groupRows[0];
-                    const numCols = firstRow.querySelectorAll('td').length;
-                    const middleColSpan = numCols === 17 ? 9 : 8; // Adjust for Global vs Client view
-                    
-                    const masterRow = document.createElement('tr');
-                    masterRow.className = 'bg-primary-50/50 border-b border-primary-100 hover:bg-primary-50 cursor-pointer font-semibold group';
-                    masterRow.onclick = () => {
-                        const icon = masterRow.querySelector('.fa-chevron-down');
-                        icon.classList.toggle('rotate-180');
-                        groupRows.forEach(r => r.classList.toggle('hidden'));
-                    };
-                    
-                    masterRow.innerHTML = `
-                        <td class="px-3 py-2 text-primary-900 text-xs font-bold">
-                            <i class="fa-solid fa-chevron-down text-[10px] mr-2 transition-transform duration-200 text-primary-600"></i>
-                            Proyecto Múltiple (${groupRows.length} etapas)
-                        </td>
-                        <td colspan="${middleColSpan}" class="px-3 py-2 text-slate-500 text-[10px] italic">Viaje multietapa (despliega para ver detalles)</td>
-                        <td class="px-3 py-2 text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
-                        <td colspan="5" class="px-3 py-2 text-slate-500 text-[10px] uppercase font-semibold">Venta Total Proyecto</td>
-                        <td class="px-3 py-2 text-center">
-                            <button onclick="event.stopPropagation(); cloneServiceForNewStage('${firstRow.getAttribute('data-id')}')" title="Añadir Etapa Extra" class="text-primary-600 hover:text-primary-800 bg-white border border-primary-200 hover:bg-primary-50 px-2 py-1 rounded text-[10px] font-bold shadow-sm transition-all"><i class="fa-solid fa-plus mr-1"></i>Etapa</button>
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(masterRow);
-                    
-                    groupRows.forEach(r => {
-                        r.classList.add('hidden', 'bg-slate-50/30', 'border-l-4', 'border-l-primary-300');
-                        // Make cell text slightly smaller for sub-rows
-                        r.querySelectorAll('td').forEach(td => td.classList.add('opacity-90'));
-                        tbody.appendChild(r);
-                    });
-                }
-            });
         }
 
         // DELETE SERVICE
@@ -4025,49 +3957,6 @@
             populateOperadorSelect();
             document.getElementById('autofill-group').classList.add('hidden');
             document.getElementById('autofill-group-2').classList.add('hidden');
-        }
-
-        let currentCloneMasterId = null;
-        let currentCloneEtapaCounter = 1;
-
-        function cloneServiceForNewStage(id) {
-            currentEditServiceId = null;
-            const row = excelData.find(x => x.id == id);
-            if(!row) return;
-
-            // Generate or carry over ID Maestro
-            currentCloneMasterId = row.idMaestro ? row.idMaestro : (row.id ? row.id.toString() : Date.now().toString());
-            
-            // Find how many stages exist for this master ID
-            const existingStages = excelData.filter(x => x.idMaestro === currentCloneMasterId);
-            currentCloneEtapaCounter = existingStages.length > 0 ? existingStages.length + 1 : 2;
-
-            // Update parent row if it doesn't have an ID Maestro yet
-            if (!row.idMaestro) {
-                row.idMaestro = currentCloneMasterId;
-                row.etapa = "Etapa 1";
-                syncServiceToDB(row); // Update the original to have Master ID
-            }
-
-            document.getElementById('modal-client-label').innerText = currentUserClient;
-            document.getElementById('modal-service-title').innerText = `Agregar Etapa ${currentCloneEtapaCounter} a Proyecto`;
-            
-            document.getElementById('new-service-form').reset();
-            populateOperadorSelect();
-            document.getElementById('autofill-group').classList.add('hidden');
-            document.getElementById('autofill-group-2').classList.add('hidden');
-
-            // Pre-fill shared fields
-            document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
-            document.getElementById('fm-descripcionCarga').value = row.descripcionCarga === "-" ? "" : (row.descripcionCarga || "");
-            document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
-            document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
-            const eFact = row.estadoFactura || "Pendiente";
-            document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
-            document.getElementById('fm-oc').value = row.ocHes === "-" ? "" : row.ocHes;
-            document.getElementById('fm-cot').value = row.cotizacion === "-" ? "" : row.cotizacion;
-
-            document.getElementById('service-modal').classList.remove('hidden');
         }
 
         function editService(id) {
@@ -4109,8 +3998,6 @@
             document.getElementById('service-modal').classList.add('hidden');
             document.getElementById('new-service-form').reset();
             currentEditServiceId = null;
-            currentCloneMasterId = null;
-            currentCloneEtapaCounter = 1;
         }
 
         function handleServiceSubmit(e) {
@@ -4160,16 +4047,10 @@
                     cotizacion: document.getElementById('fm-cot').value || "-",
                     factura: "",
                     nroFactura: "",
-                    driveUrl: "",
-                    idMaestro: currentCloneMasterId ? currentCloneMasterId : "",
-                    etapa: currentCloneMasterId ? `Etapa ${currentCloneEtapaCounter}` : ""
+                    driveUrl: ""
                 };
                 excelData.push(newRow);
                 rowToSync = newRow;
-                
-                // Reset globals
-                currentCloneMasterId = null;
-                currentCloneEtapaCounter = 1;
             }
             
             closeNewServiceModal();
