@@ -30,6 +30,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #ffffff; }
+        .drop-zone-active {
+            border: 2px dashed #3b82f6 !important;
+            background-color: #eff6ff !important;
+            transition: all 0.2s ease;
+            transform: scale(1.01);
+        }
         .glass-header {
             background: #ffffff; border-bottom: 1px solid #f3f4f6;
         }
@@ -42,8 +48,22 @@
         .table-container {
             width: 100%;
             overflow: auto;
-            max-height: calc(100vh - 230px);
+            max-height: calc(100vh - 420px);
             -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+        
+        /* Asegurar que el scrollbar horizontal sea visible y estético */
+        .table-container::-webkit-scrollbar:horizontal {
+            height: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:horizontal {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:horizontal:hover {
+            background: #94a3b8;
         }
         
         .table-container thead th {
@@ -116,6 +136,53 @@
         /* Ocultar flecha de autocompletado excepto en campos de fecha */
         input:not([type="date"]):not([type="datetime-local"])::-webkit-calendar-picker-indicator {
             display: none !important;
+        }
+        /* Smart Filter Styles */
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+        .filter-option {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .filter-option:hover {
+            background: #f3f4f6;
+            color: #1e3a8a;
+        }
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #dbeafe;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .filter-tag button {
+            color: #60a5fa;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+        .filter-tag button:hover {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -558,7 +625,7 @@
             </div>
 
             <!-- SEC: VISTA GLOBAL (Anteriormente Servicios) -->
-            <div id="sec-servicios" class="content-section animate-fade-in hidden">
+            <div id="sec-servicios" class="content-section animate-fade-in hidden flex flex-col h-full">
                 <div class="flex justify-between items-end mb-6 gap-4 flex-wrap border-b border-gray-100 pb-4">
                     <div>
                         <h1 class="text-2xl font-bold text-primary-900 tracking-tight">Vista Global de Servicios</h1>
@@ -570,6 +637,94 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6">
+                    <!-- Results Summary & Clear Button -->
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <div class="flex items-center gap-3">
+                            <span id="global-results-count" class="text-xs font-bold text-slate-500 uppercase tracking-widest">Calculando resultados...</span>
+                            <div id="active-filters-container" class="flex flex-wrap gap-2">
+                                <!-- Tags will be injected here -->
+                            </div>
+                        </div>
+                        <button onclick="clearAllGlobalFilters()" class="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-eraser"></i> Limpiar Filtros
+                        </button>
+                    </div>
+
+                    <!-- Filter Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+                        <!-- Universal Search -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Buscar</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-[10px]"></i>
+                                <input type="text" id="filter-search" oninput="updateGlobalFilter('search', this.value)" placeholder="General..." class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Cliente -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Cliente</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-cliente" oninput="showFilterSuggestions('cliente', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-cliente" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Operador -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Operador</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-operador" oninput="showFilterSuggestions('operador', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-operador" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Patente -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Patente</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-patente" oninput="showFilterSuggestions('patente', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-patente" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Chofer -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Chofer</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-chofer" oninput="showFilterSuggestions('chofer', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-chofer" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cotización -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Cotización</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-cotizacion" oninput="showFilterSuggestions('cotizacion', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-cotizacion" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Factura -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">N° Factura</label>
+                            <div class="relative">
+                                <input type="text" id="input-filter-factura" oninput="showFilterSuggestions('factura', this.value)" placeholder="Escribir..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                                <div id="dropdown-filter-factura" class="filter-dropdown hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Fecha -->
+                        <div class="relative">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Desde Fecha</label>
+                            <input type="date" id="filter-date-start" onchange="updateGlobalFilter('dateStart', this.value)" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[10px] focus:bg-white focus:border-primary-900 outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+
 
                 <div class="bg-white rounded border border-gray-100 relative w-full max-w-full">
                     <div class="table-container scroll-pb-2">
@@ -757,7 +912,21 @@
                     </div>
                     
                     <form id="new-service-form" onsubmit="handleServiceSubmit(event)" class="space-y-6">
-                        <div class="flex flex-col md:flex-row gap-0">
+                        
+                        <!-- MULTISTAGE TOGGLE -->
+                        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2" id="multistage-toggle-container">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800">Viaje con múltiples etapas</h4>
+                                <p class="text-[11px] text-slate-500">Agrega retornos, desvíos o repartos al mismo servicio.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="fm-multistage-toggle" class="sr-only peer" onchange="toggleMultiStageMode()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                            </label>
+                        </div>
+
+                        <!-- SINGLE STAGE CONTAINER (Original) -->
+                        <div id="single-stage-container" class="flex flex-col md:flex-row gap-0">
                             <!-- Columna Izquierda: OPERADOR -->
                             <div class="flex-1 p-2 md:pr-8 space-y-4">
                                 <div class="flex items-center gap-2 mb-4">
@@ -788,10 +957,10 @@
                                 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Servicio</label><input type="date" id="fm-fechaServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
-                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
-                                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Descripción Carga</label><input type="text" id="fm-descripcionCarga" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. 15 Toneladas / 20 Pallets"></div>
-                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Origen</label><input type="text" id="fm-origen" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
-                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="fm-tipoServicio" list="tipos-list" autocomplete="off" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
+                                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Descripción Carga</label><input type="text" id="fm-descripcionCarga" list="cargas-list" autocomplete="off" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. 15 Toneladas / 20 Pallets"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Origen</label><input type="text" id="fm-origen" list="ciudades-list" autocomplete="off" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Destino</label><input type="text" id="fm-destino" list="ciudades-list" autocomplete="off" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ciudad / Calle"></div>
                                 </div>
                                 
                                 <div class="pt-2 border-t border-dashed border-slate-100 grid grid-cols-2 gap-4">
@@ -805,6 +974,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- MULTI STAGE CONTAINER (New) -->
+                        <div id="multistage-container" class="hidden space-y-6">
+                            <!-- Global Fields -->
+                            <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-2 h-4 bg-primary-600 rounded-full"></div>
+                                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Datos Generales del Proyecto</h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="ms-tipoServicio" list="tipos-list" autocomplete="off" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Pago (Cli)</label><input type="date" id="ms-fechaPago" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="ms-estadoFactura" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">OC / HES</label><input type="text" id="ms-oc" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Opcional"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Cotización</label><input type="text" id="ms-cot" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Opcional"></div>
+                                </div>
+                            </div>
+
+                            <!-- Stages List -->
+                            <div id="ms-stages-list" class="space-y-4">
+                                <!-- JS will render stages here -->
+                            </div>
+
+                            <!-- Add Stage Button -->
+                            <button type="button" onclick="addMultiStage()" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Añadir Siguiente Etapa
+                            </button>
+                        </div>
+                        
                         
                         <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
                             <button type="button" onclick="closeNewServiceModal()" class="bg-white border border-gray-300 text-slate-600 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors">Cancelar</button>
@@ -1093,9 +1291,12 @@
                                     </div>
 
                                     <!-- Adjuntar Archivo -->
-                                    <button onclick="triggerBillingUpload()" id="bt-btn-adjuntar" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]">
-                                        <i class="fa-solid fa-paperclip"></i> Adjuntar Archivo Factura
-                                    </button>
+                                    <div class="space-y-2">
+                                        <button onclick="triggerBillingUpload()" id="bt-btn-adjuntar" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]">
+                                            <i class="fa-solid fa-paperclip"></i> Adjuntar o Arrastrar Factura
+                                        </button>
+                                        <p class="text-center text-[10px] text-slate-400 font-medium italic">Formatos: PDF, PNG, JPG (Máx. 10MB)</p>
+                                    </div>
 
                                     <!-- Indicador de archivo subido -->
                                     <div id="bt-file-indicator" class="hidden flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-semibold">
@@ -2328,8 +2529,8 @@
                 processSystemData(result);
             } catch(e) {
                 console.error("Init Data Error:", e);
-                showToast("Error al sincronizar datos del servidor.", "error");
-                if (e.message && (e.message.includes("Token") || e.message.includes("denegado"))) {
+                showToast("Error al sincronizar datos del servidor: " + e.message, "error");
+                if (e.message && (e.message.includes("Token") || e.message.includes("denegado") || e.message.includes("expirada"))) {
                     handleLogout();
                 }
             } finally {
@@ -2406,8 +2607,8 @@
         }
 
         // ASYNC FETCH FUNCTIONS (Sync only, initial hydration done by login)
-        async function syncServiceToDB(row) {
-            showToast("Guardando servicio en la nube...");
+        async function syncServiceToDB(row, silent = false) {
+            if(!silent) showToast("Guardando servicio en la nube...");
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -2420,11 +2621,13 @@
                 });
                 const responseData = await res.json();
                 if(responseData.status === 'success'){
-                   showToast("Servicio sincronizado en Google Sheets.");
+                   if(!silent) showToast("Servicio sincronizado en Google Sheets.");
+                } else {
+                   throw new Error(responseData.message || "Error en el servidor al guardar.");
                 }
             } catch(err) {
                 console.error("Error sincronizando servicio", err);
-                showToast("Hubo un error de red intentando guardar.", "error");
+                if(!silent) showToast("Hubo un error intentando guardar: " + err.message, "error");
             }
         }
 
@@ -2677,9 +2880,52 @@
             }
         }
 
+        function initDragAndDrop() {
+            const dropZone = document.getElementById('billing-tool-section');
+            if(!dropZone) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    const unlocked = document.getElementById('billing-tool-unlocked');
+                    if (unlocked && !unlocked.classList.contains('hidden')) {
+                        dropZone.classList.add('drop-zone-active');
+                    }
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('drop-zone-active');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files && files.length > 0) {
+                    // Validar que tenga N° de factura antes de procesar el drop
+                    const nroInput = document.getElementById('bt-nro-factura');
+                    if(!nroInput || !nroInput.value.trim()) {
+                        showToast('Ingresa el N° de Factura antes de adjuntar', 'error');
+                        nroInput && nroInput.focus();
+                        return;
+                    }
+                    processFacturaUpload({ target: { files: files } });
+                }
+            }, false);
+        }
+
         // STARTUP
         window.addEventListener('DOMContentLoaded', () => { 
             checkSession(); 
+            initDragAndDrop();
         });
 
         // CLIENT DIRECTORY LOGIC
@@ -2705,6 +2951,29 @@
             }
             
             renderFacturacionList();
+            updateDynamicDatalists();
+        }
+
+        function updateDynamicDatalists() {
+            // Tipos de Servicio
+            const tiposUnique = [...new Set(excelData.map(x => x.tipoServicio).filter(v => v && v !== "-"))];
+            let dlTipos = document.getElementById('tipos-list');
+            if(!dlTipos) {
+                dlTipos = document.createElement('datalist');
+                dlTipos.id = 'tipos-list';
+                document.body.appendChild(dlTipos);
+            }
+            dlTipos.innerHTML = tiposUnique.map(i => `<option value="${i}">`).join('');
+
+            // Descripciones de Carga
+            const cargasUnique = [...new Set(excelData.map(x => x.descripcionCarga).filter(v => v && v !== "-"))];
+            let dlCargas = document.getElementById('cargas-list');
+            if(!dlCargas) {
+                dlCargas = document.createElement('datalist');
+                dlCargas.id = 'cargas-list';
+                document.body.appendChild(dlCargas);
+            }
+            dlCargas.innerHTML = cargasUnique.map(i => `<option value="${i}">`).join('');
         }
 
         function renderFacturacionList() {
@@ -2720,7 +2989,33 @@
                 filtered = excelData.filter(s => s.estadoFactura === 'OK' || s.estadoFactura === 'OK / Pagado');
             }
             
-            if(filtered.length === 0) {
+            // Agrupar proyectos multietapa
+            const groups = {};
+            filtered.forEach(srv => {
+                const groupId = srv.idMaestro || srv.id;
+                if(!groups[groupId]) groups[groupId] = [];
+                groups[groupId].push(srv);
+            });
+            
+            const finalItems = Object.values(groups).map(group => {
+                if(group.length === 1) return group[0];
+                let totalNeto = 0;
+                group.forEach(r => totalNeto += (isNaN(Number(r.monto)) || r.monto === "-" ? 0 : Number(r.monto)));
+                return {
+                    ...group[0],
+                    monto: totalNeto,
+                    tipoServicio: `Proyecto Multietapa (${group.length} etapas)`
+                };
+            });
+
+            // Ordenar por fecha de servicio: más recientes arriba
+            finalItems.sort((a, b) => {
+                const da = a.fechaServicio && a.fechaServicio !== "-" ? new Date(a.fechaServicio).getTime() : 0;
+                const db = b.fechaServicio && b.fechaServicio !== "-" ? new Date(b.fechaServicio).getTime() : 0;
+                return db - da;
+            });
+
+            if(finalItems.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-20 bg-slate-50 rounded-2xl border border-dotted border-slate-200">
                         <i class="fa-solid fa-folder-open text-3xl text-slate-300 mb-2 block"></i>
@@ -2730,7 +3025,7 @@
                 return;
             }
             
-            filtered.forEach(srv => {
+            finalItems.forEach(srv => {
                 // L\u00f3gica financiera (Skill UX: Precisi\u00f3n en datos)
                 const neto = isNaN(Number(srv.monto)) || srv.monto === "-" ? 0 : Number(srv.monto);
                 const iva = Math.round(neto * 0.19);
@@ -2794,8 +3089,20 @@
 
         function openFacturaDetalle(id) {
             currentDetailServiceId = id;
-            const srv = excelData.find(s => s.id == id);
-            if(!srv) return;
+            const baseSrv = excelData.find(s => s.id == id);
+            if(!baseSrv) return;
+
+            const isMulti = !!baseSrv.idMaestro;
+            const groupRows = isMulti ? excelData.filter(x => x.idMaestro === baseSrv.idMaestro) : [baseSrv];
+            
+            let totalMonto = 0;
+            groupRows.forEach(r => totalMonto += (isNaN(Number(r.monto)) || r.monto === "-" ? 0 : Number(r.monto)));
+            
+            const srv = {
+                ...baseSrv,
+                monto: totalMonto,
+                tipoServicio: isMulti ? `Proyecto Multietapa (${groupRows.length} etapas)` : baseSrv.tipoServicio
+            };
 
             // Actualizar Subt\u00edtulo
             document.getElementById('detail-factura-subtitle').innerText = `Servicio #${srv.id} - ${srv.cliente}`;
@@ -3180,7 +3487,18 @@
                 // Validaci\u00f3n b\u00e1sica antes de enviar
                 if(!updatedData.Monto) { throw new Error("El monto es obligatorio"); }
 
-                await callGoogleScript("upsertService", { data: updatedData });
+                // Aplicar actualización a toda la familia (multietapa)
+                const baseSrv = excelData.find(s => s.id == currentDetailServiceId);
+                const siblings = (baseSrv && baseSrv.idMaestro) ? excelData.filter(x => x.idMaestro === baseSrv.idMaestro) : (baseSrv ? [baseSrv] : []);
+                
+                for (let s of siblings) {
+                    const siblingData = { ...updatedData, "ID": s.id };
+                    // El Monto se respeta solo para la Madre/Primera, las demás quedan en 0 si es multietapa.
+                    if (s.id != currentDetailServiceId) {
+                         siblingData["Monto"] = 0; // Solo la primera etapa factura el total
+                    }
+                    await callGoogleScript("upsertService", { data: siblingData });
+                }
 
                 // Feedback Visual de \u00c9xito (CAMBIO A VERDE)
                 btn.classList.remove('bg-primary-900');
@@ -3429,6 +3747,7 @@
                 const responseData = await callGoogleScript('deleteClient', { nombre: nombre });
                 if(responseData.status === 'success'){
                    showToast(`Cliente "${nombre}" eliminado de la nube.`);
+                   await initDataFromCloud();
                 } else {
                    showToast(responseData.message || "Error al eliminar de la nube");
                 }
@@ -3588,30 +3907,54 @@
             }
         }
 
-        function updateEstado(id, val) {
+        async function updateEstado(id, val) {
             const row = excelData.find(x => x.id == id);
             if(row) {
-                row.estado = val;
+                const siblings = row.idMaestro ? excelData.filter(x => x.idMaestro === row.idMaestro) : [row];
+                for(let s of siblings) {
+                    s.estado = val;
+                }
                 refreshAllViews(); // optimistic update
-                syncServiceToDB(row);
+                
+                // Sync all siblings
+                if (siblings.length > 1) showToast(`Actualizando pago para ${siblings.length} etapas...`);
+                for(let s of siblings) {
+                    await syncServiceToDB(s, true); 
+                }
+                await initDataFromCloud();
             }
         }
 
-        function updateEstadoFactura(id, val) {
+        async function updateEstadoFactura(id, val) {
             const row = excelData.find(x => x.id == id);
             if(row) {
-                row.estadoFactura = val;
+                const siblings = row.idMaestro ? excelData.filter(x => x.idMaestro === row.idMaestro) : [row];
+                for(let s of siblings) {
+                    s.estadoFactura = val;
+                }
                 refreshAllViews(); // optimistic update
-                syncServiceToDB(row);
+                
+                // Sync all siblings
+                if (siblings.length > 1) showToast(`Sincronizando ${siblings.length} etapas del proyecto...`);
+                for(let s of siblings) {
+                    await syncServiceToDB(s, true); // silent sync for siblings
+                }
+                await initDataFromCloud();
             }
         }
 
-        function updateNroFactura(id, val) {
+        async function updateNroFactura(id, val) {
             const row = excelData.find(x => x.id == id);
             if(row) {
-                row.nroFactura = val;
-                syncServiceToDB(row); 
-                // Note: We don't refresh all views here to avoid losing input focus while typing
+                const siblings = row.idMaestro ? excelData.filter(x => x.idMaestro === row.idMaestro) : [row];
+                for(let s of siblings) {
+                    s.nroFactura = val;
+                }
+                // No refreshing views here to avoid losing focus
+                for(let s of siblings) {
+                    await syncServiceToDB(s, true); 
+                }
+                // Don't initFromCloud here yet, wait for blur or final action to keep UI snappy
             }
         }
 
@@ -3685,12 +4028,21 @@
                             
                             const data = await res.json();
                             if(data.status === 'success' || data.url) {
-                                row.driveUrl = data.url || data.link;
-                                row.factura = generatedName;
-                                showToast(`Enlace recibido. Actualizando fila en base de datos...`);
+                                const siblings = row.idMaestro ? excelData.filter(x => x.idMaestro === row.idMaestro) : [row];
+                                showToast(`Enlace recibido. Actualizando ${siblings.length} etapa(s) en base de datos...`);
                                 
-                                // Sync the row again so the new Drive URL gets saved
-                                await syncServiceToDB(row);
+                                for (let s of siblings) {
+                                    s.driveUrl = data.url || data.link;
+                                    s.factura = generatedName;
+                                    await callGoogleScript("updateRow", {
+                                        table: "Servicios",
+                                        data: {
+                                            "ID": s.id,
+                                            "Link Archivo": s.driveUrl,
+                                            "Factura": s.factura
+                                        }
+                                    });
+                                }
                             } else {
                                 // MOSTRAR EL ERROR REAL DEL BACKEND
                                 throw new Error(data.message || "Error desconocido en el servidor de Google");
@@ -3706,7 +4058,9 @@
                     reader.readAsDataURL(file);
                 }
             currentUploadRowId = null;
-            event.target.value = ''; // Reset input
+            if (event.target && 'value' in event.target) {
+                event.target.value = ''; // Reset input only if it's a real file input
+            }
         }
 
         function replaceFactura(id) {
@@ -3733,17 +4087,41 @@
         function refreshAllViews() {
             renderClientTable();
             renderGlobalServicesTable();
+            renderFacturacionList();
+            renderClientsList();
+            renderOperadoresList();
             updateFacturasBadge();
+            
+            // Si hay un detalle abierto, refrescarlo también
+            if (typeof currentDetailServiceId !== 'undefined' && currentDetailServiceId) {
+                updateBillingToolState(currentDetailServiceId);
+            }
         }
 
         function updateFacturasBadge() {
             const badge = document.getElementById('facturas-badge');
             if(!badge) return;
             
-            const pendingCount = excelData.filter(row => {
+            // Deduplicar proyectos múltiples: agrupar por idMaestro, contar solo una vez
+            const seenMaestros = new Set();
+            let pendingCount = 0;
+
+            excelData.forEach(row => {
                 const eFact = (row.estadoFactura || "").toLowerCase();
-                return eFact !== 'ok' && eFact !== 'ok / pagado';
-            }).length;
+                const isPending = eFact !== 'ok' && eFact !== 'ok / pagado';
+                if (!isPending) return;
+
+                if (row.idMaestro) {
+                    // Proyecto múltiple: contar solo la primera etapa
+                    if (!seenMaestros.has(row.idMaestro)) {
+                        seenMaestros.add(row.idMaestro);
+                        pendingCount++;
+                    }
+                } else {
+                    // Servicio simple: contar siempre
+                    pendingCount++;
+                }
+            });
 
             if(pendingCount > 0) {
                 badge.innerText = pendingCount;
@@ -3771,8 +4149,8 @@
             }
 
             tbody.innerHTML = data.map(row => {
-                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
-                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
+                const pFechaServicio = row.fechaServicio && row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0].split('-').reverse().join('-') : "-";
+                const pFechaPago = row.fechaPago && row.fechaPago !== "-" ? row.fechaPago.split('T')[0].split('-').reverse().join('-') : "-";
                 const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
                 const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
                 
@@ -3807,7 +4185,7 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}">
+                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}">
                     <td class="px-3 py-2 text-slate-800 font-medium">${row.operador} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
@@ -3831,7 +4209,6 @@
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="cloneServiceForNewStage('${row.id}')" title="Añadir Etapa" class="text-blue-400 hover:text-blue-600"><i class="fa-solid fa-code-branch"></i></button>
                             <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
@@ -3844,8 +4221,41 @@
             const tbody = document.getElementById('global-services-tbody');
             if(!tbody) return;
             
+            // --- APLICAR FILTROS ---
+            let filteredData = [...excelData].filter(row => {
+                // Universal Search
+                if (globalFilters.search) {
+                    const searchLower = globalFilters.search.toLowerCase();
+                    const rowString = Object.values(row).join(' ').toLowerCase();
+                    if (!rowString.includes(searchLower)) return false;
+                }
+                // Cliente (Multi-select)
+                if (globalFilters.cliente.length > 0 && !globalFilters.cliente.includes(row.cliente)) return false;
+                // Operador (Multi-select)
+                if (globalFilters.operador.length > 0 && !globalFilters.operador.includes(row.operador)) return false;
+                // Patente
+                if (globalFilters.patente.length > 0 && !globalFilters.patente.includes(row.patenteAsignada)) return false;
+                // Chofer
+                if (globalFilters.chofer.length > 0 && !globalFilters.chofer.includes(row.choferAsignado)) return false;
+                // Cotización
+                if (globalFilters.cotizacion.length > 0 && !globalFilters.cotizacion.includes(row.cotizacion)) return false;
+                // Factura
+                if (globalFilters.factura.length > 0 && !globalFilters.factura.includes(row.nroFactura)) return false;
+                // Fecha Desde
+                if (globalFilters.dateStart) {
+                    const sDate = row.fechaServicio && row.fechaServicio !== "-" ? new Date(row.fechaServicio.split('T')[0]) : null;
+                    const fDate = new Date(globalFilters.dateStart);
+                    if (!sDate || sDate < fDate) return false;
+                }
+                return true;
+            });
+
+            // Actualizar Contador
+            const counter = document.getElementById('global-results-count');
+            if (counter) counter.innerText = `${filteredData.length} resultados de ${excelData.length}`;
+
             // Ordenar por Fecha Servicio o ID
-            const data = [...excelData].sort((a,b) => {
+            const data = filteredData.sort((a,b) => {
                 const da = a.fechaServicio && a.fechaServicio !== "-" ? new Date(a.fechaServicio) : new Date(0);
                 const db = b.fechaServicio && b.fechaServicio !== "-" ? new Date(b.fechaServicio) : new Date(0);
                 if (da.getTime() !== db.getTime()) {
@@ -3860,8 +4270,8 @@
             }
 
             tbody.innerHTML = data.map(row => {
-                const pFechaServicio = row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0] : "-";
-                const pFechaPago = row.fechaPago !== "-" ? row.fechaPago.split('T')[0] : "-";
+                const pFechaServicio = row.fechaServicio && row.fechaServicio !== "-" ? row.fechaServicio.split('T')[0].split('-').reverse().join('-') : "-";
+                const pFechaPago = row.fechaPago && row.fechaPago !== "-" ? row.fechaPago.split('T')[0].split('-').reverse().join('-') : "-";
                 const safeCosto = isNaN(Number(row.costo)) || row.costo.toString().trim() === "" || row.costo === "-" ? row.costo : "$" + Number(row.costo).toLocaleString('es-CL');
                 const safeMonto = isNaN(Number(row.monto)) || row.monto.toString().trim() === "" || row.monto === "-" ? row.monto : "$" + Number(row.monto).toLocaleString('es-CL');
                 
@@ -3896,7 +4306,7 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}">
+                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}">
                     <td class="px-3 py-2 font-bold text-slate-900 text-xs">${row.cliente} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
                     <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
@@ -3921,7 +4331,6 @@
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="editService('${row.id}')" class="text-slate-400 hover:text-primary-900"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button onclick="cloneServiceForNewStage('${row.id}')" title="Añadir Etapa" class="text-blue-400 hover:text-blue-600"><i class="fa-solid fa-code-branch"></i></button>
                             <button onclick="deleteService('${row.id}')" class="text-slate-300 hover:text-red-600"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </td>
@@ -3951,11 +4360,26 @@
                 } else {
                     // Create master header row
                     let totalMonto = 0;
-                    groupRows.forEach(r => totalMonto += Number(r.getAttribute('data-monto') || 0));
+                    let totalCosto = 0;
+                    let allPagado = true;
+                    groupRows.forEach(r => {
+                        totalMonto += Number(r.getAttribute('data-monto') || 0);
+                        totalCosto += Number(r.getAttribute('data-costo') || 0);
+                        if (r.getAttribute('data-estado') !== 'pagado') allPagado = false;
+                    });
                     
+                    const estadoSelectMaster = `
+                        <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center mt-0.5 ${allPagado ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                            ${allPagado ? 'PAGADO' : 'PENDIENTE'}
+                        </span>
+                    `;
+                    
+                    // Sort groupRows ascending by ID so Etapa 1 is always before Etapa 2
+                    groupRows.sort((a,b) => Number(a.getAttribute('data-id')) - Number(b.getAttribute('data-id')));
+
                     const firstRow = groupRows[0];
-                    const numCols = firstRow.querySelectorAll('td').length;
-                    const middleColSpan = numCols === 17 ? 9 : 8; // Adjust for Global vs Client view
+                    const tds = firstRow.querySelectorAll('td');
+                    const isGlobalTable = tds.length >= 17;
                     
                     const masterRow = document.createElement('tr');
                     masterRow.className = 'bg-primary-50/50 border-b border-primary-100 hover:bg-primary-50 cursor-pointer font-semibold group';
@@ -3965,25 +4389,96 @@
                         groupRows.forEach(r => r.classList.toggle('hidden'));
                     };
                     
-                    masterRow.innerHTML = `
-                        <td class="px-3 py-2 text-primary-900 text-xs font-bold">
-                            <i class="fa-solid fa-chevron-down text-[10px] mr-2 transition-transform duration-200 text-primary-600"></i>
-                            Proyecto Múltiple (${groupRows.length} etapas)
-                        </td>
-                        <td colspan="${middleColSpan}" class="px-3 py-2 text-slate-500 text-[10px] italic">Viaje multietapa (despliega para ver detalles)</td>
-                        <td class="px-3 py-2 text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
-                        <td colspan="5" class="px-3 py-2 text-slate-500 text-[10px] uppercase font-semibold">Venta Total Proyecto</td>
-                        <td class="px-3 py-2 text-center">
-                            <button onclick="event.stopPropagation(); cloneServiceForNewStage('${firstRow.getAttribute('data-id')}')" title="Añadir Etapa Extra" class="text-primary-600 hover:text-primary-800 bg-white border border-primary-200 hover:bg-primary-50 px-2 py-1 rounded text-[10px] font-bold shadow-sm transition-all"><i class="fa-solid fa-plus mr-1"></i>Etapa</button>
-                        </td>
-                    `;
+                    if (isGlobalTable && tds.length >= 17) {
+                        // Get client name from the first column of the first row
+                        const clientNameEl = tds[0].cloneNode(true);
+                        const etapaBadge = clientNameEl.querySelector('span');
+                        if (etapaBadge) etapaBadge.remove();
+                        const clientName = clientNameEl.textContent.trim();
+                        
+                        masterRow.innerHTML = `
+                            <td class="px-3 py-2">
+                                <div class="flex items-start gap-2">
+                                    <i class="fa-solid fa-chevron-down text-[10px] mt-1 transition-transform duration-200 text-primary-600"></i>
+                                    <div>
+                                        <div class="text-primary-900 text-xs font-bold leading-tight">${clientName}</div>
+                                        <div class="text-[9px] text-primary-500 font-semibold uppercase tracking-wider mt-0.5">Proyecto Múltiple (${groupRows.length} etapas)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td colspan="4" class="px-3 py-2 text-slate-500 text-[10px] italic text-center">Viaje multietapa (despliega para ver detalles)</td>
+                            <td class="px-3 py-2 text-slate-700 font-bold">${tds[5].innerHTML}</td>
+                            <td colspan="3" class="px-3 py-2 text-slate-500 text-[10px] italic"></td>
+                            <td class="px-3 py-2 text-right">
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="text-slate-600 font-bold">$${totalCosto.toLocaleString('es-CL')}</span>
+                                    ${estadoSelectMaster}
+                                </div>
+                            </td>
+                            <td class="px-3 py-2 text-right text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
+                            ${tds[11].outerHTML}
+                            ${tds[12].outerHTML}
+                            ${tds[13].outerHTML}
+                            ${tds[14].outerHTML}
+                            ${tds[15].outerHTML}
+                            ${tds[16].outerHTML}
+                        `;
+                    } else if (tds.length >= 16) {
+                        // Client table: first column is Operador
+                        const operadorNameEl = tds[0].cloneNode(true);
+                        const etapaBadgeC = operadorNameEl.querySelector('span');
+                        if (etapaBadgeC) etapaBadgeC.remove();
+                        const operadorName = operadorNameEl.textContent.trim();
+
+                        masterRow.innerHTML = `
+                            <td class="px-3 py-2">
+                                <div class="flex items-start gap-2">
+                                    <i class="fa-solid fa-chevron-down text-[10px] mt-1 transition-transform duration-200 text-primary-600"></i>
+                                    <div>
+                                        <div class="text-primary-900 text-xs font-bold leading-tight">${operadorName}</div>
+                                        <div class="text-[9px] text-primary-500 font-semibold uppercase tracking-wider mt-0.5">Proyecto Múltiple (${groupRows.length} etapas)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td colspan="3" class="px-3 py-2 text-slate-500 text-[10px] italic text-center">Viaje multietapa (despliega para ver detalles)</td>
+                            <td class="px-3 py-2 text-slate-700 font-bold">${tds[4].innerHTML}</td>
+                            <td colspan="3" class="px-3 py-2 text-slate-500 text-[10px] italic"></td>
+                            <td class="px-3 py-2 text-right">
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="text-slate-600 font-bold">$${totalCosto.toLocaleString('es-CL')}</span>
+                                    ${estadoSelectMaster}
+                                </div>
+                            </td>
+                            <td class="px-3 py-2 text-right text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
+                            ${tds[10].outerHTML}
+                            ${tds[11].outerHTML}
+                            ${tds[12].outerHTML}
+                            ${tds[13].outerHTML}
+                            ${tds[14].outerHTML}
+                            ${tds[15].outerHTML}
+                        `;
+                    }
                     
                     tbody.appendChild(masterRow);
                     
                     groupRows.forEach(r => {
-                        r.classList.add('hidden', 'bg-slate-50/30', 'border-l-4', 'border-l-primary-300');
+                        r.classList.add('hidden', 'bg-slate-100', 'border-l-4', 'border-l-primary-400');
                         // Make cell text slightly smaller for sub-rows
-                        r.querySelectorAll('td').forEach(td => td.classList.add('opacity-90'));
+                        const rTds = r.querySelectorAll('td');
+                        rTds.forEach(td => td.classList.add('opacity-95'));
+                        
+                        if (isGlobalTable && rTds.length >= 16) {
+                            rTds[14].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            rTds[15].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            const costoDiv = rTds[9].querySelector('div');
+                            if (costoDiv && costoDiv.children.length > 1) costoDiv.children[1].style.display = 'none';
+                        } else if (!isGlobalTable && rTds.length >= 15) {
+                            rTds[13].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            rTds[14].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            const costoDiv = rTds[8].querySelector('div');
+                            if (costoDiv && costoDiv.children.length > 1) costoDiv.children[1].style.display = 'none';
+                        }
+                        
                         tbody.appendChild(r);
                     });
                 }
@@ -4006,6 +4501,7 @@
                 const responseData = await callGoogleScript('deleteService', { id: id.toString() });
                 if(responseData.status === 'success') {
                     showToast("Servicio eliminado de Google Sheets.");
+                    await initDataFromCloud();
                 } else {
                     showToast(responseData.message || "Error al eliminar de la nube");
                 }
@@ -4015,59 +4511,267 @@
             }
         }
 
+        // MULTISTAGE LOGIC
+        let isMultiStageMode = false;
+        let multiStagesData = [];
+
+        function toggleMultiStageMode() {
+            isMultiStageMode = document.getElementById('fm-multistage-toggle').checked;
+            const singleContainer = document.getElementById('single-stage-container');
+            const multiContainer = document.getElementById('multistage-container');
+            
+            if (isMultiStageMode) {
+                singleContainer.classList.add('hidden');
+                multiContainer.classList.remove('hidden');
+                if (multiStagesData.length === 0) {
+                    addMultiStage(); // Add first stage automatically
+                }
+            } else {
+                singleContainer.classList.remove('hidden');
+                multiContainer.classList.add('hidden');
+            }
+        }
+
+        function addMultiStage() {
+            const index = multiStagesData.length;
+            const sameOp = index > 0;
+            let prevDesc = "";
+            if(index > 0) {
+                prevDesc = multiStagesData[index-1].descripcionCarga || "";
+            }
+            multiStagesData.push({
+                name: `Etapa ${index + 1}`,
+                sameOperator: sameOp,
+                operador: "", patente: "", chofer: "",
+                costo: "", monto: "", fechaServicio: "", descripcionCarga: prevDesc, origen: "", destino: "", estado: "Pendiente"
+            });
+            renderMultiStages();
+        }
+
+        function removeMultiStage(index) {
+            if (multiStagesData.length <= 1) return;
+            multiStagesData.splice(index, 1);
+            // Renumber stages that were untouched
+            multiStagesData.forEach((s, i) => {
+                if(s.name.startsWith("Etapa ")) s.name = `Etapa ${i + 1}`;
+            });
+            renderMultiStages();
+        }
+
+        function editStageName(index) {
+            document.getElementById(`ms-stage-name-display-${index}`).classList.add('hidden');
+            const input = document.getElementById(`ms-stage-name-input-${index}`);
+            input.classList.remove('hidden');
+            input.focus();
+            input.select();
+        }
+
+        function saveStageName(index) {
+            const input = document.getElementById(`ms-stage-name-input-${index}`);
+            let val = input.value.trim();
+            if(!val) val = `Etapa ${index + 1}`;
+            multiStagesData[index].name = val;
+            
+            input.classList.add('hidden');
+            const display = document.getElementById(`ms-stage-name-display-${index}`);
+            display.innerText = val;
+            display.classList.remove('hidden');
+        }
+
+        function toggleSameOperator(index) {
+            const checked = document.getElementById(`ms-same-operator-${index}`).checked;
+            multiStagesData[index].sameOperator = checked;
+            
+            const opSel = document.getElementById(`ms-operador-${index}`);
+            const patSel = document.getElementById(`ms-patente-${index}`);
+            const chofSel = document.getElementById(`ms-chofer-${index}`);
+            
+            if (checked && index > 0) {
+                opSel.disabled = true; patSel.disabled = true; chofSel.disabled = true;
+                
+                // Keep values in sync with prev index visually
+                const prevOp = document.getElementById(`ms-operador-${index-1}`).value;
+                if(prevOp !== opSel.value) {
+                    opSel.value = prevOp;
+                    updateMSOperador(index, true); // this will update its children and trigger forward sync
+                } else {
+                    patSel.innerHTML = document.getElementById(`ms-patente-${index-1}`).innerHTML;
+                    patSel.value = document.getElementById(`ms-patente-${index-1}`).value;
+                    chofSel.innerHTML = document.getElementById(`ms-chofer-${index-1}`).innerHTML;
+                    chofSel.value = document.getElementById(`ms-chofer-${index-1}`).value;
+                }
+            } else {
+                opSel.disabled = false; patSel.disabled = false; chofSel.disabled = false;
+            }
+        }
+
+        function syncStageData(index) {
+            const st = multiStagesData[index];
+            st.operador = document.getElementById(`ms-operador-${index}`).value || "";
+            st.patente = document.getElementById(`ms-patente-${index}`).value || "";
+            st.chofer = document.getElementById(`ms-chofer-${index}`).value || "";
+            st.fechaServicio = document.getElementById(`ms-fechaServicio-${index}`).value || "";
+            st.descripcionCarga = document.getElementById(`ms-descripcionCarga-${index}`).value || "";
+            st.origen = document.getElementById(`ms-origen-${index}`).value || "";
+            st.destino = document.getElementById(`ms-destino-${index}`).value || "";
+            st.costo = document.getElementById(`ms-costo-${index}`).value || "";
+            st.monto = document.getElementById(`ms-monto-${index}`).value || "";
+            st.estado = document.getElementById(`ms-estado-${index}`).value || "Pendiente";
+        }
+
+        function renderMultiStages() {
+            const list = document.getElementById('ms-stages-list');
+            list.innerHTML = multiStagesData.map((stage, i) => {
+                const showSameOperator = i > 0;
+                
+                // Generar options para operador
+                const operadoresUnique = [...new Set(operadoresData.map(c => c.nombre))];
+                let opOptions = '<option value="">— Sin operador registrado —</option>';
+                operadoresUnique.forEach(op => {
+                    opOptions += `<option value="${op}" ${stage.operador === op ? 'selected' : ''}>${op}</option>`;
+                });
+
+                return `
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-sm relative" id="ms-stage-block-${i}" onchange="syncStageData(${i})">
+                    ${i > 0 ? `<button type="button" onclick="removeMultiStage(${i})" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    
+                    <div class="flex items-center gap-2 mb-4">
+                        <h4 class="text-sm font-bold text-primary-900 flex items-center gap-2 group">
+                            <span id="ms-stage-name-display-${i}" class="cursor-pointer" onclick="editStageName(${i})">${stage.name}</span>
+                            <input type="text" id="ms-stage-name-input-${i}" value="${stage.name}" class="hidden text-sm font-bold bg-white border border-primary-300 rounded px-2 py-0.5 text-primary-900 outline-none w-32" onblur="saveStageName(${i})" onkeydown="if(event.key==='Enter'){event.preventDefault(); saveStageName(${i});}">
+                            <button type="button" onclick="editStageName(${i})" class="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary-600"><i class="fa-solid fa-pencil text-[10px]"></i></button>
+                        </h4>
+                    </div>
+
+                    ${showSameOperator ? `
+                    <div class="mb-4 bg-white px-3 py-2 rounded-lg border border-gray-200 inline-block shadow-sm">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="ms-same-operator-${i}" onchange="toggleSameOperator(${i}); syncStageData(${i})" ${stage.sameOperator ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer">
+                            <span class="text-xs font-bold text-slate-600">Mismo Operador/Chofer que etapa anterior</span>
+                        </label>
+                    </div>
+                    ` : ''}
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Operador</label>
+                            <select id="ms-operador-${i}" onchange="updateMSOperador(${i})" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" ${stage.sameOperator ? 'disabled' : ''}>
+                                ${opOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Patente</label>
+                            <select id="ms-patente-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" ${stage.sameOperator ? 'disabled' : ''}>
+                                <option value="${stage.patente}">${stage.patente || '— Seleccionar —'}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Chofer</label>
+                            <select id="ms-chofer-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" ${stage.sameOperator ? 'disabled' : ''}>
+                                <option value="${stage.chofer}">${stage.chofer || '— Seleccionar —'}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha Srv.</label>
+                            <input type="date" id="ms-fechaServicio-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.fechaServicio}">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Descripción Carga</label>
+                            <input type="text" id="ms-descripcionCarga-${i}" list="cargas-list" autocomplete="off" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.descripcionCarga}" placeholder="Ej. 15 Toneladas">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Origen</label>
+                            <input type="text" id="ms-origen-${i}" list="ciudades-list" autocomplete="off" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.origen}" placeholder="Ciudad">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Destino</label>
+                            <input type="text" id="ms-destino-${i}" list="ciudades-list" autocomplete="off" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.destino}" placeholder="Ciudad">
+                        </div>
+
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Costo Operador</label>
+                            <input type="number" id="ms-costo-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.costo}" placeholder="0">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Monto Venta</label>
+                            <input type="number" id="ms-monto-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm" value="${stage.monto}" placeholder="0">
+                        </div>
+                        <div class="col-span-2 md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Estado Pago Op.</label>
+                            <select id="ms-estado-${i}" class="w-full bg-white border border-gray-300 px-3 py-2.5 rounded-xl text-sm">
+                                <option value="Pendiente" ${stage.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="PAGADO" ${stage.estado === 'PAGADO' ? 'selected' : ''}>PAGADO</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            // Re-apply same operator visually and setup dynamic options for non-disabled
+            multiStagesData.forEach((s, i) => {
+                if(!s.sameOperator || i === 0) {
+                    if(s.operador) updateMSOperador(i, false);
+                } else if(s.sameOperator && i > 0) {
+                    toggleSameOperator(i);
+                }
+            });
+        }
+
+        function updateMSOperador(index, preventForwardSync = false) {
+            const opName = document.getElementById(`ms-operador-${index}`).value;
+            const opData = operadoresData.find(c => c.nombre === opName);
+            const patSel = document.getElementById(`ms-patente-${index}`);
+            const chofSel = document.getElementById(`ms-chofer-${index}`);
+            
+            patSel.innerHTML = '<option value="">— Seleccionar patente —</option>';
+            chofSel.innerHTML = '<option value="">— Seleccionar chofer —</option>';
+            
+            if (opData) {
+                const patentes = camionesData.filter(x => x.idOperador === opName);
+                patentes.forEach(p => patSel.innerHTML += `<option value="${p.patente}">${p.patente} (${p.modelo || ''})</option>`);
+                
+                const choferes = choferesData.filter(x => x.idOperador === opName);
+                choferes.forEach(c => chofSel.innerHTML += `<option value="${c.nombre}">${c.nombre} (${c.rut || ''})</option>`);
+            }
+
+            // Restore selected values if they still exist in options
+            const st = multiStagesData[index];
+            if(st.patente) patSel.value = st.patente;
+            if(st.chofer) chofSel.value = st.chofer;
+            
+            if (!preventForwardSync) {
+                syncStageData(index);
+                // Sync forward if next stages have sameOperator = true
+                for(let j = index + 1; j < multiStagesData.length; j++) {
+                    if(multiStagesData[j].sameOperator) {
+                        toggleSameOperator(j);
+                        syncStageData(j);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
         // SERVICE MODAL LOGIC (ADD / EDIT)
         function openNewServiceModal() {
             currentEditServiceId = null;
             document.getElementById('modal-client-label').innerText = currentUserClient;
             document.getElementById('modal-service-title').innerText = "Agregar Nuevo Servicio a";
+            
+            // Multistage reset
+            document.getElementById('fm-multistage-toggle').checked = false;
+            document.getElementById('multistage-toggle-container').classList.remove('hidden');
+            multiStagesData = [];
+            toggleMultiStageMode();
+
             document.getElementById('service-modal').classList.remove('hidden');
             document.getElementById('new-service-form').reset();
             populateOperadorSelect();
             document.getElementById('autofill-group').classList.add('hidden');
             document.getElementById('autofill-group-2').classList.add('hidden');
-        }
-
-        let currentCloneMasterId = null;
-        let currentCloneEtapaCounter = 1;
-
-        function cloneServiceForNewStage(id) {
-            currentEditServiceId = null;
-            const row = excelData.find(x => x.id == id);
-            if(!row) return;
-
-            // Generate or carry over ID Maestro
-            currentCloneMasterId = row.idMaestro ? row.idMaestro : (row.id ? row.id.toString() : Date.now().toString());
-            
-            // Find how many stages exist for this master ID
-            const existingStages = excelData.filter(x => x.idMaestro === currentCloneMasterId);
-            currentCloneEtapaCounter = existingStages.length > 0 ? existingStages.length + 1 : 2;
-
-            // Update parent row if it doesn't have an ID Maestro yet
-            if (!row.idMaestro) {
-                row.idMaestro = currentCloneMasterId;
-                row.etapa = "Etapa 1";
-                syncServiceToDB(row); // Update the original to have Master ID
-            }
-
-            document.getElementById('modal-client-label').innerText = currentUserClient;
-            document.getElementById('modal-service-title').innerText = `Agregar Etapa ${currentCloneEtapaCounter} a Proyecto`;
-            
-            document.getElementById('new-service-form').reset();
-            populateOperadorSelect();
-            document.getElementById('autofill-group').classList.add('hidden');
-            document.getElementById('autofill-group-2').classList.add('hidden');
-
-            // Pre-fill shared fields
-            document.getElementById('fm-tipoServicio').value = row.tipoServicio === "-" ? "" : row.tipoServicio;
-            document.getElementById('fm-descripcionCarga').value = row.descripcionCarga === "-" ? "" : (row.descripcionCarga || "");
-            document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
-            document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
-            const eFact = row.estadoFactura || "Pendiente";
-            document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
-            document.getElementById('fm-oc').value = row.ocHes === "-" ? "" : row.ocHes;
-            document.getElementById('fm-cot').value = row.cotizacion === "-" ? "" : row.cotizacion;
-
-            document.getElementById('service-modal').classList.remove('hidden');
         }
 
         function editService(id) {
@@ -4077,6 +4781,11 @@
 
             document.getElementById('modal-client-label').innerText = currentUserClient;
             document.getElementById('modal-service-title').innerText = "Modificar Servicio de";
+            
+            // Hide Multistage toggle when editing an existing service
+            document.getElementById('fm-multistage-toggle').checked = false;
+            document.getElementById('multistage-toggle-container').classList.add('hidden');
+            toggleMultiStageMode();
             
             populateOperadorSelect();
             document.getElementById('fm-operador').value = row.operador === "-" ? "" : row.operador;
@@ -4111,73 +4820,125 @@
             currentEditServiceId = null;
             currentCloneMasterId = null;
             currentCloneEtapaCounter = 1;
+            
+            // Reset Multistage
+            document.getElementById('fm-multistage-toggle').checked = false;
+            toggleMultiStageMode();
         }
 
-        function handleServiceSubmit(e) {
+        async function handleServiceSubmit(e) {
             e.preventDefault();
             
-            let rowToSync = null;
-
-            if (currentEditServiceId) {
-                const row = excelData.find(x => x.id == currentEditServiceId);
-                if(row) {
-                    row.operador = document.getElementById('fm-operador').value || "-";
-                    row.patenteAsignada = document.getElementById('fm-patente').value || "";
-                    row.choferAsignado = document.getElementById('fm-chofer').value || "";
-                    row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
-                    row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
-                    row.origen = document.getElementById('fm-origen').value || "-";
-                    row.destino = document.getElementById('fm-destino').value || "-";
-                    row.descripcionCarga = document.getElementById('fm-descripcionCarga').value || "-";
-                    row.costo = document.getElementById('fm-costo').value || "-";
-                    row.monto = document.getElementById('fm-monto').value || "-";
-                    row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
-                    row.estado = document.getElementById('fm-estado').value;
-                    row.estadoFactura = document.getElementById('fm-estadoFactura').value;
-                    row.ocHes = document.getElementById('fm-oc').value || "-";
-                    row.cotizacion = document.getElementById('fm-cot').value || "-";
-                    
-                    rowToSync = row;
-                }
-            } else {
-                const newRow = {
-                    id: Date.now(),
-                    cliente: currentUserClient,
-                    operador: document.getElementById('fm-operador').value || "-",
-                    patenteAsignada: document.getElementById('fm-patente').value || "",
-                    choferAsignado: document.getElementById('fm-chofer').value || "",
-                    fechaServicio: document.getElementById('fm-fechaServicio').value || "-",
-                    tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
-                    origen: document.getElementById('fm-origen').value || "-",
-                    destino: document.getElementById('fm-destino').value || "-",
-                    descripcionCarga: document.getElementById('fm-descripcionCarga').value || "-",
-                    costo: document.getElementById('fm-costo').value || "-", 
-                    monto: document.getElementById('fm-monto').value || "-",
-                    fechaPago: document.getElementById('fm-fechaPago').value || "-",
-                    estado: document.getElementById('fm-estado').value,
-                    estadoFactura: document.getElementById('fm-estadoFactura').value,
-                    ocHes: document.getElementById('fm-oc').value || "-",
-                    cotizacion: document.getElementById('fm-cot').value || "-",
-                    factura: "",
-                    nroFactura: "",
-                    driveUrl: "",
-                    idMaestro: currentCloneMasterId ? currentCloneMasterId : "",
-                    etapa: currentCloneMasterId ? `Etapa ${currentCloneEtapaCounter}` : ""
-                };
-                excelData.push(newRow);
-                rowToSync = newRow;
+            if (isMultiStageMode) {
+                // Validación básica
+                if(multiStagesData.length === 0) return;
                 
-                // Reset globals
-                currentCloneMasterId = null;
-                currentCloneEtapaCounter = 1;
-            }
-            
-            closeNewServiceModal();
-            refreshAllViews();
+                // Forzar sincronización de valores de UI a data por si acaso
+                multiStagesData.forEach((s, i) => syncStageData(i));
+                
+                const idMaestro = Date.now().toString();
+                const tipoServicio = document.getElementById('ms-tipoServicio').value || "-";
+                const fechaPago = document.getElementById('ms-fechaPago').value || "-";
+                const estadoFactura = document.getElementById('ms-estadoFactura').value || "Pendiente";
+                const oc = document.getElementById('ms-oc').value || "-";
+                const cotizacion = document.getElementById('ms-cot').value || "-";
 
-            // PUSH TO DB
-            if(rowToSync) {
-                syncServiceToDB(rowToSync);
+                closeNewServiceModal();
+                showToast(`Guardando ${multiStagesData.length} etapas...`);
+
+                for (let i = 0; i < multiStagesData.length; i++) {
+                    const st = multiStagesData[i];
+                    const newRow = {
+                        id: Date.now() + i, // slight offset to ensure uniqueness
+                        cliente: currentUserClient,
+                        operador: st.operador || "-",
+                        patenteAsignada: st.patente || "",
+                        choferAsignado: st.chofer || "",
+                        fechaServicio: st.fechaServicio || "-",
+                        tipoServicio: tipoServicio,
+                        origen: st.origen || "-",
+                        destino: st.destino || "-",
+                        descripcionCarga: st.descripcionCarga || "-",
+                        costo: st.costo || "-", 
+                        monto: st.monto || "-",
+                        fechaPago: fechaPago,
+                        estado: st.estado,
+                        estadoFactura: estadoFactura,
+                        ocHes: oc,
+                        cotizacion: cotizacion,
+                        factura: "",
+                        nroFactura: "",
+                        driveUrl: "",
+                        idMaestro: idMaestro,
+                        etapa: st.name
+                    };
+                    excelData.push(newRow);
+                    await syncServiceToDB(newRow); // Secuencial para evitar colisiones
+                }
+                
+                await initDataFromCloud();
+                showToast("Proyecto Multietapa guardado correctamente.");
+
+            } else {
+                // Modo Simple (Legacy)
+                let rowToSync = null;
+
+                if (currentEditServiceId) {
+                    const row = excelData.find(x => x.id == currentEditServiceId);
+                    if(row) {
+                        row.operador = document.getElementById('fm-operador').value || "-";
+                        row.patenteAsignada = document.getElementById('fm-patente').value || "";
+                        row.choferAsignado = document.getElementById('fm-chofer').value || "";
+                        row.fechaServicio = document.getElementById('fm-fechaServicio').value || "-";
+                        row.tipoServicio = document.getElementById('fm-tipoServicio').value || "-";
+                        row.origen = document.getElementById('fm-origen').value || "-";
+                        row.destino = document.getElementById('fm-destino').value || "-";
+                        row.descripcionCarga = document.getElementById('fm-descripcionCarga').value || "-";
+                        row.costo = document.getElementById('fm-costo').value || "-";
+                        row.monto = document.getElementById('fm-monto').value || "-";
+                        row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
+                        row.estado = document.getElementById('fm-estado').value;
+                        row.estadoFactura = document.getElementById('fm-estadoFactura').value;
+                        row.ocHes = document.getElementById('fm-oc').value || "-";
+                        row.cotizacion = document.getElementById('fm-cot').value || "-";
+                        
+                        rowToSync = row;
+                    }
+                } else {
+                    const newRow = {
+                        id: Date.now(),
+                        cliente: currentUserClient,
+                        operador: document.getElementById('fm-operador').value || "-",
+                        patenteAsignada: document.getElementById('fm-patente').value || "",
+                        choferAsignado: document.getElementById('fm-chofer').value || "",
+                        fechaServicio: document.getElementById('fm-fechaServicio').value || "-",
+                        tipoServicio: document.getElementById('fm-tipoServicio').value || "-",
+                        origen: document.getElementById('fm-origen').value || "-",
+                        destino: document.getElementById('fm-destino').value || "-",
+                        descripcionCarga: document.getElementById('fm-descripcionCarga').value || "-",
+                        costo: document.getElementById('fm-costo').value || "-", 
+                        monto: document.getElementById('fm-monto').value || "-",
+                        fechaPago: document.getElementById('fm-fechaPago').value || "-",
+                        estado: document.getElementById('fm-estado').value,
+                        estadoFactura: document.getElementById('fm-estadoFactura').value,
+                        ocHes: document.getElementById('fm-oc').value || "-",
+                        cotizacion: document.getElementById('fm-cot').value || "-",
+                        factura: "",
+                        nroFactura: "",
+                        driveUrl: "",
+                        idMaestro: "",
+                        etapa: ""
+                    };
+                    excelData.push(newRow);
+                    rowToSync = newRow;
+                }
+                
+                closeNewServiceModal();
+
+                if(rowToSync) {
+                    await syncServiceToDB(rowToSync);
+                }
+                await initDataFromCloud();
             }
         }
 
@@ -4674,6 +5435,7 @@
                 const result = await callGoogleScript('deleteOperator', { nombre: nombre });
                 if(result.status === 'success') {
                     showToast(`Operador "${nombre}" eliminado de la nube.`);
+                    await initDataFromCloud();
                 } else {
                     throw new Error(result.message);
                 }
@@ -5465,6 +6227,124 @@
         }
         
         window.addEventListener('load', initAutocomplete);
+
+        // --- GLOBAL SERVICES FILTER SYSTEM ---
+        let globalFilters = {
+            search: '',
+            cliente: [],
+            operador: [],
+            patente: [],
+            chofer: [],
+            cotizacion: [],
+            factura: [],
+            dateStart: ''
+        };
+
+        function updateGlobalFilter(key, value) {
+            globalFilters[key] = value;
+            renderGlobalServicesTable();
+            updateFilterTags();
+        }
+
+        function addTagFilter(key, value) {
+            if (!globalFilters[key].includes(value)) {
+                globalFilters[key].push(value);
+                renderGlobalServicesTable();
+                updateFilterTags();
+            }
+            // Limpiar input y ocultar dropdown
+            const input = document.getElementById(`input-filter-${key}`);
+            if (input) input.value = '';
+            const dropdown = document.getElementById(`dropdown-filter-${key}`);
+            if (dropdown) dropdown.classList.add('hidden');
+        }
+
+        function removeTagFilter(key, value) {
+            globalFilters[key] = globalFilters[key].filter(v => v !== value);
+            renderGlobalServicesTable();
+            updateFilterTags();
+        }
+
+        function clearAllGlobalFilters() {
+            globalFilters = {
+                search: '',
+                cliente: [],
+                operador: [],
+                patente: [],
+                chofer: [],
+                cotizacion: [],
+                factura: [],
+                dateStart: ''
+            };
+            // Limpiar inputs UI
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-date-start').value = '';
+            ['cliente', 'operador', 'patente', 'chofer', 'cotizacion', 'factura'].forEach(k => {
+                const input = document.getElementById(`input-filter-${k}`);
+                if (input) input.value = '';
+            });
+            renderGlobalServicesTable();
+            updateFilterTags();
+        }
+
+        function updateFilterTags() {
+            const container = document.getElementById('active-filters-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            Object.keys(globalFilters).forEach(key => {
+                if (Array.isArray(globalFilters[key])) {
+                    globalFilters[key].forEach(val => {
+                        const tag = document.createElement('div');
+                        tag.className = 'filter-tag animate-fade-in';
+                        tag.innerHTML = `<span>${key}: ${val}</span><button onclick="removeTagFilter('${key}', '${val}')"><i class="fa-solid fa-circle-xmark"></i></button>`;
+                        container.appendChild(tag);
+                    });
+                }
+            });
+        }
+
+        function showFilterSuggestions(key, query) {
+            const dropdown = document.getElementById(`dropdown-filter-${key}`);
+            if (!dropdown) return;
+
+            if (query.length < 1) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            // Mapeo de campos de excelData
+            let fieldMap = {
+                'cliente': 'cliente',
+                'operador': 'operador',
+                'patente': 'patenteAsignada',
+                'chofer': 'choferAsignado',
+                'cotizacion': 'cotizacion',
+                'factura': 'nroFactura'
+            };
+
+            const field = fieldMap[key];
+            const suggestions = [...new Set(excelData.map(item => item[field]))]
+                .filter(val => val && val.toString().toLowerCase().includes(query.toLowerCase()))
+                .sort();
+
+            if (suggestions.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            dropdown.innerHTML = suggestions.map(s => `
+                <div class="filter-option" onclick="addTagFilter('${key}', '${s}')">${s}</div>
+            `).join('');
+            dropdown.classList.remove('hidden');
+        }
+
+        // Cerrar dropdowns al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.add('hidden'));
+            }
+        });
 
     </script>
 </body>
