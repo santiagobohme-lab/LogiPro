@@ -965,6 +965,7 @@
                                 
                                 <div class="pt-2 border-t border-dashed border-slate-100 grid grid-cols-2 gap-4">
                                     <div><label class="block text-xs font-bold text-slate-700 mb-1">Monto ($ CLP)</label><input type="number" id="fm-monto" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="0"></div>
+                                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Estado Cobro</label><select id="fm-estadoCobro" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"><option value="Cobrado">Cobrado</option><option value="Pendiente" selected>Pendiente</option></select></div>
                                     <div><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Pago (Cli)</label><input type="date" id="fm-fechaPago" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
                                     
                                     <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="fm-estadoFactura" class="w-full bg-white border border-gray-300 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
@@ -986,6 +987,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Tipo Servicio</label><input type="text" id="ms-tipoServicio" list="tipos-list" autocomplete="off" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Ej. Mudanza"></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Fecha Pago (Cli)</label><input type="date" id="ms-fechaPago" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"></div>
+                                    <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Estado Cobro</label><select id="ms-estadoCobro" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"><option value="Cobrado">Cobrado</option><option value="Pendiente" selected>Pendiente</option></select></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Estado Factura</label><select id="ms-estadoFactura" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none"><option value="OK">OK</option><option value="Pendiente" selected>Pendiente</option></select></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">OC / HES</label><input type="text" id="ms-oc" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Opcional"></div>
                                     <div class="col-span-2 md:col-span-1"><label class="block text-xs font-bold text-slate-700 mb-1">Cotización</label><input type="text" id="ms-cot" class="w-full bg-slate-50 border border-gray-200 text-slate-800 px-3 py-2.5 rounded-xl text-sm focus:border-primary-900 outline-none" placeholder="Opcional"></div>
@@ -1203,7 +1205,7 @@
                 </div>
 
                 <!-- Listado de Servicios -->
-                <div id="facturacion-container" class="flex flex-col gap-3 max-w-xl">
+                <div id="facturacion-container" class="flex flex-col gap-3 max-w-4xl">
                     <!-- Las tarjetas se cargar\u00e1n aqu\u00ed -->
                 </div>
             </div>
@@ -2220,7 +2222,8 @@
                 choferAsignado: (sheetObj["Chofer Asignado"] || "").toString().trim(),
                 origen: sheetObj["Origen"] || "-",
                 guiaUrl: sheetObj["Link Guía de Despacho"] || "",
-                descripcionCarga: sheetObj["Descripción Carga"] || ""
+                descripcionCarga: sheetObj["Descripción Carga"] || "",
+                estadoCobro: sheetObj["Estado Cobro"] || "Pendiente"
             };
         };
 
@@ -2248,7 +2251,8 @@
                 "Link Guía de Despacho": row.guiaUrl || "",
                 "Descripción Carga": row.descripcionCarga || "",
                 "ID Maestro": row.idMaestro || "",
-                "Etapa": row.etapa || ""
+                "Etapa": row.etapa || "",
+                "Estado Cobro": row.estadoCobro || "Pendiente"
             };
             return data;
         };
@@ -2999,12 +3003,19 @@
             
             const finalItems = Object.values(groups).map(group => {
                 if(group.length === 1) return group[0];
+                
+                // Ordenar por ID para asegurar el orden de las etapas
+                group.sort((a, b) => (a.id < b.id ? -1 : 1));
+
                 let totalNeto = 0;
                 group.forEach(r => totalNeto += (isNaN(Number(r.monto)) || r.monto === "-" ? 0 : Number(r.monto)));
+                
                 return {
                     ...group[0],
                     monto: totalNeto,
-                    tipoServicio: `Proyecto Multietapa (${group.length} etapas)`
+                    tipoServicio: `${group[0].tipoServicio} | Proyecto Multietapa (${group.length} etapas)`,
+                    origen: group[0].origen,
+                    destino: group[group.length - 1].destino
                 };
             });
 
@@ -3039,7 +3050,7 @@
                 const pFecha = srv.fechaServicio !== "-" ? srv.fechaServicio.split('T')[0].split('-').reverse().join('/') : "-";
 
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 px-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center gap-6";
+                card.className = "bg-white py-3 px-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group flex justify-between items-center gap-6";
                 card.onclick = () => openFacturaDetalle(srv.id);
                 
                 const isFactOk = srv.estadoFactura === 'OK' || srv.estadoFactura === 'OK / Pagado';
@@ -3053,7 +3064,15 @@
                                 ${statusLabel}
                             </div>
                         </div>
-                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-2 opacity-80">${srv.tipoServicio}</div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1 opacity-80">${srv.tipoServicio}</div>
+                        
+                        <!-- Ruta (Skill UX: Contexto Operativo Sutil) -->
+                        <div class="flex items-center gap-2 mb-2 text-[10px] font-medium text-slate-400">
+                            <i class="fa-solid fa-location-dot text-[9px] opacity-50"></i>
+                            <span class="truncate max-w-[250px] uppercase tracking-tighter">${srv.origen}</span>
+                            <i class="fa-solid fa-arrow-right-long text-[8px] opacity-30 mx-1"></i>
+                            <span class="truncate max-w-[250px] uppercase tracking-tighter">${srv.destino}</span>
+                        </div>
                         
                         <div class="flex items-center gap-4">
                            <div class="flex items-center text-slate-500 text-[10px] font-bold">
@@ -3925,6 +3944,24 @@
             }
         }
 
+        async function updateEstadoCobro(id, val) {
+            const row = excelData.find(x => x.id == id);
+            if(row) {
+                const siblings = row.idMaestro ? excelData.filter(x => x.idMaestro === row.idMaestro) : [row];
+                for(let s of siblings) {
+                    s.estadoCobro = val;
+                }
+                refreshAllViews(); // optimistic update
+                
+                // Sync all siblings
+                if (siblings.length > 1) showToast(`Actualizando estado cobro para ${siblings.length} etapas...`);
+                for(let s of siblings) {
+                    await syncServiceToDB(s, true); 
+                }
+                await initDataFromCloud();
+            }
+        }
+
         async function updateEstadoFactura(id, val) {
             const row = excelData.find(x => x.id == id);
             if(row) {
@@ -4157,8 +4194,18 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <span onclick="updateEstado('${row.id}', '${isOk ? 'Pendiente' : 'Pagado'}')" 
+                          class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer transition-all inline-block text-center ${isOk ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
                         ${isOk ? 'PAGADO' : 'PENDIENTE'}
+                    </span>
+                `;
+
+                const statusCobroValue = (row.estadoCobro || "Pendiente").toLowerCase();
+                const isCobrado = statusCobroValue === 'cobrado';
+                const estadoCobroBadge = `
+                    <span onclick="updateEstadoCobro('${row.id}', '${isCobrado ? 'Pendiente' : 'Cobrado'}')"
+                          class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer transition-all inline-block text-center ${isCobrado ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
+                        ${isCobrado ? 'COBRADO' : 'PENDIENTE'}
                     </span>
                 `;
 
@@ -4185,7 +4232,7 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}">
+                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}" data-estado-cobro="${statusCobroValue}">
                     <td class="px-3 py-2 text-slate-800 font-medium">${row.operador} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
                     <td class="px-3 py-2 text-slate-600">${row.choferAsignado || '-'}</td>
@@ -4200,7 +4247,12 @@
                             ${estadoSelect}
                         </div>
                     </td>
-                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
+                    <td class="px-3 py-2 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-slate-800 font-bold">${safeMonto}</span>
+                            ${estadoCobroBadge}
+                        </div>
+                    </td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
@@ -4278,8 +4330,18 @@
                 const statusValue = (row.estado || "Pendiente").toLowerCase();
                 const isOk = statusValue === 'ok' || statusValue === 'pagado';
                 const estadoSelect = `
-                    <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center ${isOk ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                    <span onclick="updateEstado('${row.id}', '${isOk ? 'Pendiente' : 'Pagado'}')" 
+                          class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer transition-all inline-block text-center ${isOk ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
                         ${isOk ? 'PAGADO' : 'PENDIENTE'}
+                    </span>
+                `;
+
+                const statusCobroValue = (row.estadoCobro || "Pendiente").toLowerCase();
+                const isCobrado = statusCobroValue === 'cobrado';
+                const estadoCobroBadge = `
+                    <span onclick="updateEstadoCobro('${row.id}', '${isCobrado ? 'Pendiente' : 'Cobrado'}')"
+                          class="text-[10px] px-1.5 py-0.5 font-bold rounded cursor-pointer transition-all inline-block text-center ${isCobrado ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
+                        ${isCobrado ? 'COBRADO' : 'PENDIENTE'}
                     </span>
                 `;
 
@@ -4306,7 +4368,7 @@
                 `;
 
                 return `
-                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}">
+                <tr class="hover:bg-gray-50 border-b border-gray-50" data-id="${row.id}" data-master="${row.idMaestro || ''}" data-etapa="${row.etapa || ''}" data-monto="${Number(row.monto) || 0}" data-costo="${Number(row.costo) || 0}" data-estado="${isOk ? 'pagado' : 'pendiente'}" data-estado-cobro="${statusCobroValue}">
                     <td class="px-3 py-2 font-bold text-slate-900 text-xs">${row.cliente} ${row.etapa ? `<span class="ml-1 text-[9px] bg-primary-100 text-primary-900 px-1 rounded font-bold">${row.etapa}</span>` : ''}</td>
                     <td class="px-3 py-2 text-slate-800 font-medium">${row.operador}</td>
                     <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">${row.patenteAsignada || '-'}</td>
@@ -4322,7 +4384,12 @@
                             ${estadoSelect}
                         </div>
                     </td>
-                    <td class="px-3 py-2 text-right text-slate-800 font-bold">${safeMonto}</td>
+                    <td class="px-3 py-2 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-slate-800 font-bold">${safeMonto}</span>
+                            ${estadoCobroBadge}
+                        </div>
+                    </td>
                     <td class="px-3 py-2 text-slate-500">${pFechaPago}</td>
                     <td class="px-3 py-2 text-slate-500">${row.ocHes || '-'}</td>
                     <td class="px-3 py-2 text-slate-500">${row.cotizacion || '-'}</td>
@@ -4362,15 +4429,23 @@
                     let totalMonto = 0;
                     let totalCosto = 0;
                     let allPagado = true;
+                    let allCobrado = true;
                     groupRows.forEach(r => {
                         totalMonto += Number(r.getAttribute('data-monto') || 0);
                         totalCosto += Number(r.getAttribute('data-costo') || 0);
                         if (r.getAttribute('data-estado') !== 'pagado') allPagado = false;
+                        if (r.getAttribute('data-estado-cobro') !== 'cobrado') allCobrado = false;
                     });
                     
                     const estadoSelectMaster = `
                         <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center mt-0.5 ${allPagado ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
                             ${allPagado ? 'PAGADO' : 'PENDIENTE'}
+                        </span>
+                    `;
+
+                    const estadoCobroMaster = `
+                        <span class="text-[10px] px-1.5 py-0.5 font-bold rounded outline-none appearance-none inline-block text-center mt-0.5 ${allCobrado ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}">
+                            ${allCobrado ? 'COBRADO' : 'PENDIENTE'}
                         </span>
                     `;
                     
@@ -4415,7 +4490,12 @@
                                     ${estadoSelectMaster}
                                 </div>
                             </td>
-                            <td class="px-3 py-2 text-right text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
+                            <td class="px-3 py-2 text-right">
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</span>
+                                    ${estadoCobroMaster}
+                                </div>
+                            </td>
                             ${tds[11].outerHTML}
                             ${tds[12].outerHTML}
                             ${tds[13].outerHTML}
@@ -4449,7 +4529,12 @@
                                     ${estadoSelectMaster}
                                 </div>
                             </td>
-                            <td class="px-3 py-2 text-right text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</td>
+                            <td class="px-3 py-2 text-right">
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="text-primary-800 font-bold">$${totalMonto.toLocaleString('es-CL')}</span>
+                                    ${estadoCobroMaster}
+                                </div>
+                            </td>
                             ${tds[10].outerHTML}
                             ${tds[11].outerHTML}
                             ${tds[12].outerHTML}
@@ -4467,16 +4552,36 @@
                         const rTds = r.querySelectorAll('td');
                         rTds.forEach(td => td.classList.add('opacity-95'));
                         
-                        if (isGlobalTable && rTds.length >= 16) {
+                        if (isGlobalTable && rTds.length >= 17) {
                             rTds[14].innerHTML = '<div class="text-center text-slate-300">-</div>';
                             rTds[15].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            
+                            // Hide Cobro Badge in sub-rows
+                            const montoDiv = rTds[10].querySelector('div');
+                            if (montoDiv && montoDiv.children.length > 1) {
+                                montoDiv.children[1].style.display = 'none';
+                            }
+                            
+                            // Hide Pago/Costo Badge in sub-rows (optional but consistent)
                             const costoDiv = rTds[9].querySelector('div');
-                            if (costoDiv && costoDiv.children.length > 1) costoDiv.children[1].style.display = 'none';
-                        } else if (!isGlobalTable && rTds.length >= 15) {
+                            if (costoDiv && costoDiv.children.length > 1) {
+                                costoDiv.children[1].style.display = 'none';
+                            }
+                        } else if (!isGlobalTable && rTds.length >= 16) {
                             rTds[13].innerHTML = '<div class="text-center text-slate-300">-</div>';
                             rTds[14].innerHTML = '<div class="text-center text-slate-300">-</div>';
+                            
+                            // Hide Cobro Badge in sub-rows
+                            const montoDiv = rTds[9].querySelector('div');
+                            if (montoDiv && montoDiv.children.length > 1) {
+                                montoDiv.children[1].style.display = 'none';
+                            }
+                            
+                            // Hide Pago/Costo Badge in sub-rows
                             const costoDiv = rTds[8].querySelector('div');
-                            if (costoDiv && costoDiv.children.length > 1) costoDiv.children[1].style.display = 'none';
+                            if (costoDiv && costoDiv.children.length > 1) {
+                                costoDiv.children[1].style.display = 'none';
+                            }
                         }
                         
                         tbody.appendChild(r);
@@ -4804,6 +4909,7 @@
             document.getElementById('fm-monto').value = row.monto === "-" ? "" : row.monto;
             document.getElementById('fm-fechaPago').value = row.fechaPago === "-" ? "" : row.fechaPago.split('T')[0];
             document.getElementById('fm-estado').value = row.estado === "OK" || row.estado === "OK / Pagado" || row.estado === "PAGADO" ? "PAGADO" : "Pendiente";
+            document.getElementById('fm-estadoCobro').value = row.estadoCobro === "Cobrado" ? "Cobrado" : "Pendiente";
             
             const eFact = row.estadoFactura || "Pendiente";
             document.getElementById('fm-estadoFactura').value = eFact === "OK" || eFact === "OK / Pagado" ? "OK" : "Pendiente";
@@ -4839,6 +4945,7 @@
                 const idMaestro = Date.now().toString();
                 const tipoServicio = document.getElementById('ms-tipoServicio').value || "-";
                 const fechaPago = document.getElementById('ms-fechaPago').value || "-";
+                const estadoCobro = document.getElementById('ms-estadoCobro').value || "Pendiente";
                 const estadoFactura = document.getElementById('ms-estadoFactura').value || "Pendiente";
                 const oc = document.getElementById('ms-oc').value || "-";
                 const cotizacion = document.getElementById('ms-cot').value || "-";
@@ -4863,6 +4970,7 @@
                         monto: st.monto || "-",
                         fechaPago: fechaPago,
                         estado: st.estado,
+                        estadoCobro: estadoCobro,
                         estadoFactura: estadoFactura,
                         ocHes: oc,
                         cotizacion: cotizacion,
@@ -4898,6 +5006,7 @@
                         row.monto = document.getElementById('fm-monto').value || "-";
                         row.fechaPago = document.getElementById('fm-fechaPago').value || "-";
                         row.estado = document.getElementById('fm-estado').value;
+                        row.estadoCobro = document.getElementById('fm-estadoCobro').value;
                         row.estadoFactura = document.getElementById('fm-estadoFactura').value;
                         row.ocHes = document.getElementById('fm-oc').value || "-";
                         row.cotizacion = document.getElementById('fm-cot').value || "-";
@@ -4920,6 +5029,7 @@
                         monto: document.getElementById('fm-monto').value || "-",
                         fechaPago: document.getElementById('fm-fechaPago').value || "-",
                         estado: document.getElementById('fm-estado').value,
+                        estadoCobro: document.getElementById('fm-estadoCobro').value,
                         estadoFactura: document.getElementById('fm-estadoFactura').value,
                         ocHes: document.getElementById('fm-oc').value || "-",
                         cotizacion: document.getElementById('fm-cot').value || "-",
