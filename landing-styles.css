@@ -58,9 +58,9 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 100%;
     z-index: 50;
-    background: rgba(255, 255, 255, 0.48); /* Filtro blanco con 48% de opacidad (mucha transparencia pero legible) */
-    backdrop-filter: blur(4px); /* Desenfoque sutil para mantener el fondo visible y nítido */
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.85); /* Mayor opacidad blanca para garantizar contraste y legibilidad */
+    backdrop-filter: blur(12px); /* Desenfoque más pronunciado para un efecto esmerilado premium */
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.4);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
