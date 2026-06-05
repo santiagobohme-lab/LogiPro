@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --color-primary: #0F172A; /* Slate 900 */
+    --color-primary-light: #1E293B; /* Slate 800 */
+    --color-accent: #244BFE; /* Solid Royal Blue */
+    --color-accent-hover: #1A3BC5;
+    --color-bg-light: #F8FAFC; /* Slate 50 */
+    --color-border: #E2E8F0; /* Slate 200 */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-bg-light);
+    color: var(--color-primary);
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Logo Typography (Montserrat) */
+.logo-text {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+}
+
+.logo-subtitle {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+/* Glassmorphism Header */
+.glass-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.48); /* Filtro blanco con 48% de opacidad (mucha transparencia pero legible) */
+    backdrop-filter: blur(4px); /* Desenfoque sutil para mantener el fondo visible y nítido */
+    -webkit-backdrop-filter: blur(4px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Elementos del Header en estado inicial (Transparente con texto/logo negros limpios sin bordes) */
+.glass-header .nav-link {
+    color: #0F172A !important;
+}
+
+.glass-header .nav-link:hover {
+    color: var(--color-accent) !important;
+}
+
+.glass-header .logo-text {
+    color: #0F172A !important;
+}
+
+.glass-header .logo-subtitle {
+    color: #475569 !important;
+}
+
+.glass-header .logo-svg path,
+.glass-header .logo-svg circle {
+    stroke: #0F172A !important; /* Logotipo siempre oscuro */
+}
+
+.glass-header .logo-svg circle[fill="white"] {
+    fill: #ffffff !important;
+}
+
+.glass-header #btn-portal {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+    color: #0F172A !important;
+}
+
+.glass-header #btn-portal:hover {
+    background-color: rgba(255, 255, 255, 0.75) !important;
+    color: var(--color-accent) !important;
+}
+
+.glass-header #menu-icon-btn {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    color: #0F172A !important;
+}
+
+.glass-header #menu-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Estado del Header al hacer Scroll (Scrolled) */
+.glass-header.scrolled {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.glass-header.scrolled .nav-link {
+    color: #475569 !important;
+}
+
+.glass-header.scrolled .nav-link:hover {
+    color: var(--color-accent) !important;
+}
+
+.glass-header.scrolled .logo-text {
+    color: var(--color-primary) !important;
+}
+
+.glass-header.scrolled .logo-subtitle {
+    color: #64748b !important;
+}
+
+.glass-header.scrolled .logo-svg path,
+.glass-header.scrolled .logo-svg circle {
+    stroke: #0F172A !important;
+}
+
+.glass-header.scrolled #btn-portal {
+    background-color: #ffffff !important;
+    border-color: #E2E8F0 !important;
+    color: #1E293B !important;
+}
+
+.glass-header.scrolled #btn-portal:hover {
+    background-color: #F8FAFC !important;
+    color: var(--color-accent) !important;
+}
+
+.glass-header.scrolled #menu-icon-btn {
+    background-color: #F1F5F9 !important;
+    color: #334155 !important;
+}
+
+.glass-header.scrolled #menu-icon-btn:hover {
+    background-color: #E2E8F0 !important;
+}
+
+/* Efectos de Hover generales */
+.group:hover .logo-svg path {
+    stroke: var(--color-accent) !important;
+}
+
+.group:hover .logo-subtitle {
+    color: var(--color-accent) !important;
+}
+
+/* Control de visibilidad del botón Solicitar Presupuesto del header */
+#header-cta {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.92);
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#header-cta.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* Hero Section Overlay styling */
+.hero-overlay {
+    background: linear-gradient(135deg, rgba(12, 19, 36, 0.85) 0%, rgba(20, 35, 75, 0.5) 50%, rgba(12, 19, 36, 0.85) 100%);
+}
+
+/* Micro-animations */
+.hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover-glow {
+    transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(36, 75, 254, 0.4);
+    border-color: rgba(36, 75, 254, 0.6);
+}
+
+/* Active Nav Indicator */
+.nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-accent);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.glass-header.scrolled .nav-link::after {
+    background-color: var(--color-accent);
+}
+
+/* Floating contact icon pulse */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+.pulse-green {
+    animation: pulse-glow 2s infinite;
+}
+
+/* Modal animation */
+.modal-anim {
+    animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalSlide {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Infinite Marquee Carousel */
+.marquee-track {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+}
+
+.marquee-group {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 5rem;
+    min-width: 100%;
+    animation: marquee-scroll 25s linear infinite;
+}
+
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+/* Pause scroll on hover */
+.marquee-track:hover .marquee-group {
+    animation-play-state: paused;
+}
+
+/* Premium Brand Logo Styling */
+.brand-logo {
+    filter: grayscale(100%) opacity(0.65);
+    transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: filter, transform;
+}
+
+.brand-logo:hover {
+    filter: grayscale(0%) opacity(1);
+    transform: scale(1.06);
+}
+

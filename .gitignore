@@ -1,0 +1,6 @@
+*.backup
+*.corrupted_backup
+logo-base64.txt
+test.js
+scratch/
+scratch_check_folder.js

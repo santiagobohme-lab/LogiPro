@@ -70,7 +70,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('logi_session') || sessionStorage.getItem('logi_session');
             if(saved) {
-                window.location.href = 'index.html';
+                window.location.href = 'portal.html';
             }
         });
 
@@ -111,7 +111,7 @@
                     localStorage.setItem('logi_session', sessionData);
                     
                     // Redirigir a la app principal
-                    window.location.href = 'index.html';
+                    window.location.href = 'portal.html';
                 } else {
                     errorDiv.innerText = "Usuario o Clave incorrectos.";
                     errorDiv.classList.remove('hidden');
