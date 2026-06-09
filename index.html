@@ -72,6 +72,7 @@
             <a href="#nosotros" class="nav-link hover:text-brand-blue transition-colors">La Empresa</a>
             <a href="#servicios" class="nav-link hover:text-brand-blue transition-colors">Servicios</a>
             <a href="#elegirnos" class="nav-link hover:text-brand-blue transition-colors">¿Por qué elegirnos?</a>
+            <a href="#cobertura" class="nav-link hover:text-brand-blue transition-colors">Cobertura Nacional</a>
         </nav>
 
         <!-- HEADER ACTIONS -->
@@ -84,7 +85,7 @@
             -->
             
             <!-- Botón Solicitar Presupuesto (CTA Principal) -->
-            <button onclick="openModal()" class="px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-bold text-xs shadow-md shadow-brand-blue/20 hover:shadow-lg transition-all hover-glow" id="header-cta">
+            <button onclick="openModal()" class="px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-bold text-xs shadow-md hover:shadow-lg transition-all" id="header-cta">
                 Solicitar Presupuesto
             </button>
 
@@ -108,6 +109,7 @@
                     <a href="#nosotros" onclick="toggleMobileMenu()" class="hover:text-brand-blue transition-colors flex items-center gap-3"><i class="fa-solid fa-building text-slate-400 text-sm"></i> La Empresa</a>
                     <a href="#servicios" onclick="toggleMobileMenu()" class="hover:text-brand-blue transition-colors flex items-center gap-3"><i class="fa-solid fa-truck-moving text-slate-400 text-sm"></i> Servicios</a>
                     <a href="#elegirnos" onclick="toggleMobileMenu()" class="hover:text-brand-blue transition-colors flex items-center gap-3"><i class="fa-solid fa-award text-slate-400 text-sm"></i> ¿Por qué elegirnos?</a>
+                    <a href="#cobertura" onclick="toggleMobileMenu()" class="hover:text-brand-blue transition-colors flex items-center gap-3"><i class="fa-solid fa-map-location-dot text-slate-400 text-sm"></i> Cobertura Nacional</a>
                 </nav>
             </div>
             
@@ -118,7 +120,7 @@
                     Portal Clientes
                 </a>
                 -->
-                <button onclick="toggleMobileMenu(); openModal()" class="w-full py-3 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-bold text-sm shadow-lg shadow-brand-blue/20 transition-all">
+                <button onclick="toggleMobileMenu(); openModal()" class="w-full py-3 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all">
                     Solicitar Presupuesto
                 </button>
             </div>
@@ -128,9 +130,9 @@
     <!-- HERO SECTION -->
     <section id="inicio" class="relative min-h-screen flex items-center justify-start pt-16 overflow-hidden bg-slate-900">
         
-        <!-- Background Image using the existing hero-truck.png -->
+        <!-- Background Image using the existing empresa_personal.jpg -->
         <div class="absolute inset-0 z-0">
-            <img src="./hero-truck.png" alt="Camión Logi Trade" class="w-full h-full object-cover object-center opacity-85">
+            <img src="./empresa_personal.jpg" alt="Personal de Logi Trade en operación" class="w-full h-full object-cover object-center opacity-40">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
 
@@ -138,8 +140,7 @@
         <div class="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16 flex flex-col items-start text-left">
             <div class="max-w-3xl space-y-4 md:space-y-5">
                 <!-- Subtitle (Tracking y Sólido) -->
-                <div class="flex items-center gap-3 mb-1">
-                    <div class="w-8 h-0.5 bg-brand-blue shadow-[0_0_8px_rgba(36,75,254,0.6)]"></div>
+                <div class="mb-1">
                     <span class="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-slate-200 drop-shadow-sm">
                         Logística Especializada en Chile
                     </span>
@@ -147,17 +148,17 @@
                 
                 <!-- Title (Impactante y Premium) -->
                 <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight tracking-tight">
-                    Expertos en el manejo de cargas delicadas y de alto valor
+                    Expertos en el manejo de cargas general y especializada
                 </h1>
                 
                 <!-- Description -->
                 <p class="text-slate-300 text-sm md:text-base font-medium leading-relaxed max-w-2xl">
-                    Brindamos soluciones de transporte nacional e internacional a tu medida, combinando rigurosos protocolos de seguridad, tecnología de punta y excelencia operativa.
+                    Contamos con cobertura total a nivel nacional, solicita tu presupuesto o agenda una reunión con nosotros!
                 </p>
                 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
-                    <button id="hero-cta" onclick="openModal()" class="px-6 py-3 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-extrabold text-sm shadow-xl shadow-brand-blue/30 transition-all transform hover:scale-105 active:scale-95 text-center">
+                    <button id="hero-cta" onclick="openModal()" class="px-6 py-3 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white font-extrabold text-sm shadow-xl shadow-slate-950/35 transition-all transform hover:scale-105 active:scale-95 text-center">
                         Solicitar Presupuesto
                     </button>
                     <a href="#servicios" class="px-6 py-3 rounded-xl border border-white/30 hover:border-white bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all text-center shadow-sm">
@@ -175,11 +176,11 @@
     </section>
 
     <!-- SECTION: CLIENTES REFERIDOS (MARQUEE CAROUSEL) -->
-    <section class="py-12 bg-white border-b border-slate-100 relative z-10 overflow-hidden">
-        <div class="w-full max-w-7xl mx-auto px-6 md:px-12">
+    <section class="py-6 px-6 md:px-12 bg-white border-b border-slate-100 relative z-10 overflow-hidden">
+        <div class="w-full max-w-7xl mx-auto">
             <!-- Header like the example: heading + thin accent line -->
-            <div class="flex flex-col mb-8">
-                <span class="text-xs font-black uppercase tracking-[0.25em] text-slate-800 mb-2">Clientes Referidos</span>
+            <div class="flex flex-col mb-4">
+                <h4 class="text-xs font-black uppercase tracking-[0.25em] text-slate-800 mb-2">Clientes Referidos</h4>
                 <div class="w-full h-[1px] bg-slate-200 relative">
                     <div class="absolute left-0 top-0 h-[1.5px] w-24 bg-brand-blue"></div>
                 </div>
@@ -195,17 +196,19 @@
                 <div class="marquee-track flex gap-12 md:gap-20 py-2 items-center">
                     <!-- Set 1 -->
                     <div class="marquee-group flex shrink-0 items-center justify-around gap-12 md:gap-20 min-w-full">
-                        <img src="./logos-carrusel/logo_gemco.png" alt="GEMCO Medical solutions" class="brand-logo h-7 md:h-9 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_tecnigen.png" alt="Tecnigen" class="brand-logo h-8 md:h-10 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_kolff.png" alt="KOLFF" class="brand-logo h-8 md:h-10 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_coasin.png" alt="Coasin Logicalis" class="brand-logo h-11 md:h-14 w-auto object-contain">
+                        <img src="./logos-carrusel/logo_gemco.png" alt="GEMCO Medical solutions" class="brand-logo h-[26px] md:h-[34px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_tecnigen.png" alt="Tecnigen" class="brand-logo h-[33.28px] md:h-[41.6px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_kolff.png" alt="KOLFF" class="brand-logo h-[30.4px] md:h-[38px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_coasin.png" alt="Coasin Logicalis" class="brand-logo h-[46.56px] md:h-[62.08px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_nutricion.png" alt="Nutrición Balanceada" class="brand-logo h-8 md:h-10 w-auto object-contain">
                     </div>
                     <!-- Set 2 (for seamless loop) -->
                     <div class="marquee-group flex shrink-0 items-center justify-around gap-12 md:gap-20 min-w-full" aria-hidden="true">
-                        <img src="./logos-carrusel/logo_gemco.png" alt="GEMCO Medical solutions" class="brand-logo h-7 md:h-9 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_tecnigen.png" alt="Tecnigen" class="brand-logo h-8 md:h-10 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_kolff.png" alt="KOLFF" class="brand-logo h-8 md:h-10 w-auto object-contain">
-                        <img src="./logos-carrusel/logo_coasin.png" alt="Coasin Logicalis" class="brand-logo h-11 md:h-14 w-auto object-contain">
+                        <img src="./logos-carrusel/logo_gemco.png" alt="GEMCO Medical solutions" class="brand-logo h-[26px] md:h-[34px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_tecnigen.png" alt="Tecnigen" class="brand-logo h-[33.28px] md:h-[41.6px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_kolff.png" alt="KOLFF" class="brand-logo h-[30.4px] md:h-[38px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_coasin.png" alt="Coasin Logicalis" class="brand-logo h-[46.56px] md:h-[62.08px] w-auto object-contain">
+                        <img src="./logos-carrusel/logo_nutricion.png" alt="Nutrición Balanceada" class="brand-logo h-8 md:h-10 w-auto object-contain">
                     </div>
                 </div>
             </div>
@@ -222,7 +225,7 @@
         </div>
 
         <div class="w-full max-w-7xl mx-auto relative z-10">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 lg:items-stretch items-center">
                 
                 <!-- Left Side: Texts -->
                 <div class="lg:col-span-7 space-y-6">
@@ -250,9 +253,9 @@
                 </div>
 
                 <!-- Right Side: Crate Image -->
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="relative bg-white p-2.5 rounded-3xl border border-slate-100 shadow-xl overflow-hidden w-full max-w-[480px]">
-                        <img src="./caja_madera.png" alt="Servicio Logi Trade" class="w-full h-auto object-cover rounded-2xl shadow-inner">
+                <div class="lg:col-span-5 flex lg:items-stretch justify-center">
+                    <div class="relative bg-white p-2.5 rounded-3xl border border-slate-100 shadow-xl overflow-hidden w-full max-w-[480px] hover-lift lg:h-full flex flex-col">
+                        <img src="./caja_madera_nueva.png" alt="Personal de Logi Trade en operación" class="w-full h-auto lg:h-full object-cover rounded-2xl shadow-inner">
                     </div>
                 </div>
 
@@ -269,33 +272,88 @@
             <div class="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-white/70"></div>
         </div>
 
-        <div class="w-full max-w-7xl mx-auto relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                 
-                <!-- Left Side: 2x2 Grid of Circular Images -->
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="grid grid-cols-2 gap-4 md:gap-6 max-w-sm md:max-w-md w-full">
-                        <!-- Circle 1 -->
-                        <div class="aspect-square rounded-full border-[5px] border-brand-blue overflow-hidden shadow-xl hover-lift">
-                            <img src="./servicio_1.png" alt="Servicio 1" class="w-full h-full object-cover">
+                <!-- Left Side: Interactive Carousel -->
+                <div class="lg:col-span-6 flex flex-col items-center gap-3 lg:pt-14">
+                    <div class="relative w-full h-[300px] sm:h-[340px] md:h-[380px] rounded-[2.2rem] overflow-hidden shadow-2xl group border border-slate-100 bg-slate-950">
+                        
+                        <!-- Slide 1 -->
+                        <div class="service-slide absolute inset-0 opacity-100 transition-opacity duration-700 ease-in-out z-10">
+                            <img src="./servicio_carrusel_1.jpg" alt="Preparación de Gabinetes" class="w-full h-full object-cover">
                         </div>
-                        <!-- Circle 2 -->
-                        <div class="aspect-square rounded-full border-[5px] border-brand-blue overflow-hidden shadow-xl hover-lift">
-                            <img src="./servicio_2.png" alt="Servicio 2" class="w-full h-full object-cover">
+
+                        <!-- Slide 2 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_2.png" alt="Izamiento de Cargas" class="w-full h-full object-cover">
                         </div>
-                        <!-- Circle 3 -->
-                        <div class="aspect-square rounded-full border-[5px] border-brand-blue overflow-hidden shadow-xl hover-lift">
-                            <img src="./servicio_3.png" alt="Servicio 3" class="w-full h-full object-cover">
+
+                        <!-- Slide 3 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_3.jpg" alt="Maniobras en Terreno" class="w-full h-full object-cover">
                         </div>
-                        <!-- Circle 4 -->
-                        <div class="aspect-square rounded-full border-[5px] border-brand-blue overflow-hidden shadow-xl hover-lift">
-                            <img src="./servicio_4.png" alt="Servicio 4" class="w-full h-full object-cover">
+
+                        <!-- Slide 4 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_4.png" alt="Sistemas de Simulación y Control" class="w-full h-full object-cover">
                         </div>
+
+                        <!-- Slide 5 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_5.jpg" alt="Gestión de Carga" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- Slide 6 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_6.jpg" alt="Transporte Especializado" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- Slide 7 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_7.jpg" alt="Instalaciones Novacel" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- Slide 8 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_8.jpg" alt="Instalaciones Steelco" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- Slide 9 -->
+                        <div class="service-slide absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out">
+                            <img src="./servicio_carrusel_9.jpg" alt="Logística Hospitalaria Elis" class="w-full h-full object-cover">
+                        </div>
+
+                        <!-- Navigation Controls -->
+                        <button onclick="prevServiceSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-xl bg-slate-950/45 hover:bg-brand-blue backdrop-blur-md text-white transition-all opacity-0 group-hover:opacity-100 shadow-md">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <button onclick="nextServiceSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-xl bg-slate-950/45 hover:bg-brand-blue backdrop-blur-md text-white transition-all opacity-0 group-hover:opacity-100 shadow-md">
+                            <i class="fa-solid fa-chevron-right text-sm"></i>
+                        </button>
+
+                        <!-- Slide Indicators -->
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                            <button onclick="setSlide(0)" class="service-dot w-2.5 h-2.5 rounded-full bg-white transition-all duration-300" aria-label="Slide 1"></button>
+                            <button onclick="setSlide(1)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 2"></button>
+                            <button onclick="setSlide(2)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 3"></button>
+                            <button onclick="setSlide(3)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 4"></button>
+                            <button onclick="setSlide(4)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 5"></button>
+                            <button onclick="setSlide(5)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 6"></button>
+                            <button onclick="setSlide(6)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 7"></button>
+                            <button onclick="setSlide(7)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 8"></button>
+                            <button onclick="setSlide(8)" class="service-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" aria-label="Slide 9"></button>
+                        </div>
+
+                    </div>
+                    <!-- Label below the carousel -->
+                    <div class="text-center pointer-events-none select-none mt-1">
+                        <span class="block text-[10px] uppercase tracking-[0.25em] font-extrabold text-slate-600">Galería de fotos</span>
+                        <span class="block text-[8px] uppercase tracking-[0.15em] font-bold text-slate-400 mt-1"><i class="fa-solid fa-chevron-left mr-0.5 text-[7px]"></i> Desliza <i class="fa-solid fa-chevron-right ml-0.5 text-[7px]"></i></span>
                     </div>
                 </div>
 
                 <!-- Right Side: Texts -->
-                <div class="lg:col-span-7 space-y-6">
+                <div class="lg:col-span-6 space-y-6">
                     <div class="space-y-1">
                         <h2 class="text-4xl md:text-5xl font-black text-brand-blue tracking-tight leading-none">Nuestros</h2>
                         <h3 class="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-none mt-1">Servicios</h3>
@@ -383,10 +441,52 @@
         </div>
     </section>
 
+    <!-- SECTION: COBERTURA NACIONAL -->
+    <section id="cobertura" class="py-24 px-6 md:px-12 bg-slate-50 relative z-10 border-t border-slate-100 overflow-hidden">
+        
+        <!-- Faded Santiago background image -->
+        <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.28] select-none">
+            <img src="./santiago_fondo.jpg" alt="Santiago Skyline Background" class="w-full h-full object-cover object-center">
+            <div class="absolute inset-0 bg-gradient-to-b from-slate-50 via-slate-50/10 to-slate-50"></div>
+        </div>
 
+        <div class="w-full max-w-7xl mx-auto relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                
+                <!-- Left Side: Image -->
+                <div class="lg:col-span-5 flex justify-center lg:justify-start">
+                    <div class="relative bg-white p-2.5 rounded-[2rem] border border-slate-200/80 shadow-xl overflow-hidden w-full max-w-[360px] hover-lift">
+                        <img src="./cobertura_nacional.png" alt="Cobertura Nacional Logi Trade" class="w-full h-auto object-cover rounded-[1.5rem] shadow-inner">
+                    </div>
+                </div>
+
+                <!-- Right Side: Texts -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="space-y-1">
+                        <h2 class="text-4xl md:text-5xl font-black text-brand-blue tracking-tight leading-none">Cobertura</h2>
+                        <h3 class="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-none mt-1">nacional</h3>
+                    </div>
+                    
+                    <div class="h-1.5 w-24 bg-brand-blue rounded-full"></div>
+                    
+                    <div class="space-y-5 text-slate-700 text-sm md:text-base leading-relaxed font-medium">
+                        <p>
+                            Logi&amp;Trade cuenta con un grupo de operadores multidisciplinarios, que cuentan con una vasta experiencia en el Mercado a nivel nacional (Arica a Pta. Arenas y zonas extremas), garantizando un servicio de calidad adaptado a las necesidades de cada cliente y en la zona geográfica que lo requiera.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
 
     <!-- SECTION: CTA FINAL BANNER -->
     <section class="py-20 px-6 md:px-12 bg-slate-900 text-white relative overflow-hidden z-10">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="./empresa_personal.jpg" alt="Colaboración" class="w-full h-full object-cover object-center opacity-60">
+            <div class="absolute inset-0 hero-overlay"></div>
+        </div>
         <div class="w-full max-w-5xl mx-auto text-center space-y-8 relative z-10">
             <h2 class="text-3xl md:text-5xl font-black leading-tight tracking-tight">
                 Queremos colaborar con usted
@@ -443,6 +543,7 @@
                         <a href="#nosotros" class="hover:text-white transition-colors">La Empresa</a>
                         <a href="#servicios" class="hover:text-white transition-colors flex items-center gap-1.5">Servicios</a>
                         <a href="#elegirnos" class="hover:text-white transition-colors">¿Por qué elegirnos?</a>
+                        <a href="#cobertura" class="hover:text-white transition-colors">Cobertura Nacional</a>
                     </div>
                 </div>
 
@@ -538,7 +639,7 @@
                         <textarea id="quote-desc" rows="3" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-sm focus:border-brand-blue focus:bg-white outline-none transition-colors resize-none" placeholder="Indique tipo de carga, volumen aproximado, requerimientos de escolta, etc."></textarea>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full bg-brand-blue hover:bg-brand-blueHover text-white font-extrabold py-4 rounded-xl shadow-lg shadow-brand-blue/20 hover:shadow-xl transition-all mt-4 text-sm flex items-center justify-center gap-2">
+                    <button type="submit" id="submit-btn" class="w-full bg-brand-blue hover:bg-brand-blueHover text-white font-extrabold py-4 rounded-xl shadow-md hover:shadow-lg transition-all mt-4 text-sm flex items-center justify-center gap-2">
                         Enviar Solicitud
                     </button>
                 </form>
@@ -660,6 +761,65 @@
                 successContent.classList.remove('hidden');
                 quoteForm.reset();
             }, 1200);
+        }
+
+        // --- Interactive Service Carousel Controls ---
+        let currentServiceSlide = 0;
+        const serviceSlides = document.querySelectorAll('.service-slide');
+        const serviceDots = document.querySelectorAll('.service-dot');
+        let serviceCarouselInterval = setInterval(nextServiceSlide, 5000);
+
+        function resetServiceInterval() {
+            clearInterval(serviceCarouselInterval);
+            serviceCarouselInterval = setInterval(nextServiceSlide, 5000);
+        }
+
+        function showServiceSlide(index) {
+            if (index >= serviceSlides.length) {
+                currentServiceSlide = 0;
+            } else if (index < 0) {
+                currentServiceSlide = serviceSlides.length - 1;
+            } else {
+                currentServiceSlide = index;
+            }
+
+            // Update slide visibilities (fade transitions)
+            serviceSlides.forEach((slide, i) => {
+                if (i === currentServiceSlide) {
+                    slide.classList.remove('opacity-0', 'z-0');
+                    slide.classList.add('opacity-100', 'z-10');
+                } else {
+                    slide.classList.remove('opacity-100', 'z-10');
+                    slide.classList.add('opacity-0', 'z-0');
+                }
+            });
+
+            // Update pagination indicator dots
+            serviceDots.forEach((dot, i) => {
+                if (i === currentServiceSlide) {
+                    dot.classList.remove('bg-white/40');
+                    dot.classList.add('bg-white');
+                } else {
+                    dot.classList.remove('bg-white');
+                    dot.classList.add('bg-white/40');
+                }
+            });
+        }
+
+        function nextServiceSlide() {
+            resetServiceInterval();
+            showServiceSlide(currentServiceSlide + 1);
+        }
+
+        function prevServiceSlide() {
+            resetServiceInterval();
+            showServiceSlide(currentServiceSlide - 1);
+        }
+
+        // Click on dots triggers slide navigation and resets interval
+        function setSlide(index) {
+            resetServiceInterval();
+            showServiceSlide(index);
         }
     </script>
 </body>

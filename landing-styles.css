@@ -197,14 +197,6 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.hover-glow {
-    transition: all 0.3s ease;
-}
-
-.hover-glow:hover {
-    box-shadow: 0 0 20px rgba(36, 75, 254, 0.4);
-    border-color: rgba(36, 75, 254, 0.6);
-}
 
 /* Active Nav Indicator */
 .nav-link {
