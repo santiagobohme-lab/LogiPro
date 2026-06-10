@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+    <!-- Linea conectora de nodos -->
+    <path d="M 40 100 C 60 65, 80 65, 100 100 C 120 130, 140 130, 160 85" stroke="black" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Nodo Izquierdo (Azul) -->
+    <circle cx="40" cy="100" r="18" fill="#244BFE" stroke="black" stroke-width="10" />
+    <!-- Nodo Central (Blanco) -->
+    <circle cx="100" cy="100" r="18" fill="white" stroke="black" stroke-width="10" />
+    <!-- Nodo Derecho (Naranja) -->
+    <circle cx="160" cy="85" r="18" fill="#F28C28" stroke="black" stroke-width="10" />
+</svg>
