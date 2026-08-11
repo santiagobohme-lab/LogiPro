@@ -292,6 +292,52 @@ function doPost(e) {
       }
     }
 
+    if (action === "submitLandingQuote") {
+      try {
+        const data = payload.data;
+        const nombre = data.nombre;
+        const empresa = data.empresa;
+        const email = data.email;
+        const telefono = data.telefono;
+        const origen = data.origen;
+        const destino = data.destino;
+        const descripcion = data.descripcion;
+        const ticketId = data.ticketId;
+
+        // 1. Guardar en la hoja de Potenciales
+        const p_sheet = ss.getSheetByName("Potenciales") || initSheet(ss, "Potenciales", POTENTIAL_HEADERS);
+        const rowData = {
+          "Nombre": `${nombre} (${empresa})`,
+          "Teléfono": telefono,
+          "Email": email,
+          "Sitio Web": `Origen: ${origen} | Destino: ${destino} | Ticket: ${ticketId} | Detalle: ${descripcion}`
+        };
+        upsertRow(p_sheet, POTENTIAL_HEADERS, rowData, "Nombre");
+
+        // 2. Enviar correo al administrador de la empresa
+        const userEmail = "santi.bohme@gmail.com";
+        const subject = `[Logi Pro] Nueva Solicitud de Presupuesto - ${ticketId}`;
+        const body = `Se ha recibido una nueva solicitud de presupuesto desde la landing page.\n\n` +
+          `Detalles de la Solicitud:\n` +
+          `-----------------------------------\n` +
+          `Código de Ticket: ${ticketId}\n` +
+          `Nombre Completo: ${nombre}\n` +
+          `Empresa: ${empresa}\n` +
+          `Correo Electrónico: ${email}\n` +
+          `Teléfono: ${telefono}\n` +
+          `Origen Carga: ${origen}\n` +
+          `Destino Carga: ${destino}\n` +
+          `Descripción: ${descripcion}\n\n` +
+          `Esta información también ha sido guardada en la hoja "Potenciales" de tu planilla Google Sheets.`;
+
+        MailApp.sendEmail(userEmail, subject, body);
+
+        return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+      } catch (error) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
     const token = payload.token;
     if (!token) throw new Error("Acceso denegado: Se requiere un Token de sesión.");
     

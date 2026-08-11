@@ -3,8 +3,8 @@
 :root {
     --color-primary: #0F172A; /* Slate 900 */
     --color-primary-light: #1E293B; /* Slate 800 */
-    --color-accent: #244BFE; /* Solid Royal Blue */
-    --color-accent-hover: #1A3BC5;
+    --color-accent: #2563EB; /* Solid Royal Blue */
+    --color-accent-hover: #1D4ED8;
     --color-bg-light: #F8FAFC; /* Slate 50 */
     --color-border: #E2E8F0; /* Slate 200 */
 }
