@@ -21,6 +21,10 @@ try {
                 ".css"  { $response.ContentType = "text/css" }
                 ".js"   { $response.ContentType = "application/javascript" }
                 ".png"  { $response.ContentType = "image/png" }
+                ".jpg"  { $response.ContentType = "image/jpeg" }
+                ".jpeg" { $response.ContentType = "image/jpeg" }
+                ".mp4"  { $response.ContentType = "video/mp4" }
+                ".svg"  { $response.ContentType = "image/svg+xml" }
                 default { $response.ContentType = "application/octet-stream" }
             }
             
